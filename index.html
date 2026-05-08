@@ -1475,7 +1475,6 @@ function cardHTML(s,i){
       ${f['Título Original']?`<div style="font-family:'Noto Serif KR',serif;font-size:.75rem;color:var(--text3);margin:-2px 0 4px">${f['Título Original']}</div>`:''}
       <div class="card-meta">
         <span class="card-year">${f['Ano Lançamento']||''}</span>
-        <div class="card-stars">${starsHTML(f['Nota'])}</div>
       </div>
       <div class="card-badges">
         ${statusBadge(f['Status'])}
@@ -1578,6 +1577,14 @@ async function renderDorama(id){
       }));
     }
 
+    // Buscar resenha do blog para este dorama
+    const nomeDorama = f['Nome'] || '';
+    const resenhaPost = allPosts.find(p =>
+      p.fields['Status'] === 'Publicado' &&
+      p.fields['Tipo'] === 'Resenha' &&
+      (p.fields['Dorama'] || '').toLowerCase() === nomeDorama.toLowerCase()
+    )?.id || null;
+
     const ratingFields=['Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro'];
     const ratingsHTML=ratingFields.map(r=>{
       const val=f[r];if(val===undefined)return'';
@@ -1647,6 +1654,10 @@ async function renderDorama(id){
         </div>
       </div>
       <div class="detail-main">
+        ${resenhaPost ? `
+          <button class="btn-gold btn-sm" onclick="navigate('post','${resenhaPost}')" style="margin-bottom:24px;display:inline-flex;align-items:center;gap:8px">
+            ✍️ Ver Resenha
+          </button>` : ''}
         ${f['Sinopse']?`<div class="section-title">Sinopse</div><p class="detail-sinopse editable" contenteditable="false" data-field="Sinopse">${f['Sinopse']}</p>`:''}
 
         ${gallery.length?`
@@ -3509,7 +3520,7 @@ function openBlogForm(editId) {
       bfSet('bf-kicker', f['Kicker'] || '');
       bfSet('bf-capa', capaUrl);
       bfSet('bf-tags', f['Tags'] || '');
-      bfSet('bf-nota', f['Nota'] || '');
+      // nota calculada automaticamente
       bfSet('bf-dorama-nome', f['Dorama'] || '');
       bfSet('bf-conteudo', f['Conteúdo'] || '');
       bfSet('bf-exp', f['Experiência'] || '');
@@ -3517,7 +3528,7 @@ function openBlogForm(editId) {
       bfLoadStars(f);
     }
   } else {
-    ['bf-titulo','bf-kicker','bf-capa','bf-tags','bf-nota','bf-dorama-nome','bf-conteudo','bf-exp'].forEach(id => bfSet(id, ''));
+    ['bf-titulo','bf-kicker','bf-capa','bf-tags','bf-dorama-nome','bf-conteudo','bf-exp'].forEach(id => bfSet(id, ''));
     bfSet('bf-tipo', 'Resenha');
     bfSet('bf-status-select', 'Publicado');
     bfClearStars();
@@ -3532,9 +3543,28 @@ function bfToggleDoramaRow() {
   const rowDor = document.getElementById('bf-row-dorama');
   const rowAval = document.getElementById('bf-row-aval');
   const rowStars = document.getElementById('bf-row-stars');
-  if (rowDor) rowDor.style.display = isResenha ? 'grid' : 'none';
+  if (rowDor) rowDor.style.display = isResenha ? 'block' : 'none';
   if (rowAval) rowAval.style.display = isResenha ? 'block' : 'none';
   if (rowStars) rowStars.style.display = isResenha ? 'block' : 'none';
+  if (isResenha) bfPopularSelectDoramas();
+}
+
+function bfPopularSelectDoramas() {
+  const sel = document.getElementById('bf-dorama-nome');
+  if (!sel || sel.options.length > 1) return; // já populado
+  const atual = sel.value;
+  // Usar allSeries que já está em memória
+  const series = [...allSeries].sort((a,b) => (a.fields['Nome']||'').localeCompare(b.fields['Nome']||''));
+  sel.innerHTML = '<option value="">— Selecione o dorama —</option>';
+  series.forEach(s => {
+    const nome = s.fields['Nome'] || '';
+    if (!nome) return;
+    const opt = document.createElement('option');
+    opt.value = nome;
+    opt.textContent = nome;
+    if (nome === atual) opt.selected = true;
+    sel.appendChild(opt);
+  });
 }
 
 function bfSetStar(field, val) {
@@ -3544,6 +3574,20 @@ function bfSetStar(field, val) {
     s.classList.toggle('on', parseInt(s.dataset.val) <= val);
   });
   wrap.dataset.value = val;
+  bfCalcularNota(); // recalcula média sempre que muda uma estrela
+}
+
+function bfCalcularNota() {
+  const campos = ['Romance','Comédia','Drama','Fantasia','Química do Casal','Roteiro','OST','Ação'];
+  const vals = campos.map(f => parseInt(document.getElementById('bfs-' + f)?.dataset.value || 0)).filter(v => v > 0);
+  if (!vals.length) return;
+  const media = vals.reduce((a,b) => a+b, 0) / vals.length;
+  // Converter escala 1-5 pra 0-10
+  const nota = parseFloat((media * 2).toFixed(1));
+  const notaEl = document.getElementById('bf-nota-calculada');
+  if (notaEl) notaEl.textContent = nota.toFixed(1);
+  // Guardar no dataset do form pra salvar depois
+  document.getElementById('bf-stars-wrap') && (document.getElementById('bf-stars-wrap').dataset.nota = nota);
 }
 
 function bfGetStars(field) {
@@ -3621,9 +3665,11 @@ async function bfSalvar() {
     const exp = document.getElementById('bf-exp')?.value; if (exp) fields['Experiência'] = exp;
     const ratingFields = ['Romance','Comédia','Drama','Fantasia','Química do Casal','Roteiro','OST','Ação'];
     ratingFields.forEach(f => { const v = bfGetStars(f); if (v) fields[f] = v; });
+    // Salvar nota calculada pela média
+    const notaCalc = parseFloat(document.getElementById('bf-nota-calculada')?.textContent);
+    if (!isNaN(notaCalc)) fields['Nota'] = notaCalc;
     const tags = document.getElementById('bf-tags').value.trim(); if (tags) fields['Tags'] = tags;
     const conteudo = document.getElementById('bf-conteudo').value.trim(); if (conteudo) fields['Conteúdo'] = conteudo;
-    const nota = parseFloat(document.getElementById('bf-nota').value); if (!isNaN(nota)) fields['Nota'] = nota;
     const dor = document.getElementById('bf-dorama-nome').value.trim(); if (dor) fields['Dorama'] = dor;
     const capa = document.getElementById('bf-capa').value.trim(); if (capa) fields['Capa'] = capa;
     bar.style.width = '70%';
@@ -4129,14 +4175,12 @@ async function faBuscarFilmografiaMDL(){
           <input type="text" id="bf-titulo" class="fi" placeholder="Ex: Crash Landing on You me destruiu de um jeito bom">
         </div>
       </div>
-      <div class="form-row cols-2" id="bf-row-dorama">
+      <div class="form-row" id="bf-row-dorama">
         <div class="fg">
-          <label class="fl">Nome do Dorama</label>
-          <input type="text" id="bf-dorama-nome" class="fi" placeholder="Ex: Crash Landing on You">
-        </div>
-        <div class="fg">
-          <label class="fl">Nota (0–10)</label>
-          <input type="number" id="bf-nota" class="fi" placeholder="8.5" min="0" max="10" step="0.1">
+          <label class="fl">Dorama</label>
+          <select class="fs" id="bf-dorama-nome">
+            <option value="">— Selecione o dorama —</option>
+          </select>
         </div>
       </div>
       <!-- Avaliação (só aparece em Resenha) -->
@@ -4166,6 +4210,10 @@ async function faBuscarFilmografiaMDL(){
             <div class="bf-star-row"><span class="bf-star-label">Roteiro</span><div class="bf-stars" id="bfs-Roteiro"><span onclick="bfSetStar('Roteiro',1)" data-val="1">★</span><span onclick="bfSetStar('Roteiro',2)" data-val="2">★</span><span onclick="bfSetStar('Roteiro',3)" data-val="3">★</span><span onclick="bfSetStar('Roteiro',4)" data-val="4">★</span><span onclick="bfSetStar('Roteiro',5)" data-val="5">★</span></div></div>
             <div class="bf-star-row"><span class="bf-star-label">OST</span><div class="bf-stars" id="bfs-OST"><span onclick="bfSetStar('OST',1)" data-val="1">★</span><span onclick="bfSetStar('OST',2)" data-val="2">★</span><span onclick="bfSetStar('OST',3)" data-val="3">★</span><span onclick="bfSetStar('OST',4)" data-val="4">★</span><span onclick="bfSetStar('OST',5)" data-val="5">★</span></div></div>
             <div class="bf-star-row"><span class="bf-star-label">Ação</span><div class="bf-stars" id="bfs-Ação"><span onclick="bfSetStar('Ação',1)" data-val="1">★</span><span onclick="bfSetStar('Ação',2)" data-val="2">★</span><span onclick="bfSetStar('Ação',3)" data-val="3">★</span><span onclick="bfSetStar('Ação',4)" data-val="4">★</span><span onclick="bfSetStar('Ação',5)" data-val="5">★</span></div></div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Nota calculada</span>
+              <span style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--gold)" id="bf-nota-calculada">—</span>
+            </div>
           </div>
         </div>
       </div>
