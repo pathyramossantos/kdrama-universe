@@ -649,6 +649,17 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 /* DORAMAS PAGE (antigo home) */
 .doramas-header{padding:40px clamp(16px,4vw,48px) 0}
 
+
+/* Estrelas no blog form */
+.bf-stars-wrap{display:flex;flex-direction:column;gap:10px;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px}
+.bf-star-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bf-star-label{font-size:.8rem;color:var(--text2);min-width:120px}
+.bf-stars{display:flex;gap:4px}
+.bf-stars span{font-size:1.3rem;color:var(--border);cursor:pointer;transition:color .15s;line-height:1}
+.bf-stars span.on{color:var(--gold)}
+.bf-stars span:hover{color:var(--gold2)}
+.bf-exp-select{width:100%}
+
 </style>
 </head>
 <body>
@@ -725,14 +736,14 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <div class="home-section-header">
         <div class="home-section-title">
           Notícias
-          <span class="news-source-badge">MyDramaList</span>
+          <span class="news-source-badge">Google News</span>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <div id="news-translate-status" class="news-translating" style="display:none">
             <span class="spinner" style="width:14px;height:14px;display:inline-block;border-width:2px"></span>
             Traduzindo…
           </div>
-          <button class="btn-outline btn-sm" id="btn-traduzir" onclick="traduzirNoticias()" style="display:none">
+          <button class="btn-outline btn-sm" id="btn-traduzir" onclick="traduzirNoticias()" style="display:none;visibility:hidden">
             🇧🇷 Traduzir
           </button>
           <button class="btn-outline btn-sm" onclick="carregarNoticias(true)">↺ Atualizar</button>
@@ -910,6 +921,23 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         </div>
         <div id="tmdb-status" class="config-status"></div>
       </div>
+
+      <!-- Gemini AI -->
+      <div class="config-section">
+        <div class="config-section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Gemini AI (Biografias)
+        </div>
+        <div class="config-field">
+          <label class="config-label">Gemini API Key</label>
+          <input type="password" id="gemini-key-input" class="config-input" placeholder="AIza…">
+          <p class="config-hint">Chave do Google Gemini. Usada para gerar biografias dos atores com IA. Gratuita em <a href="https://aistudio.google.com" target="_blank" style="color:var(--gold)">aistudio.google.com</a>.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-gold" onclick="saveGeminiConfig()">Salvar Gemini Key</button>
+        </div>
+        <div id="gemini-status" class="config-status"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -986,13 +1014,14 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         </div>
       </div>
 
+
       <!-- Sinopse -->
       <div class="form-sect">
         <div class="form-sect-title">Sinopse</div>
         <div class="fg">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
             <label class="fl">Sinopse</label>
-            <button class="btn-ai" onclick="fdAbrirClaudeSinopse()">✨ Gerar com IA</button>
+            <button class="btn-ai" onclick="fdGerarSinopse()">✨ Gerar com IA</button>
           </div>
           <textarea class="fta" id="fd-sinopse" placeholder="Resumo da história…" style="min-height:110px"></textarea>
         </div>
@@ -1023,48 +1052,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         </div>
       </div>
 
-      <!-- Avaliação pessoal -->
-      <div class="form-sect">
-        <div class="form-sect-title">Avaliação Pessoal</div>
-        <div class="form-row cols-2" style="margin-bottom:12px">
-          <div class="fg"><label class="fl">Experiência</label>
-            <select class="fs" id="fd-exp">
-              <option value="">—</option>
-              <option>⭐⭐⭐⭐⭐ - Obra-prima</option>
-              <option>⭐⭐⭐⭐ - Excelente</option>
-              <option>⭐⭐⭐ - Bom</option>
-              <option>⭐⭐ - Regular</option>
-              <option>⭐ - Fraco</option>
-            </select>
-          </div>
-        </div>
-        <div class="fg"><label class="fl">Comentário</label><textarea class="fta" id="fd-aval" placeholder="O que achou?" style="min-height:70px"></textarea></div>
-      </div>
-
-      <!-- Ratings por categoria -->
-      <div class="form-sect">
-        <div class="form-sect-title">Notas por Categoria</div>
-        <div class="star-row" id="fd-ratings">
-          <div class="star-item"><div class="star-label">Romance</div>
-          <div class="stars" data-field="Romance"><span onclick="fdSetRating('Romance',1)" data-val="1">★</span><span onclick="fdSetRating('Romance',2)" data-val="2">★</span><span onclick="fdSetRating('Romance',3)" data-val="3">★</span><span onclick="fdSetRating('Romance',4)" data-val="4">★</span><span onclick="fdSetRating('Romance',5)" data-val="5">★</span></div></div>
-          <div class="star-item"><div class="star-label">Comédia</div>
-          <div class="stars" data-field="Comédia"><span onclick="fdSetRating('Comédia',1)" data-val="1">★</span><span onclick="fdSetRating('Comédia',2)" data-val="2">★</span><span onclick="fdSetRating('Comédia',3)" data-val="3">★</span><span onclick="fdSetRating('Comédia',4)" data-val="4">★</span><span onclick="fdSetRating('Comédia',5)" data-val="5">★</span></div></div>
-          <div class="star-item"><div class="star-label">Drama</div>
-          <div class="stars" data-field="Drama"><span onclick="fdSetRating('Drama',1)" data-val="1">★</span><span onclick="fdSetRating('Drama',2)" data-val="2">★</span><span onclick="fdSetRating('Drama',3)" data-val="3">★</span><span onclick="fdSetRating('Drama',4)" data-val="4">★</span><span onclick="fdSetRating('Drama',5)" data-val="5">★</span></div></div>
-          <div class="star-item"><div class="star-label">Fantasia</div>
-          <div class="stars" data-field="Fantasia"><span onclick="fdSetRating('Fantasia',1)" data-val="1">★</span><span onclick="fdSetRating('Fantasia',2)" data-val="2">★</span><span onclick="fdSetRating('Fantasia',3)" data-val="3">★</span><span onclick="fdSetRating('Fantasia',4)" data-val="4">★</span><span onclick="fdSetRating('Fantasia',5)" data-val="5">★</span></div></div>
-          <div class="star-item"><div class="star-label">Química do Casal</div>
-          <div class="stars" data-field="Química do Casal"><span onclick="fdSetRating('Química do Casal',1)" data-val="1">★</span><span onclick="fdSetRating('Química do Casal',2)" data-val="2">★</span><span onclick="fdSetRating('Química do Casal',3)" data-val="3">★</span><span onclick="fdSetRating('Química do Casal',4)" data-val="4">★</span><span onclick="fdSetRating('Química do Casal',5)" data-val="5">★</span></div></div>
-          <div class="star-item"><div class="star-label">Ação</div>
-          <div class="stars" data-field="Ação"><span onclick="fdSetRating('Ação',1)" data-val="1">★</span><span onclick="fdSetRating('Ação',2)" data-val="2">★</span><span onclick="fdSetRating('Ação',3)" data-val="3">★</span><span onclick="fdSetRating('Ação',4)" data-val="4">★</span><span onclick="fdSetRating('Ação',5)" data-val="5">★</span></div></div>
-          <div class="star-item"><div class="star-label">Roteiro</div>
-          <div class="stars" data-field="Roteiro"><span onclick="fdSetRating('Roteiro',1)" data-val="1">★</span><span onclick="fdSetRating('Roteiro',2)" data-val="2">★</span><span onclick="fdSetRating('Roteiro',3)" data-val="3">★</span><span onclick="fdSetRating('Roteiro',4)" data-val="4">★</span><span onclick="fdSetRating('Roteiro',5)" data-val="5">★</span></div></div>
-          <div class="star-item"><div class="star-label">OST</div>
-          <div class="stars" data-field="OST"><span onclick="fdSetRating('OST',1)" data-val="1">★</span><span onclick="fdSetRating('OST',2)" data-val="2">★</span><span onclick="fdSetRating('OST',3)" data-val="3">★</span><span onclick="fdSetRating('OST',4)" data-val="4">★</span><span onclick="fdSetRating('OST',5)" data-val="5">★</span></div></div>
-
-        </div>
-      </div>
-
       <!-- Galeria -->
       <div class="form-sect">
         <div class="form-sect-title">Galeria</div>
@@ -1087,22 +1074,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           <span class="fl" style="font-size:.65rem">Tipo</span>
           <span></span>
         </div>
-        <!-- MDL Import Box -->
-        <div class="mdl-search-box" id="mdl-cast-box">
-          <div class="mdl-search-box-title">
-            <span>🎬</span> Importar Elenco do MyDramaList
-          </div>
-          <div class="mdl-search-row">
-            <input class="mdl-input" id="mdl-cast-input" placeholder="Nome do dorama em inglês…" onkeydown="if(event.key==='Enter') mdlSearchDrama()">
-            <button class="btn-gold btn-sm" onclick="mdlSearchDrama()">Buscar</button>
-          </div>
-          <div id="mdl-search-results"></div>
-          <div id="mdl-cast-preview"></div>
-          <div id="mdl-cast-actions" style="display:none;margin-top:8px;display:flex;gap:8px">
-            <button class="btn-gold btn-sm" id="mdl-import-btn" onclick="mdlImportCast()">⬇️ Importar para o formulário</button>
-            <button class="btn-outline btn-sm" onclick="mdlClearPreview()">Limpar</button>
-          </div>
-        </div>
+        
         <div class="cast-list" id="fd-cast-list"></div>
         <button class="btn-add-cast" onclick="fdAddCastRow()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -1151,7 +1123,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
               <label class="fl">Nome (Romanizado)</label>
               <div style="display:flex;gap:8px">
                 <input class="fi" id="fa-nome" placeholder="Park Seo-joon" style="flex:1">
-                <button class="btn-ai" onclick="faBuscarTMDBPeloNome()" id="fa-btn-filmografia" title="Buscar no TMDB pelo nome já preenchido">Buscar</button>
+                <button class="btn-ai" onclick="faBuscarTMDBPeloNome()" id="fa-btn-filmografia" title="Buscar tudo do ator">Buscar</button>
               </div>
             </div>
             <div class="fg"><label class="fl">Nome Coreano</label><input class="fi" id="fa-nome-kor" placeholder="박서준"></div>
@@ -1166,7 +1138,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <div class="fg">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
             <label class="fl">Biografia</label>
-            <button class="btn-ai" onclick="faAbrirClaudeBio()">✨ Gerar com IA</button>
+            <button class="btn-ai" onclick="faGerarBio()">✨ Gerar com IA</button>
           </div>
           <textarea class="fta" id="fa-bio" placeholder="Breve biografia…" style="min-height:100px"></textarea>
         </div>
@@ -1181,18 +1153,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         </div>
       </div>
 
-      <!-- MDL ID -->
-      <div class="form-sect">
-        <div class="form-sect-title">MyDramaList</div>
-        <div class="fg" style="margin-bottom:10px">
-          <label class="fl">ID ou URL do Ator no MDL</label>
-          <div style="display:flex;gap:8px">
-            <input class="fi" id="fa-link" placeholder="1234 ou https://mydramalist.com/people/1234-lee-min-ho" style="flex:1">
-            
-          </div>
-          <span style="font-size:.7rem;color:var(--text3);margin-top:4px;display:block">Cole o ID numérico ou a URL completa do perfil no MDL</span>
-        </div>
-      </div>
     </div>
     <div class="form-foot">
       <div style="flex:1">
@@ -1230,6 +1190,7 @@ const TMDB_IMG  = 'https://image.tmdb.org/t/p/w500';
 // ── STATE ─────────────────────────────────────────────────
 let apiKey    = localStorage.getItem('kdrama_apikey') || '';
 let tmdbKey   = localStorage.getItem('kdrama_tmdbkey') || 'd955f842429f465efe39144d129a01f1';
+let geminiKey = localStorage.getItem('kdrama_geminikey') || '';
 let allSeries = [], allAtores = [], allElenco = [], allPlataformas = [];
 let activeGenre='', activeStatus='', activePlatform='', searchQuery='';
 let editMode = false;
@@ -1297,8 +1258,10 @@ function navigate(page, id) {
   if (pageAlias === 'config') {
     const ki = document.getElementById('api-key-input');
     const ti = document.getElementById('tmdb-key-input');
-    if (ki && apiKey) ki.value = apiKey;
-    if (ti && tmdbKey) ti.value = tmdbKey;
+    const gi = document.getElementById('gemini-key-input');
+    if (ki && apiKey)    ki.value = apiKey;
+    if (ti && tmdbKey)   ti.value = tmdbKey;
+    if (gi && geminiKey) gi.value = geminiKey;
   }
 }
 
@@ -2473,6 +2436,18 @@ async function saveTmdbConfig(){
   }catch(e){status.className='config-status err';status.textContent='Erro: '+e.message;}
 }
 
+function saveGeminiConfig(){
+  const key = document.getElementById('gemini-key-input').value.trim();
+  const status = document.getElementById('gemini-status');
+  if(!key){ status.className='config-status err'; status.textContent='Cole a Gemini API Key.'; status.style.display='block'; return; }
+  geminiKey = key;
+  localStorage.setItem('kdrama_geminikey', key);
+  status.className='config-status ok';
+  status.textContent='✓ Gemini Key salva!';
+  status.style.display='block';
+}
+
+
 function clearConfig(){
   apiKey='';localStorage.removeItem('kdrama_apikey');
   document.getElementById('api-key-input').value='';
@@ -2681,80 +2656,22 @@ async function fdSalvarElenco(serieId, castData) {
 // ATALHOS CLAUDE.AI
 // ════════════════════════════════════════════════════════
 
-function fdAbrirClaudeSinopse() {
-  const nome = document.getElementById('fd-nome').value.trim();
-  const tituloOrig = document.getElementById('fd-titulo-orig').value.trim();
-  const sinopse = document.getElementById('fd-sinopse').value.trim();
-  const ano = document.getElementById('fd-ano').value;
-  const eps = document.getElementById('fd-eps').value;
-  const generos = fdGenerosSel.join(', ');
 
-  if (!nome) { showToast('Preencha o nome do dorama primeiro'); return; }
-
-  const prompt = `Escreva uma sinopse no meu estilo pessoal para o dorama abaixo.
-
-MEU ESTILO (siga este exemplo como referência de tom e formato):
-"Marry My Husband (내 남편과 결혼해줘 / Case com Meu Marido)
-16 episódios | tvN + Prime Video | janeiro–fevereiro 2024
-Kang Ji-won tem câncer terminal, um marido desempregado e abusivo que ela sustenta, e uma "melhor amiga" que sorri na sua cara enquanto a trai pelas costas. No dia em que descobre os dois juntos e os confronta, o marido a empurra e ela morre. E acorda 10 anos antes — em 2013, ainda namorando o mesmo lixo.
-Dessa vez ela sabe exatamente o que cada pessoa ao redor vai fazer. E decide usar esse conhecimento com precisão cirúrgica — não para salvar o relacionamento, mas para passar tudo que tinha de horrível na vida dela para a amiga falsa. Afinal, se ela quer tanto tudo que Ji-won tinha, que fique com o pacote completo. 😂
-O Na In-woo como Ji-hyuk tem os olhares mais apaixonados da história recente dos K-dramas — ele ama ela antes mesmo de ela perceber. 🥺
-Baseado em webtoon. Prime Video, 16 episódios, 2024."
-
-DADOS DO DORAMA:
-Nome: ${nome}
-Título Original: ${tituloOrig || 'não informado'}
-Ano: ${ano || 'não informado'}
-Episódios: ${eps || 'não informado'}
-Gêneros: ${generos || 'não informado'}
-${sinopse ? 'Sinopse base (reescreva com personalidade): ' + sinopse : ''}
-
-Escreva em português brasileiro. Máximo 400 palavras. Não copie o exemplo, só use como guia de tom.`;
-
-  const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
-  window.open(url, '_blank');
-  showToast('Claude.ai aberto! Cole o resultado aqui depois 😊');
-}
 
 function faAbrirClaudeBio() {
-  const nome = document.getElementById('fa-nome').value.trim();
-  const nomeKor = document.getElementById('fa-nome-kor').value.trim();
-  const nasc = document.getElementById('fa-nasc').value;
-  const bio = document.getElementById('fa-bio').value.trim();
-  const dramas = document.getElementById('fa-dramas').value.trim();
-  const filmes = document.getElementById('fa-filmes').value.trim();
-
-  if (!nome) { showToast('Preencha o nome do ator primeiro'); return; }
-
-  const prompt = `Escreva uma biografia no meu estilo pessoal para o ator/atriz abaixo.
-
-MEU ESTILO (siga este exemplo como referência):
-"Ahn Bo-hyun (안보현, 安普賢) é um ator e modelo sul-coreano nascido em 16 de maio de 1988, em Busan. Com 187cm, 80kg, tipo sanguíneo A e representado pela FN Entertainment, Ahn Bo-hyun é o raro caso de ator cujo físico foi literalmente o primeiro instrumento de trabalho: foi boxeador amador antes de entrar no entretenimento e competiu no nível nacional durante o ensino médio, o que dá ao seu corpo em cena uma lógica de atleta que a câmera reconhece imediatamente. (...) Her Private Life (그녀의 사생활, tvN, 2019) como Nam Eun-gi — o medalhista olímpico de judô e amigo de infância de Sung Deok-mi — é o papel que o colocou definitivamente no radar rom-com."
-
-DADOS DO ATOR/ATRIZ:
-Nome: ${nome}
-Nome coreano: ${nomeKor || 'não informado'}
-Data de nascimento: ${nasc || 'não informada'}
-${dramas ? 'Dramas: ' + dramas : ''}
-${filmes ? 'Filmes: ' + filmes : ''}
-${bio ? 'Bio de referência (reescreva com personalidade): ' + bio : ''}
-
-Use seus conhecimentos sobre esse ator para enriquecer com dados reais (agência, universidade, físico, carreira). Escreva em português brasileiro, narrativo e com personalidade. Máximo 600 palavras. Não copie o exemplo, só use como guia de tom.`;
-
-  const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
-  window.open(url, '_blank');
-  showToast('Claude.ai aberto! Cole o resultado aqui depois 😊');
+  // Redirecionado para Gemini
+  faGerarBio();
 }
+
 
 // ════════════════════════════════════════════════════════
 // IA — GERAÇÃO DE CONTEÚDO
 // ════════════════════════════════════════════════════════
 
-const GEMINI_KEY = 'AIzaSyDoS-VRY-qlquk8CDp1LOXCtp6mE8ySjNg';
-const GEMINI_API = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
-
 async function callClaude(prompt, systemPrompt) {
-  const res = await fetch(GEMINI_API, {
+  if(!geminiKey){ throw new Error('Configure a Gemini API Key nas configurações'); }
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+  const res = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -2771,96 +2688,61 @@ async function callClaude(prompt, systemPrompt) {
 }
 
 async function fdGerarSinopse() {
-  const nome = document.getElementById('fd-nome').value.trim();
-  const tituloOrig = document.getElementById('fd-titulo-orig').value.trim();
-  const sinopseAtual = document.getElementById('fd-sinopse').value.trim();
-  const ano = document.getElementById('fd-ano').value;
-  const eps = document.getElementById('fd-eps').value;
-  const generos = fdGenerosSel.join(', ');
-
-  if (!nome) { showToast('Preencha o nome do dorama primeiro'); return; }
-
-  const btn = document.getElementById('fd-btn-sinopse-ai');
-  btn.disabled = true; btn.textContent = '⏳ Gerando…';
-
-  const systemPrompt = `Você é um assistente especializado em escrever sinopses de K-dramas no estilo pessoal e literário de Pathy (Patrícia Ramos), uma brasileira apaixonada por doramas. 
-
-Estilo obrigatório:
-- Começa com o título completo (português - coreano / título alternativo), episódios, plataforma e período de exibição (se souber)
-- Narra a premissa com personalidade — não resume wikipédia, conta a história com emoção e opinião
-- Usa parágrafos curtos e diretos, sem firulas acadêmicas
-- Comenta os personagens/atores com opinião própria e emojis ocasionais (🥺 😂 etc)
-- Termina com veredicto curto: ritmo, pontos fortes e fracos, plataforma e ano
-- Escreve em português brasileiro coloquial mas com qualidade literária
-- Máximo 400 palavras
-
-Exemplo de referência de estilo (NÃO COPIE, só use como guia de tom):
-"Kang Ji-won tem câncer terminal, um marido desempregado e abusivo que ela sustenta, e uma 'melhor amiga' que sorri na sua cara enquanto a trai pelas costas. No dia em que descobre os dois juntos e os confronta, o marido a empurra e ela morre. E acorda 10 anos antes..."`;
-
-  const prompt = `Escreva uma sinopse no estilo Pathy para o dorama:
-Nome: ${nome}
-Título Original: ${tituloOrig || 'não informado'}
-Ano: ${ano || 'não informado'}
-Episódios: ${eps || 'não informado'}
-Gêneros: ${generos || 'não informado'}
-${sinopseAtual ? `Sinopse básica do TMDB para referência (reescreva com personalidade): ${sinopseAtual}` : ''}`;
-
+  if(!geminiKey){ showToast('Configure a Gemini API Key nas configurações'); return; }
+  const nome       = document.getElementById('fd-nome')?.value?.trim() || '';
+  const tituloOrig = document.getElementById('fd-titulo-orig')?.value?.trim() || '';
+  const sinopseAtual = document.getElementById('fd-sinopse')?.value?.trim() || '';
+  const ano        = document.getElementById('fd-ano')?.value || '';
+  const eps        = document.getElementById('fd-eps')?.value || '';
+  const generos    = (typeof fdGenerosSel !== 'undefined' ? fdGenerosSel : []).join(', ');
+  if(!nome){ showToast('Preencha o nome do dorama primeiro'); return; }
+  const btn = document.querySelector('[onclick="fdGerarSinopse()"]');
+  if(btn){ btn.disabled=true; btn.textContent='\u23f3 Gerando\u2026'; }
+  const systemPrompt = `Você é um assistente especializado em escrever sinopses de K-dramas no estilo pessoal e literário de Pathy (Patrícia Ramos), uma brasileira apaixonada por doramas.\n\nEstilo obrigatório:\n- Começa com o título completo (português - coreano / título alternativo), episódios, plataforma e período\n- Narra a premissa com personalidade — não resume wikipédia, conta com emoção e opinião\n- Usa parágrafos curtos e diretos, sem firulas acadêmicas\n- Comenta os personagens/atores com opinião e emojis ocasionais (🥺 😂)\n- Termina com veredicto curto: ritmo, pontos fortes/fracos, plataforma e ano\n- Português brasileiro coloquial com qualidade literária\n- Máximo 400 palavras. Sem asteriscos ou markdown.\n\nExemplo de referência de estilo (NÃO COPIE, só guia de tom):\nMarry My Husband (내 남편과 결혼해줘 / Case com Meu Marido)\n16 episódios | tvN + Prime Video | janeiro–fevereiro 2024\nKang Ji-won tem câncer terminal, um marido desempregado e abusivo que ela sustenta, e uma melhor amiga que sorri na sua cara enquanto a trai pelas costas. No dia em que descobre os dois juntos e os confronta, o marido a empurra e ela morre.\nE acorda 10 anos antes — em 2013, ainda namorando o mesmo lixo.\nDessa vez ela sabe exatamente o que cada pessoa ao redor vai fazer. E decide usar esse conhecimento com precisão cirúrgica — não para salvar o relacionamento, mas para passar tudo que tinha de horrível na vida dela para a amiga falsa. Afinal, se ela quer tanto tudo que Ji-won tinha, que fique com o pacote completo. 😂\nO plano: repassar o namorado lixo pra amiga traidora, construir uma vida nova, e aceitar de verdade o amor do Yoo Ji-hyuk — neto do CEO da empresa, que também voltou no tempo após morrer num acidente e quer protegê-la.\nA Song Ha-yoon como a vilã é o grande espetáculo do dorama — cara de anjinha, alma de serpente, atuação impecável. O Na In-woo como Ji-hyuk tem os olhares mais apaixonados da história recente dos K-dramas — ele ama ela antes mesmo de ela perceber. 🥺\nBaseado em webtoon. Adaptado com fidelidade. A parte do meio perde ritmo mas o começo e o final são muito satisfatórios. Prime Video, 16 episódios, 2024.`;
+  const prompt = `Escreva uma sinopse no estilo Pathy para o dorama:\nNome: ${nome}\nTítulo Original: ${tituloOrig || 'não informado'}\nAno: ${ano || 'não informado'}\nEpisódios: ${eps || 'não informado'}\nGêneros: ${generos || 'não informado'}\n${sinopseAtual ? 'Sinopse base do TMDB (reescreva com personalidade): ' + sinopseAtual : ''}`;
   try {
     const texto = await callClaude(prompt, systemPrompt);
     document.getElementById('fd-sinopse').value = texto;
-    showToast('✨ Sinopse gerada!');
+    showToast('\u2728 Sinopse gerada!');
   } catch(e) {
     showToast('Erro ao gerar: ' + e.message);
+    console.error(e);
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='\u2728 Gerar com IA'; }
   }
-  btn.disabled = false; btn.textContent = '✨ Gerar com IA';
 }
 
+
 async function faGerarBio() {
-  const nome = document.getElementById('fa-nome').value.trim();
-  const nomeKor = document.getElementById('fa-nome-kor').value.trim();
-  const nasc = document.getElementById('fa-nasc').value;
-  const bioAtual = document.getElementById('fa-bio').value.trim();
-  const dramas = document.getElementById('fa-dramas').value.trim();
-  const filmes = document.getElementById('fa-filmes').value.trim();
+  if(!geminiKey){ showToast('Configure a Gemini API Key nas configurações'); return; }
+  const nome     = document.getElementById('fa-nome')?.value?.trim() || '';
+  const nomeKor  = document.getElementById('fa-nome-kor')?.value?.trim() || '';
+  const nasc     = document.getElementById('fa-nasc')?.value || '';
+  const bioAtual = document.getElementById('fa-bio')?.value?.trim() || '';
+  const dramas   = document.getElementById('fa-dramas')?.value?.trim() || '';
+  const filmes   = document.getElementById('fa-filmes')?.value?.trim() || '';
 
-  if (!nome) { showToast('Preencha o nome do ator primeiro'); return; }
+  if(!nome){ showToast('Preencha o nome do ator primeiro'); return; }
 
-  const btn = document.getElementById('fa-btn-bio-ai');
-  btn.disabled = true; btn.textContent = '⏳ Gerando…';
+  const btn = document.querySelector('[onclick="faGerarBio()"]');
+  if(btn){ btn.disabled=true; btn.textContent='\u23f3 Gerando\u2026'; }
 
-  const systemPrompt = `Você é um assistente especializado em escrever biografias de atores coreanos no estilo pessoal e literário de Pathy (Patrícia Ramos), uma brasileira apaixonada por K-dramas.
+  const systemPrompt = `Você é um assistente especializado em escrever biografias de atores coreanos no estilo pessoal e literário de Pathy (Patrícia Ramos), uma brasileira apaixonada por K-dramas.\n\nEstilo obrigatório:\n- Começa com nome completo (romanização, hangul, hanja se tiver), nacionalidade, data e local de nascimento\n- Inclui dados físicos e agência se souber\n- Narra o percurso com personalidade — contextualiza a carreira, destaca o que torna o ator único, não só lista fatos\n- Percorre a filmografia cronologicamente com comentários sobre os papéis mais importantes\n- Tem opinião — diz o que funciona na atuação desse ator específico\n- Escreve em português brasileiro com qualidade literária mas sem formalidade excessiva\n- Máximo 600 palavras. Sem asteriscos ou markdown.\n\nExemplo de tom (NÃO COPIE, só guia):\n"...é o raro caso de ator cujo físico foi literalmente o primeiro instrumento de trabalho... um percurso tardio o bastante para ter peso, cedo o bastante para virar carreira completa."`;
 
-Estilo obrigatório:
-- Começa com nome completo (romanização, hangul, hanja se tiver), nacionalidade, data e local de nascimento
-- Inclui dados físicos e agência se souber
-- Narra o percurso com personalidade — contextualiza a carreira, destaca o que torna o ator único, não só lista fatos
-- Percorre a filmografia cronologicamente com comentários sobre os papéis mais importantes
-- Tem opinião — diz o que funciona na atuação desse ator específico
-- Escreve em português brasileiro com qualidade literária mas sem formalidade excessiva
-- Máximo 600 palavras
-
-Exemplo de tom (NÃO COPIE, só guia):
-"...é o raro caso de ator cujo físico foi literalmente o primeiro instrumento de trabalho... um percurso tardio o bastante para ter peso, cedo o bastante para virar carreira completa."`;
-
-  const prompt = `Escreva uma biografia completa no estilo Pathy para o ator/atriz:
-Nome: ${nome}
-Nome coreano: ${nomeKor || 'não informado'}
-Data de nascimento: ${nasc || 'não informada'}
-${dramas ? `Dramas em destaque: ${dramas}` : ''}
-${filmes ? `Filmes em destaque: ${filmes}` : ''}
-${bioAtual ? `Informações do TMDB para referência (reescreva com personalidade e estilo): ${bioAtual}` : ''}
-
-Use seus conhecimentos sobre esse ator para enriquecer a biografia com dados reais (agência, universidade, carreira, papéis marcantes). Escreva com a mesma riqueza e personalidade do exemplo.`;
+  const prompt = `Escreva uma biografia completa no estilo Pathy para o ator/atriz:\nNome: ${nome}\nNome coreano: ${nomeKor || 'não informado'}\nData de nascimento: ${nasc || 'não informada'}\n${dramas ? 'Dramas em destaque: ' + dramas : ''}\n${filmes ? 'Filmes em destaque: ' + filmes : ''}\n${bioAtual ? 'Informações do TMDB para referência (reescreva com personalidade e estilo): ' + bioAtual : ''}\n\nUse seus conhecimentos sobre esse ator para enriquecer a biografia com dados reais (agência, universidade, carreira, papéis marcantes). Escreva com a mesma riqueza e personalidade do exemplo.`;
 
   try {
     const texto = await callClaude(prompt, systemPrompt);
     document.getElementById('fa-bio').value = texto;
-    showToast('✨ Biografia gerada!');
+    showToast('\u2728 Biografia gerada!');
   } catch(e) {
     showToast('Erro ao gerar: ' + e.message);
+    console.error(e);
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='\u2728 Gerar com IA'; }
   }
-  btn.disabled = false; btn.textContent = '✨ Gerar com IA';
 }
+
 
 // ════════════════════════════════════════════════════════
 // FORMULÁRIO DORAMA
@@ -3108,9 +2990,9 @@ let faFotoUrlFinal = null;
 
 function openFormAtor(ator=null){
   faEditId = null; faFotoFile = null; faFotoUrlFinal = null;
-  ['fa-nome','fa-nome-kor','fa-bio','fa-dramas','fa-filmes','fa-link','fa-foto-url','fa-tmdb-q'].forEach(id=>setVal(id,''));
+  ['fa-nome','fa-nome-kor','fa-bio','fa-dramas','fa-filmes','fa-foto-url'].forEach(id=>setVal(id,''));
   setVal('fa-nasc','');
-  document.getElementById('fa-tmdb-results').innerHTML='';
+  const faRes=document.getElementById('fa-tmdb-results'); if(faRes) faRes.innerHTML='';
   document.getElementById('fa-status-msg').textContent='';
   faClearFoto();
 
@@ -3124,8 +3006,7 @@ function openFormAtor(ator=null){
     setVal('fa-bio',f['Biografia']||'');
     setVal('fa-dramas',f['Dramas em Destaque']||'');
     setVal('fa-filmes',f['Filmes em Destaque']||'');
-    setVal('fa-link',f['Link']||'');
-    const foto=getPhoto(ator,'Foto');
+        const foto=getPhoto(ator,'Foto');
     if(foto){ faFotoUrlFinal=foto; setVal('fa-foto-url',foto); faShowFoto(foto); }
   } else {
     document.getElementById('form-ator-titulo').textContent='✦ Cadastrar Ator/Atriz';
@@ -3190,14 +3071,15 @@ async function faSearchTMDB(){
 }
 
 async function faImportTMDB(personId){
-  document.getElementById('fa-tmdb-results').innerHTML=`<div style="color:var(--text3);font-size:.82rem;padding:6px">Importando…</div>`;
+  const _res=document.getElementById('fa-tmdb-results');
+  if(_res) _res.innerHTML=`<div style="color:var(--text3);font-size:.82rem;padding:6px">Importando…</div>`;
   try{
     const [person,personEN]=await Promise.all([
       fetch(`${TMDB_BASE}/person/${personId}?api_key=${tmdbKey}&language=pt-BR`).then(r=>r.json()),
       fetch(`${TMDB_BASE}/person/${personId}?api_key=${tmdbKey}&language=en-US`).then(r=>r.json()),
     ]);
     setVal('fa-nome',personEN.name||'');
-    const korName=(personEN.also_known_as||[]).find(n=>/[\uAC00-\uD7A3]/.test(n));
+    const korName=(personEN.also_known_as||[]).find(n=>/[가-힣]/.test(n));
     if(korName) setVal('fa-nome-kor',korName);
     if(person.birthday||personEN.birthday) setVal('fa-nasc',person.birthday||personEN.birthday);
     if(person.biography) setVal('fa-bio',person.biography);
@@ -3206,110 +3088,111 @@ async function faImportTMDB(personId){
       setVal('fa-foto-url',url);
       faPreviewFotoUrl(url);
     }
-    document.getElementById('fa-tmdb-results').innerHTML=`<p style="color:var(--teal);font-size:.82rem;padding:6px">✓ Importado!</p>`;
+    if(_res) _res.innerHTML=`<p style="color:var(--teal);font-size:.82rem;padding:6px">✓ Importado!</p>`;
     showToast('Ator importado do TMDB ✓');
-  }catch(e){ document.getElementById('fa-tmdb-results').innerHTML=`<p style="color:var(--red);font-size:.82rem;padding:6px">Erro: ${e.message}</p>`; }
+  }catch(e){
+    if(_res) _res.innerHTML=`<p style="color:var(--red);font-size:.82rem;padding:6px">Erro: ${e.message}</p>`;
+    showToast('Erro ao importar: '+e.message);
+  }
 }
 
 
-async function faBuscarFilmografiaMDL() {
-  // Pega ID do campo MDL ou extrai da URL
-  const input = document.getElementById('fa-link').value.trim();
-  const nomeAtor = document.getElementById('fa-nome').value.trim();
+async function faBuscarTMDBPeloNome(){
+  const nome = (document.getElementById('fa-nome')?.value || '').trim();
+  if(!nome){ showToast('Preencha o nome do ator/atriz primeiro'); return; }
 
-  // Extrair ID: aceita número puro ou URL tipo /people/1234-nome
-  let mdlId = null;
-  if (/^\d+$/.test(input)) {
-    mdlId = input;
-  } else {
-    const match = input.match(/\/people\/(\d+)/);
-    if (match) mdlId = match[1];
-  }
-
-  // Se não tem ID no campo MDL mas tem nome, busca pelo nome
-  if (!mdlId && !nomeAtor) {
-    showToast('Preencha o nome do ator ou o ID do MDL'); return;
-  }
-
-  // Botões a desabilitar — pode ser chamado de dois lugares
-  const btnNome = document.getElementById('fa-btn-filmografia');
-  const btnMdl  = document.getElementById('fa-btn-filmografia-mdl');
-  const setBtns = (txt, dis) => {
-    if (btnNome) { btnNome.disabled = dis; btnNome.textContent = txt; }
-    if (btnMdl)  { btnMdl.disabled  = dis; btnMdl.textContent  = txt; }
-  };
-  setBtns('⏳ Buscando…', true);
+  const btn = document.getElementById('fa-btn-filmografia');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Buscando…'; }
 
   try {
-    // Se não tem ID, precisa buscar pelo nome primeiro
-    if (!mdlId) {
-      const srRes = await fetch(`${MDL_API}/api/search/q/${encodeURIComponent(nomeAtor)}`);
-      if (!srRes.ok) throw new Error(`Erro na busca: HTTP ${srRes.status}`);
-      const srData = await srRes.json();
-      // O scraper retorna dramas na busca — tentar achar pelo nome exato
-      // Como não tem busca de pessoas, vamos pedir pro usuário fornecer o ID
-      throw new Error('Sem ID do MDL — cole o ID ou URL do ator no campo MDL abaixo');
+    // 1. Buscar pessoa pelo nome
+    const searchRes = await fetch(`${TMDB_BASE}/search/person?api_key=${tmdbKey}&query=${encodeURIComponent(nome)}&language=en-US&include_adult=false`);
+    if(!searchRes.ok) throw new Error('Erro na busca: HTTP '+searchRes.status);
+    const searchData = await searchRes.json();
+    const person = (searchData.results||[])[0];
+    if(!person) throw new Error('Nenhum ator encontrado com esse nome');
+
+    const id = person.id;
+
+    // 2. Buscar detalhes em PT e EN simultaneamente
+    const [ptData, enData, credits] = await Promise.all([
+      fetch(`${TMDB_BASE}/person/${id}?api_key=${tmdbKey}&language=pt-BR`).then(r=>r.json()),
+      fetch(`${TMDB_BASE}/person/${id}?api_key=${tmdbKey}&language=en-US`).then(r=>r.json()),
+      fetch(`${TMDB_BASE}/person/${id}/combined_credits?api_key=${tmdbKey}&language=pt-BR`).then(r=>r.json()),
+    ]);
+
+    // 3. Nome romanizado
+    const nomeEl = document.getElementById('fa-nome');
+    if(nomeEl) nomeEl.value = enData.name || nome;
+
+    // 4. Nome coreano (also_known_as)
+    const korName = (enData.also_known_as||[]).find(n => /[가-힣]/.test(n)) || '';
+    const korEl = document.getElementById('fa-nome-kor');
+    if(korEl) korEl.value = korName;
+
+    // 5. Data de nascimento
+    const nasc = ptData.birthday || enData.birthday || '';
+    const nascEl = document.getElementById('fa-nasc');
+    if(nascEl && nasc) nascEl.value = nasc.slice(0,10);
+
+    // 6. Biografia (PT com fallback EN)
+    const bio = ptData.biography || enData.biography || '';
+    const bioEl = document.getElementById('fa-bio');
+    if(bioEl) bioEl.value = bio;
+
+    // 7. Foto
+    const profilePath = enData.profile_path || ptData.profile_path;
+    if(profilePath){
+      const fotoUrl = TMDB_IMG + profilePath;
+      const img = document.getElementById('fa-foto-img');
+      const txt = document.getElementById('fa-foto-txt');
+      const del = document.getElementById('fa-foto-del');
+      const urlInput = document.getElementById('fa-foto-url');
+      if(img){ img.src=fotoUrl; img.style.display='block'; }
+      if(txt) txt.style.display='none';
+      if(del) del.style.display='flex';
+      if(urlInput) urlInput.value=fotoUrl;
     }
 
-    // Buscar dados do ator no MDL
-    const res = await fetch(`${MDL_API}/api/people/${mdlId}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    if (data.error) throw new Error(data.description || 'Ator não encontrado');
-
-    setBtns('🤖 Processando…', true);
-
-    // Extrair filmografia do response
-    // O scraper retorna credits com dramas e filmes
-    const credits = data.credits || data.filmography || data;
-    const dramas  = credits.dramas  || credits.drama  || data.dramas  || [];
-    const filmes  = credits.movies  || credits.film   || data.movies  || data.films || [];
-
-    // Formatar como texto — um por linha
-    const formatarLista = (lista) => lista
-      .map(item => {
-        const titulo = item.title || item.name || '';
-        const ano    = item.year  || '';
-        const papel  = item.role  || item.character || item.character_name || '';
-        const canal  = item.network || item.channel || '';
-        const parts  = [titulo];
-        if (canal) parts.push(canal);
-        if (ano)   parts.push(ano);
-        let linha = parts.join(', ');
-        if (papel) linha += ` - ${papel}`;
+    // 8. Filmografia — separar dramas/TV e filmes
+    const cast = credits.cast || [];
+    const tv = cast
+      .filter(x => x.media_type === 'tv')
+      .sort((a,b) => (b.first_air_date||'').localeCompare(a.first_air_date||''))
+      .map(x => {
+        const ano = (x.first_air_date||'').slice(0,4);
+        const papel = x.character || '';
+        let linha = x.name || x.original_name || '';
+        if(ano) linha += ` (${ano})`;
+        if(papel) linha += ` - ${papel}`;
         return linha;
-      })
-      .filter(Boolean)
-      .join('\n');
+      }).filter(Boolean).join('\n');
 
-    if (dramas.length) {
-      document.getElementById('fa-dramas').value = formatarLista(dramas);
-    }
-    if (filmes.length) {
-      document.getElementById('fa-filmes').value = formatarLista(filmes);
-    }
+    const movies = cast
+      .filter(x => x.media_type === 'movie')
+      .sort((a,b) => (b.release_date||'').localeCompare(a.release_date||''))
+      .map(x => {
+        const ano = (x.release_date||'').slice(0,4);
+        const papel = x.character || '';
+        let linha = x.title || x.original_title || '';
+        if(ano) linha += ` (${ano})`;
+        if(papel) linha += ` - ${papel}`;
+        return linha;
+      }).filter(Boolean).join('\n');
 
-    if (!dramas.length && !filmes.length) {
-      // Se vier vazio, mostrar o raw pra debug e tentar IA
-      const raw = JSON.stringify(data).slice(0, 8000);
-      setBtns('🤖 Extraindo com IA…', true);
-      const sys = `Você extrai filmografia de atores coreanos de dados JSON do MyDramaList. Responda APENAS com as listas, sem explicação.`;
-      const prompt = `Extraia a filmografia de ${nomeAtor || 'o ator'} deste JSON do MDL.\n\nSepare em:\nDRAMAS:\n- Título (canal, ano) - personagem\n\nFILMES:\n- Título (ano) - personagem\n\nJSON:\n${raw}`;
-      const resultado = await callClaude(prompt, sys);
-      const dramasMatch = resultado.split(/DRAMAS?:/i)[1]?.split(/FILMES?:/i)[0]?.trim();
-      const filmesMatch = resultado.split(/FILMES?:/i)[1]?.trim();
-      if (dramasMatch) document.getElementById('fa-dramas').value = dramasMatch.replace(/^- /gm, '').trim();
-      if (filmesMatch) document.getElementById('fa-filmes').value = filmesMatch.replace(/^- /gm, '').trim();
-    }
+    const dramasEl = document.getElementById('fa-dramas');
+    if(dramasEl) dramasEl.value = tv;
+    const filmesEl = document.getElementById('fa-filmes');
+    if(filmesEl) filmesEl.value = movies;
 
-    showToast('🎬 Filmografia importada do MDL!');
+    showToast('✓ Ator importado do TMDB!');
+
   } catch(e) {
-    showToast('Erro: ' + e.message);
+    showToast('Erro ao buscar ator: ' + e.message);
     console.error(e);
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='Buscar'; }
   }
-  setBtns('🎬 Filmografia', false);
-  if (btnMdl) { btnMdl.disabled = false; btnMdl.textContent = '🎬 Buscar'; }
 }
 
 // Manter nome antigo como alias por compatibilidade
@@ -3638,11 +3521,15 @@ function openBlogForm(editId) {
       bfSet('bf-nota', f['Nota'] || '');
       bfSet('bf-dorama-nome', f['Dorama'] || '');
       bfSet('bf-conteudo', f['Conteúdo'] || '');
+      bfSet('bf-exp', f['Experiência'] || '');
+      bfClearStars();
+      bfLoadStars(f);
     }
   } else {
-    ['bf-titulo','bf-kicker','bf-capa','bf-tags','bf-nota','bf-dorama-nome','bf-conteudo'].forEach(id => bfSet(id, ''));
+    ['bf-titulo','bf-kicker','bf-capa','bf-tags','bf-nota','bf-dorama-nome','bf-conteudo','bf-exp'].forEach(id => bfSet(id, ''));
     bfSet('bf-tipo', 'Resenha');
     bfSet('bf-status-select', 'Publicado');
+    bfClearStars();
   }
   bfToggleDoramaRow();
 }
@@ -3650,8 +3537,41 @@ function openBlogForm(editId) {
 function bfSet(id, val) { const el = document.getElementById(id); if (el) el.value = val == null ? '' : val; }
 function closeBlogForm() { document.getElementById('blog-form-overlay').classList.remove('open'); }
 function bfToggleDoramaRow() {
-  const row = document.getElementById('bf-row-dorama');
-  if (row) row.style.display = document.getElementById('bf-tipo').value === 'Resenha' ? 'grid' : 'none';
+  const isResenha = document.getElementById('bf-tipo').value === 'Resenha';
+  const rowDor = document.getElementById('bf-row-dorama');
+  const rowAval = document.getElementById('bf-row-aval');
+  const rowStars = document.getElementById('bf-row-stars');
+  if (rowDor) rowDor.style.display = isResenha ? 'grid' : 'none';
+  if (rowAval) rowAval.style.display = isResenha ? 'block' : 'none';
+  if (rowStars) rowStars.style.display = isResenha ? 'block' : 'none';
+}
+
+function bfSetStar(field, val) {
+  const wrap = document.getElementById('bfs-' + field);
+  if (!wrap) return;
+  wrap.querySelectorAll('span').forEach(s => {
+    s.classList.toggle('on', parseInt(s.dataset.val) <= val);
+  });
+  wrap.dataset.value = val;
+}
+
+function bfGetStars(field) {
+  const wrap = document.getElementById('bfs-' + field);
+  return wrap ? parseInt(wrap.dataset.value || 0) : 0;
+}
+
+function bfClearStars() {
+  ['Romance','Comédia','Drama','Fantasia','Química do Casal','Roteiro','OST','Ação'].forEach(f => {
+    const wrap = document.getElementById('bfs-' + f);
+    if (wrap) { wrap.querySelectorAll('span').forEach(s => s.classList.remove('on')); wrap.dataset.value = 0; }
+  });
+}
+
+function bfLoadStars(fields) {
+  ['Romance','Comédia','Drama','Fantasia','Química do Casal','Roteiro','OST','Ação'].forEach(f => {
+    const val = parseInt(fields[f] || 0);
+    if (val) bfSetStar(f, val);
+  });
 }
 function bfInsert(txt) {
   const ta = document.getElementById('bf-conteudo');
@@ -3707,6 +3627,9 @@ async function bfSalvar() {
   try {
     const fields = { 'Título': titulo, 'Tipo': document.getElementById('bf-tipo').value, 'Status': document.getElementById('bf-status-select').value, 'Data': new Date().toISOString().slice(0, 10) };
     const kicker = document.getElementById('bf-kicker').value.trim(); if (kicker) fields['Kicker'] = kicker;
+    const exp = document.getElementById('bf-exp')?.value; if (exp) fields['Experiência'] = exp;
+    const ratingFields = ['Romance','Comédia','Drama','Fantasia','Química do Casal','Roteiro','OST','Ação'];
+    ratingFields.forEach(f => { const v = bfGetStars(f); if (v) fields[f] = v; });
     const tags = document.getElementById('bf-tags').value.trim(); if (tags) fields['Tags'] = tags;
     const conteudo = document.getElementById('bf-conteudo').value.trim(); if (conteudo) fields['Conteúdo'] = conteudo;
     const nota = parseFloat(document.getElementById('bf-nota').value); if (!isNaN(nota)) fields['Nota'] = nota;
@@ -3762,11 +3685,12 @@ function atualizarStatsHome() {
 }
 
 // ── NOTÍCIAS ──────────────────────────────────────────────
-const RSS_URL = 'https://mydramalist.com/rss';
-// Proxy CORS com fallback duplo
+// Google News RSS — sem bloqueio, já em português
+const RSS_URL = 'https://news.google.com/rss/search?q=k-drama+OR+dorama+coreano+OR+kdrama&hl=pt-BR&gl=BR&ceid=BR:pt-419';
 const RSS_PROXIES = [
   `https://corsproxy.io/?url=${encodeURIComponent(RSS_URL)}`,
-  `https://api.codetabs.com/v1/proxy?quest=${RSS_URL}`,
+  `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`,
+  `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(RSS_URL)}`,
 ];
 let newsItems = [];
 
@@ -3932,6 +3856,252 @@ async function traduzirNoticias() {
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
+
+
+// ── ACTOR MDL SEARCH (movido para dentro do documento) ──────
+
+// Helper fetch com fallback CORS proxy para uso local (file://)
+async function mdlFetch(url){
+  try {
+    const r = await fetch(url);
+    if(r.ok) return r;
+    throw new Error('status '+r.status);
+  } catch(e) {
+    // Fallback via CORS proxy
+    const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+    const r2 = await fetch(proxy);
+    if(!r2.ok) throw new Error('HTTP '+r2.status);
+    return r2;
+  }
+}
+async function faBuscarFilmografiaMDL(){
+
+  const btnNome=document.getElementById('fa-btn-filmografia');
+  const btnMdl=document.getElementById('fa-btn-filmografia-mdl');
+
+  const nome=document.getElementById('fa-nome')?.value?.trim();
+
+  if(!nome){
+    showToast('Preencha o nome do ator/atriz primeiro');
+    return;
+  }
+
+  const set=(t,d)=>{
+    if(btnNome){
+      btnNome.disabled=d;
+      btnNome.textContent=t;
+    }
+
+    if(btnMdl){
+      btnMdl.disabled=d;
+      btnMdl.textContent=t;
+    }
+  };
+
+  set('Buscando...',true);
+
+  try{
+
+    // =========================
+    // BUSCA MDL
+    // =========================
+
+    const search=await mdlFetch(`${MDL_API}/api/search/q/${encodeURIComponent(nome)}`);
+
+    const searchData=await search.json();
+
+    const arr=
+      searchData.results ||
+      searchData.people ||
+      searchData.data ||
+      [];
+
+    const actor=Array.isArray(arr) ? arr[0] : null;
+
+    if(!actor){
+      throw new Error('Ator não encontrado no MDL');
+    }
+
+    const mdlId=
+      actor.id ||
+      actor.person_id ||
+      actor.mdl_id;
+
+    if(!mdlId){
+      throw new Error('ID MDL não encontrado');
+    }
+
+    // =========================
+    // DETALHES DO ATOR
+    // =========================
+
+    const detailsReq=await mdlFetch(`${MDL_API}/api/people/${mdlId}`);
+
+    const details=await detailsReq.json();
+
+    // =========================
+    // CAMPOS
+    // =========================
+
+    document.getElementById('fa-nome').value =
+      details.name ||
+      actor.name ||
+      '';
+
+    const kor=
+      details.native_name ||
+      details.korean_name ||
+      details.name_kr ||
+      '';
+
+    const nasc=
+      details.birthday ||
+      details.birth_date ||
+      '';
+
+    const bio=
+      details.biography ||
+      details.bio ||
+      details.about ||
+      '';
+
+    const foto=
+      details.poster ||
+      details.photo ||
+      details.image ||
+      details.avatar ||
+      '';
+
+    const mdlLink=
+      details.url ||
+      `https://mydramalist.com/people/${mdlId}`;
+
+    // =========================
+    // POPULA CAMPOS
+    // =========================
+
+    const korField=document.getElementById('fa-nome-kor');
+    if(korField) korField.value=kor;
+
+    const nascField=document.getElementById('fa-nasc');
+    if(nascField && nasc){
+      nascField.value=nasc.slice(0,10);
+    }
+
+    const bioField=document.getElementById('fa-bio');
+    if(bioField){
+      bioField.value=bio;
+    }
+
+    const mdlField=document.getElementById('fa-mdl');
+    if(mdlField){
+      mdlField.value=mdlLink;
+    }
+
+    // =========================
+    // FOTO
+    // =========================
+
+    if(foto){
+
+      const img=document.getElementById('fa-foto-img');
+      const txt=document.getElementById('fa-foto-txt');
+      const del=document.getElementById('fa-foto-del');
+      const url=document.getElementById('fa-foto-url');
+
+      if(img){
+        img.src=foto;
+        img.style.display='block';
+      }
+
+      if(txt){
+        txt.style.display='none';
+      }
+
+      if(del){
+        del.style.display='flex';
+      }
+
+      if(url){
+        url.value=foto;
+      }
+    }
+
+    // =========================
+    // FILMOGRAFIA
+    // =========================
+
+    let credits=
+      details.credits ||
+      details.filmography ||
+      details.cast ||
+      [];
+
+    if(!Array.isArray(credits)){
+      credits=[];
+    }
+
+    const dramas=credits.filter(x=>
+      x.media_type!=='movie'
+    );
+
+    const filmes=credits.filter(x=>
+      x.media_type==='movie'
+    );
+
+    const fmt=a=>
+      a.map(x=>
+        `${x.title || x.name || ''}${
+          x.year ? ` (${x.year})` : ''
+        }${
+          x.character ? ` - ${x.character}` : ''
+        }`
+      )
+      .filter(Boolean)
+      .join('\n');
+
+    const dEl=document.getElementById('fa-dramas');
+    if(dEl){
+      dEl.value=fmt(dramas);
+    }
+
+    const fEl=document.getElementById('fa-filmes');
+    if(fEl){
+      fEl.value=fmt(filmes);
+    }
+
+    // =========================
+    // DESTAQUES
+    // =========================
+
+    const destaques=
+      dramas
+      .slice(0,5)
+      .map(x=>x.title || x.name)
+      .filter(Boolean)
+      .join(', ');
+
+    const destField=document.getElementById('fa-destaques');
+
+    if(destField){
+      destField.value=destaques;
+    }
+
+    showToast('Ator preenchido com sucesso');
+
+  }catch(e){
+
+    console.error(e);
+
+    showToast(
+      'Erro ao buscar ator: ' + e.message
+    );
+
+  }finally{
+    if(btnNome){ btnNome.disabled=false; btnNome.textContent='Buscar'; }
+    if(btnMdl){  btnMdl.disabled=false;  btnMdl.textContent='🎬 Filmografia'; }
+  }
+}
 </script>
 
 <!-- BLOG FORM MODAL -->
@@ -3972,6 +4142,36 @@ parseHash();
         <div class="fg">
           <label class="fl">Nota (0–10)</label>
           <input type="number" id="bf-nota" class="fi" placeholder="8.5" min="0" max="10" step="0.1">
+        </div>
+      </div>
+      <!-- Avaliação (só aparece em Resenha) -->
+      <div class="form-row" id="bf-row-aval">
+        <div class="fg">
+          <label class="fl">Experiência</label>
+          <select class="fs bf-exp-select" id="bf-exp">
+            <option value="">—</option>
+            <option>Obra de Arte</option>
+            <option>Perfeito</option>
+            <option>Na Medida</option>
+            <option>Valeu a Pena</option>
+            <option>Faltou Algo</option>
+            <option>Não Recomendo</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row" id="bf-row-stars">
+        <div class="fg">
+          <label class="fl">Notas por Categoria</label>
+          <div class="bf-stars-wrap">
+            <div class="bf-star-row"><span class="bf-star-label">Romance</span><div class="bf-stars" id="bfs-Romance"><span onclick="bfSetStar('Romance',1)" data-val="1">★</span><span onclick="bfSetStar('Romance',2)" data-val="2">★</span><span onclick="bfSetStar('Romance',3)" data-val="3">★</span><span onclick="bfSetStar('Romance',4)" data-val="4">★</span><span onclick="bfSetStar('Romance',5)" data-val="5">★</span></div></div>
+            <div class="bf-star-row"><span class="bf-star-label">Comédia</span><div class="bf-stars" id="bfs-Comédia"><span onclick="bfSetStar('Comédia',1)" data-val="1">★</span><span onclick="bfSetStar('Comédia',2)" data-val="2">★</span><span onclick="bfSetStar('Comédia',3)" data-val="3">★</span><span onclick="bfSetStar('Comédia',4)" data-val="4">★</span><span onclick="bfSetStar('Comédia',5)" data-val="5">★</span></div></div>
+            <div class="bf-star-row"><span class="bf-star-label">Drama</span><div class="bf-stars" id="bfs-Drama"><span onclick="bfSetStar('Drama',1)" data-val="1">★</span><span onclick="bfSetStar('Drama',2)" data-val="2">★</span><span onclick="bfSetStar('Drama',3)" data-val="3">★</span><span onclick="bfSetStar('Drama',4)" data-val="4">★</span><span onclick="bfSetStar('Drama',5)" data-val="5">★</span></div></div>
+            <div class="bf-star-row"><span class="bf-star-label">Fantasia</span><div class="bf-stars" id="bfs-Fantasia"><span onclick="bfSetStar('Fantasia',1)" data-val="1">★</span><span onclick="bfSetStar('Fantasia',2)" data-val="2">★</span><span onclick="bfSetStar('Fantasia',3)" data-val="3">★</span><span onclick="bfSetStar('Fantasia',4)" data-val="4">★</span><span onclick="bfSetStar('Fantasia',5)" data-val="5">★</span></div></div>
+            <div class="bf-star-row"><span class="bf-star-label">Química do Casal</span><div class="bf-stars" id="bfs-Química do Casal"><span onclick="bfSetStar('Química do Casal',1)" data-val="1">★</span><span onclick="bfSetStar('Química do Casal',2)" data-val="2">★</span><span onclick="bfSetStar('Química do Casal',3)" data-val="3">★</span><span onclick="bfSetStar('Química do Casal',4)" data-val="4">★</span><span onclick="bfSetStar('Química do Casal',5)" data-val="5">★</span></div></div>
+            <div class="bf-star-row"><span class="bf-star-label">Roteiro</span><div class="bf-stars" id="bfs-Roteiro"><span onclick="bfSetStar('Roteiro',1)" data-val="1">★</span><span onclick="bfSetStar('Roteiro',2)" data-val="2">★</span><span onclick="bfSetStar('Roteiro',3)" data-val="3">★</span><span onclick="bfSetStar('Roteiro',4)" data-val="4">★</span><span onclick="bfSetStar('Roteiro',5)" data-val="5">★</span></div></div>
+            <div class="bf-star-row"><span class="bf-star-label">OST</span><div class="bf-stars" id="bfs-OST"><span onclick="bfSetStar('OST',1)" data-val="1">★</span><span onclick="bfSetStar('OST',2)" data-val="2">★</span><span onclick="bfSetStar('OST',3)" data-val="3">★</span><span onclick="bfSetStar('OST',4)" data-val="4">★</span><span onclick="bfSetStar('OST',5)" data-val="5">★</span></div></div>
+            <div class="bf-star-row"><span class="bf-star-label">Ação</span><div class="bf-stars" id="bfs-Ação"><span onclick="bfSetStar('Ação',1)" data-val="1">★</span><span onclick="bfSetStar('Ação',2)" data-val="2">★</span><span onclick="bfSetStar('Ação',3)" data-val="3">★</span><span onclick="bfSetStar('Ação',4)" data-val="4">★</span><span onclick="bfSetStar('Ação',5)" data-val="5">★</span></div></div>
+          </div>
         </div>
       </div>
       <div class="form-row">
@@ -4026,4 +4226,5 @@ parseHash();
 </div>
 
 </body>
+
 </html>
