@@ -690,6 +690,19 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .comment-textarea{min-height:100px;resize:vertical}
 .comment-status{font-size:.78rem;color:var(--text3);font-style:italic}
 
+
+/* Emoji Picker */
+.emoji-picker-wrap{position:relative;display:inline-block}
+.emoji-picker-panel{position:absolute;bottom:calc(100% + 8px);left:0;z-index:500;background:var(--bg2);border:1px solid var(--gold-dim);border-radius:14px;padding:12px;box-shadow:0 16px 48px rgba(0,0,0,.6);width:320px;animation:fadeUp .2s ease}
+.emoji-picker-search{width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:.85rem;outline:none;margin-bottom:10px;transition:border-color .2s}
+.emoji-picker-search:focus{border-color:var(--gold-dim)}
+.emoji-picker-cats{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+.emoji-cat-btn{padding:4px 8px;border-radius:6px;font-size:.75rem;background:var(--surface);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:var(--transition)}
+.emoji-cat-btn.active{background:var(--gold-glow);border-color:var(--gold-dim);color:var(--gold)}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;max-height:200px;overflow-y:auto}
+.emoji-btn{font-size:1.3rem;padding:4px;border-radius:6px;background:none;border:none;cursor:pointer;transition:background .15s;text-align:center;line-height:1.4}
+.emoji-btn:hover{background:var(--surface2)}
+
 </style>
 </head>
 <body>
@@ -4114,7 +4127,8 @@ function showConfigStatus(id, msg, type) {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = msg;
-  el.style.color = type === 'error' ? 'var(--red)' : type === 'success' ? 'var(--teal)' : 'var(--text3)';
+  el.style.display = 'block';
+  el.className = 'config-status ' + (type === 'error' ? 'err' : type === 'success' ? 'ok' : '');
 }
 
 // Upload de arquivo pro GitHub
@@ -4183,6 +4197,84 @@ async function bfInsertImagemUpload() {
     bfInsert(`\n\n![${caption}](${url})\n\n`);
   } catch(e) {} // erros já tratados no uploadImagemGithub
 }
+
+
+// ── EMOJI PICKER ──────────────────────────────────────────
+const EMOJI_DATA = {
+  '😀 Rostos': ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','💫','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'],
+  '👋 Gestos': ['👋','🤚','🖐','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🫀','🫁','🧠','🦷','🦴','👀','👁','👅','👄'],
+  '❤️ Corações': ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫'],
+  '🌸 Natureza': ['🌸','🌺','🌻','🌹','🥀','🌷','🌱','🌿','☘️','🍀','🎍','🎋','🍃','🍂','🍁','🍄','🌾','💐','🌵','🌴','🌳','🌲','🎄','🌊','🌬','🌀','🌈','⚡','🔥','💧','🌙','⭐','🌟','✨','💫','☀️','🌤','⛅','🌦','🌧','⛈','🌩','🌨','❄️','☃️','⛄','🌊','🌋','🏔','⛰','🗻','🏕','🏖','🏜','🏝','🌏','🌍','🌎','🗺','🧭'],
+  '🎬 Entretenimento': ['🎬','🎭','🎨','🎪','🎤','🎧','🎼','🎹','🥁','🎷','🎺','🎸','🎻','🎲','♟','🎯','🎳','🎮','🎰','🧩','🎭','🎪','🤹','🎨','🖼','🎠','🎡','🎢','🎟','🎫','🏆','🥇','🥈','🥉','🏅','🎖','🏵','🎗','🎀','🎁','🎊','🎉','🎈','🎋','🎍','🎎','🎐','🎑','🧧','🎃','🎄','🎆','🎇','🧨'],
+  '✍️ Escrita': ['📝','📖','📚','📓','📔','📒','📕','📗','📘','📙','📃','📄','📑','📊','📈','📉','📋','📌','📍','📎','🖇','📏','📐','✂️','🗃','🗄','🗑','🔒','🔓','🔏','🔐','🔑','🗝','🔨','⛏','🪓','🔧','🔩','🗜','⚙️','🔗','⛓','🪝','🧲','🔫','💣','🪃','🏹','🛡','🪚','🔬','🔭','🩺','💊','🩹','🩼','🩻'],
+};
+
+let emojiCatAtiva = Object.keys(EMOJI_DATA)[0];
+let emojiAberto = false;
+
+function initEmojiPicker() {
+  const catsEl = document.getElementById('emoji-cats');
+  const gridEl = document.getElementById('emoji-grid');
+  if (!catsEl || !gridEl) return;
+
+  catsEl.innerHTML = Object.keys(EMOJI_DATA).map(cat =>
+    `<button class="emoji-cat-btn ${cat === emojiCatAtiva ? 'active' : ''}" onclick="setEmojiCat('${cat}')">${cat.split(' ')[0]}</button>`
+  ).join('');
+
+  renderEmojiGrid(EMOJI_DATA[emojiCatAtiva]);
+}
+
+function setEmojiCat(cat) {
+  emojiCatAtiva = cat;
+  document.querySelectorAll('.emoji-cat-btn').forEach(b => b.classList.toggle('active', b.textContent === cat.split(' ')[0]));
+  renderEmojiGrid(EMOJI_DATA[cat]);
+  document.getElementById('emoji-search').value = '';
+}
+
+function renderEmojiGrid(emojis) {
+  const grid = document.getElementById('emoji-grid');
+  if (!grid) return;
+  grid.innerHTML = emojis.map(e =>
+    `<button class="emoji-btn" onclick="inserirEmoji('${e}')" title="${e}">${e}</button>`
+  ).join('');
+}
+
+function filtrarEmojis(q) {
+  if (!q) { renderEmojiGrid(EMOJI_DATA[emojiCatAtiva]); return; }
+  const todos = Object.values(EMOJI_DATA).flat();
+  // filtra por nome aproximado — usa o próprio emoji como match
+  renderEmojiGrid(todos.filter(e => e.includes(q)).slice(0, 64));
+}
+
+function inserirEmoji(emoji) {
+  const ta = document.getElementById('bf-conteudo');
+  if (!ta) return;
+  const s = ta.selectionStart;
+  ta.value = ta.value.slice(0, s) + emoji + ta.value.slice(ta.selectionEnd);
+  ta.selectionStart = ta.selectionEnd = s + emoji.length;
+  ta.focus();
+}
+
+function toggleEmojiPicker() {
+  const panel = document.getElementById('emoji-panel');
+  if (!panel) return;
+  emojiAberto = !emojiAberto;
+  panel.style.display = emojiAberto ? 'block' : 'none';
+  if (emojiAberto) {
+    initEmojiPicker();
+    setTimeout(() => document.getElementById('emoji-search')?.focus(), 50);
+  }
+}
+
+// Fechar picker ao clicar fora
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('emoji-picker-wrap');
+  if (wrap && !wrap.contains(e.target) && emojiAberto) {
+    emojiAberto = false;
+    const panel = document.getElementById('emoji-panel');
+    if (panel) panel.style.display = 'none';
+  }
+});
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
@@ -4541,6 +4633,14 @@ async function faBuscarFilmografiaMDL(){
             <button class="blog-tool" onclick="bfInsertImagemUpload()">⬆ Upload</button>
             <button class="blog-tool" onclick="bfInsertVideo()">▶ Vídeo</button>
             <button class="blog-tool" id="bf-btn-ai" onclick="bfGerarComIA()">✨ IA</button>
+            <div class="emoji-picker-wrap" id="emoji-picker-wrap">
+              <button class="blog-tool" onclick="toggleEmojiPicker()" title="Emojis">😊 Emoji</button>
+              <div class="emoji-picker-panel" id="emoji-panel" style="display:none">
+                <input class="emoji-picker-search" id="emoji-search" placeholder="Buscar emoji…" oninput="filtrarEmojis(this.value)">
+                <div class="emoji-picker-cats" id="emoji-cats"></div>
+                <div class="emoji-grid" id="emoji-grid"></div>
+              </div>
+            </div>
             <span style="flex:1"></span>
             <button class="blog-tool" onclick="bfTogglePreview()">👁 Preview</button>
           </div>
