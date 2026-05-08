@@ -512,15 +512,154 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .form-prog{width:100%;height:2px;background:var(--surface2);border-radius:2px;margin-top:4px;overflow:hidden;display:none}
 .form-prog-bar{height:100%;background:var(--gold);border-radius:2px;transition:width .3s;width:0%}
 
+
+/* ── MDL CAST IMPORT ─────────────────────────────────────── */
+.mdl-search-box{background:var(--surface);border:1px solid var(--gold-dim);border-radius:10px;padding:14px;margin-bottom:12px}
+.mdl-search-box-title{font-size:.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.mdl-search-row{display:flex;gap:8px;margin-bottom:10px}
+.mdl-input{flex:1;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;font-family:inherit;outline:none;transition:border-color .2s}
+.mdl-input:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px var(--gold-glow)}
+.mdl-results{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;margin-bottom:8px}
+.mdl-result-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--bg);border:1px solid var(--border);cursor:pointer;transition:var(--transition)}
+.mdl-result-item:hover{border-color:var(--gold-dim);background:var(--gold-glow)}
+.mdl-result-img{width:36px;height:50px;object-fit:cover;border-radius:4px;background:var(--surface2);flex-shrink:0}
+.mdl-result-info{flex:1;min-width:0}
+.mdl-result-title{font-size:.85rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdl-result-year{font-size:.72rem;color:var(--text3)}
+.mdl-result-rating{font-size:.72rem;color:var(--gold);margin-left:auto;flex-shrink:0}
+.mdl-cast-preview{display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;margin-top:8px}
+.mdl-cast-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg);border-radius:6px;border:1px solid var(--border)}
+.mdl-cast-item img{width:28px;height:36px;object-fit:cover;border-radius:3px;background:var(--surface2)}
+.mdl-cast-item-info{flex:1;font-size:.78rem}
+.mdl-cast-item-name{font-weight:600;color:var(--text)}
+.mdl-cast-item-char{color:var(--text2)}
+.mdl-cast-item-type{font-size:.65rem;color:var(--text3);text-transform:uppercase}
+
+
+/* ── BLOG ─────────────────────────────────────────────────── */
+.blog-header{padding:48px clamp(16px,4vw,48px) 24px;background:linear-gradient(to bottom,var(--bg2),var(--bg));border-bottom:1px solid var(--border)}
+.blog-header-inner{max-width:900px;margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.blog-title-kr{font-family:'Noto Serif KR',serif;font-size:.8rem;color:var(--gold);letter-spacing:.3em;opacity:.6;margin-bottom:8px}
+.blog-type-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:16px;max-width:900px;margin-left:auto;margin-right:auto}
+.blog-tab{padding:7px 18px;border-radius:20px;font-size:.78rem;font-weight:600;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:var(--transition);letter-spacing:.03em}
+.blog-tab:hover{color:var(--gold);border-color:var(--gold-dim)}
+.blog-tab.active{background:var(--gold);color:#0a0a0c;border-color:var(--gold)}
+#blog-list{max-width:900px;margin:0 auto;padding:32px clamp(16px,4vw,48px);display:flex;flex-direction:column;gap:24px}
+.blog-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.2,.64,1),box-shadow .3s ease,border-color .3s;display:flex;animation:fadeUp .4s ease both}
+.blog-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.5);border-color:var(--gold-dim)}
+.blog-card-thumb{width:160px;flex-shrink:0;background:var(--bg3);position:relative;overflow:hidden}
+.blog-card-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
+.blog-card:hover .blog-card-thumb img{transform:scale(1.05)}
+.blog-card-thumb-placeholder{width:100%;height:100%;min-height:140px;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif KR',serif;font-size:2rem;color:var(--gold-dim);background:linear-gradient(135deg,var(--bg3),var(--surface2))}
+.blog-card-body{flex:1;padding:22px 24px;display:flex;flex-direction:column;gap:8px}
+.blog-type-badge{padding:3px 10px;border-radius:20px;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.blog-type-resenha{background:rgba(201,168,76,.12);color:var(--gold);border:1px solid var(--gold-dim)}
+.blog-type-post{background:rgba(76,201,168,.12);color:var(--teal);border:1px solid rgba(76,201,168,.3)}
+.blog-card-date{font-size:.72rem;color:var(--text3)}
+.blog-card-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--text);line-height:1.3}
+.blog-card-excerpt{font-size:.85rem;color:var(--text2);line-height:1.7;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.blog-card-tag{padding:2px 9px;border-radius:20px;font-size:.67rem;background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+.blog-card-nota{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--gold);line-height:1;margin-left:auto;align-self:flex-start;flex-shrink:0}
+@media(max-width:560px){.blog-card{flex-direction:column}.blog-card-thumb{width:100%;height:140px}}
+/* POST DETAIL */
+.post-wrap{max-width:740px;margin:0 auto;padding:40px clamp(16px,4vw,48px) 80px}
+.post-back{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:.82rem;font-weight:500;transition:var(--transition);cursor:pointer;margin-bottom:32px}
+.post-back:hover{color:var(--gold);border-color:var(--gold-dim)}
+.post-type-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
+.post-kicker{font-family:'Noto Serif KR',serif;font-size:.82rem;color:var(--gold);letter-spacing:.2em;opacity:.7;margin-bottom:10px}
+.post-h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;line-height:1.15;color:var(--text);margin-bottom:12px}
+.post-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.post-meta-date{font-size:.78rem;color:var(--text3)}
+.post-nota-big{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:700;color:var(--gold);line-height:1}
+.post-nota-label{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.post-cover{width:100%;border-radius:var(--radius);aspect-ratio:16/7;object-fit:cover;margin-bottom:32px;border:1px solid var(--border)}
+.post-body{font-size:.95rem;line-height:1.9;color:var(--text2)}
+.post-body p{margin-bottom:1.4em}
+.post-body h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);margin:2em 0 .8em;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.post-body h3{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);margin:1.6em 0 .6em}
+.post-body blockquote{margin:1.5em 0;padding:16px 22px;border-left:3px solid var(--gold);background:var(--surface);border-radius:0 8px 8px 0;color:var(--text);font-style:italic}
+.post-body strong{color:var(--text);font-weight:600}
+.post-body em{color:var(--gold2)}
+.post-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:40px;padding-top:24px;border-top:1px solid var(--border)}
+.post-tag{padding:5px 14px;border-radius:20px;font-size:.75rem;background:var(--surface);color:var(--text2);border:1px solid var(--border)}
+.post-spoiler-toggle{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:.8rem;font-weight:600;background:rgba(201,168,76,.1);border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;transition:var(--transition);margin:12px 0}
+.post-spoiler-toggle:hover{background:var(--gold-glow)}
+.post-spoiler-content{display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px}
+.post-spoiler-content.open{display:block}
+/* BLOG FORM */
+.blog-form-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(12px);z-index:400;display:none;overflow-y:auto;padding:60px 20px 40px}
+.blog-form-overlay.open{display:block}
+.blog-form-panel{max-width:820px;margin:0 auto;background:var(--bg2);border:1px solid var(--gold-dim);border-radius:20px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.8);animation:formSlide .35s cubic-bezier(.34,1.2,.64,1)}
+.blog-editor{width:100%;min-height:280px;resize:vertical;background:var(--bg);border:1px solid var(--border);border-radius:0 0 8px 8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;padding:14px;outline:none;transition:border-color .2s;line-height:1.8}
+.blog-editor:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px var(--gold-glow)}
+.blog-toolbar{display:flex;gap:4px;flex-wrap:wrap;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px 8px 0 0;border-bottom:none}
+.blog-tool{padding:5px 10px;border-radius:5px;font-size:.78rem;font-weight:600;background:var(--bg);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:var(--transition)}
+.blog-tool:hover{color:var(--gold);border-color:var(--gold-dim)}
+.blog-preview-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;min-height:80px;font-size:.9rem;line-height:1.8;color:var(--text2)}
+.blog-preview-box p{margin-bottom:1em}
+.blog-preview-box h2{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--text);margin:1.5em 0 .5em}
+.blog-preview-box blockquote{padding:12px 18px;border-left:3px solid var(--gold);background:var(--bg);border-radius:0 6px 6px 0;font-style:italic;color:var(--text);margin:1em 0}
+.blog-preview-box strong{color:var(--text)}
+.blog-preview-box em{color:var(--gold2)}
+
+
+/* ── NOVA HOME ───────────────────────────────────────────── */
+.home-hero{position:relative;min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px 48px;overflow:hidden}
+.home-hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(201,168,76,.08) 0%,transparent 70%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%)}
+.home-hero-bg::after{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23c9a84c' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/svg%3E")}
+
+/* SECTION NAV CARDS */
+.home-nav-section{padding:0 clamp(16px,4vw,48px) 48px;max-width:1100px;margin:0 auto}
+.home-nav-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:640px){.home-nav-cards{grid-template-columns:1fr}}
+.home-nav-card{position:relative;border-radius:var(--card-r);border:1px solid var(--border);background:var(--surface);padding:28px 24px;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.2,.64,1),box-shadow .3s,border-color .3s;overflow:hidden;display:flex;flex-direction:column;gap:12px}
+.home-nav-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s}
+.home-nav-card:hover{transform:translateY(-5px);box-shadow:0 20px 60px rgba(0,0,0,.5);border-color:var(--gold-dim)}
+.home-nav-card:hover::before{opacity:1}
+.home-nav-card-doramas::before{background:radial-gradient(ellipse at top left,rgba(201,168,76,.08),transparent 60%)}
+.home-nav-card-atores::before{background:radial-gradient(ellipse at top left,rgba(76,201,168,.06),transparent 60%)}
+.home-nav-card-blog::before{background:radial-gradient(ellipse at top left,rgba(167,139,250,.07),transparent 60%)}
+.home-nav-card-icon{font-size:2rem;line-height:1}
+.home-nav-card-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--text)}
+.home-nav-card-sub{font-size:.82rem;color:var(--text2);line-height:1.5}
+.home-nav-card-stat{margin-top:auto;font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--gold);line-height:1}
+.home-nav-card-stat-label{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+.home-nav-card-arrow{position:absolute;bottom:20px;right:20px;font-size:1.2rem;color:var(--gold-dim);transition:transform .3s,color .3s}
+.home-nav-card:hover .home-nav-card-arrow{transform:translate(3px,-3px);color:var(--gold)}
+
+/* NOTÍCIAS */
+.home-news-section{padding:0 clamp(16px,4vw,48px) 60px;max-width:1100px;margin:0 auto}
+.home-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px}
+.home-section-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px}
+.home-section-title::before{content:'';display:block;width:3px;height:1.2em;background:var(--gold);border-radius:2px;flex-shrink:0}
+.news-source-badge{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px;background:rgba(201,168,76,.1);color:var(--gold);border:1px solid var(--gold-dim)}
+.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.news-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.2,.64,1),box-shadow .3s,border-color .3s;animation:fadeUp .4s ease both}
+.news-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.5);border-color:var(--gold-dim)}
+.news-card-img{width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--bg3)}
+.news-card-img-placeholder{width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,var(--bg3),var(--surface2));display:flex;align-items:center;justify-content:center;font-family:'Noto Serif KR',serif;font-size:1.8rem;color:var(--gold-dim)}
+.news-card-body{padding:16px}
+.news-card-cat{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.news-card-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.news-card-title.translated{color:var(--text)}
+.news-card-date{font-size:.7rem;color:var(--text3)}
+.news-translate-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.news-translating{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--text3)}
+
+/* DORAMAS PAGE (antigo home) */
+.doramas-header{padding:40px clamp(16px,4vw,48px) 0}
+
 </style>
 </head>
 <body>
 
 <nav id="nav">
-  <div class="nav-logo" onclick="navigate('home')" title="Início">K<span>drama</span> 韓</div>
+  <div class="nav-logo" onclick="navigate('inicio')" title="Início">K<span>drama</span> 韓</div>
   <div class="nav-links" id="nav-menu">
-    <a data-page="home" onclick="navigate('home')">Doramas</a>
+    <a data-page="inicio" onclick="navigate('inicio')">Início</a>
+    <a data-page="doramas" onclick="navigate('doramas')">Doramas</a>
     <a data-page="atores" onclick="navigate('atores')">Atores</a>
+    <a data-page="blog" onclick="navigate('blog')">Blog</a>
     <a data-page="config" onclick="navigate('config')">Configurações</a>
     <button id="theme-btn" title="Alternar tema">☀</button>
   </div>
@@ -529,30 +668,101 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 <div id="app">
 
-  <!-- HOME -->
-  <div class="page active" id="page-home">
-    <section id="hero">
-      <div class="hero-bg"></div>
-      <div class="hero-kr">한국 드라마 · 나의 우주</div>
-      <h1 class="hero-title">Meu Universo<em>K-Drama</em></h1>
-      <p class="hero-sub">Uma coleção pessoal de histórias que pararam o tempo</p>
-      <div class="hero-line"><span>✦</span></div>
+  <!-- INÍCIO (nova home) -->
+  <div class="page active" id="page-inicio">
+    <section class="home-hero">
+      <div class="home-hero-bg"></div>
+      <div class="hero-kr" style="position:relative">한국 드라마 · 나의 우주</div>
+      <h1 class="hero-title" style="position:relative">Meu Universo<em>K-Drama</em></h1>
+      <p class="hero-sub" style="position:relative">Uma coleção pessoal de histórias que pararam o tempo</p>
+      <div class="hero-line" style="position:relative"><span>✦</span></div>
     </section>
-    <div id="stats-bar">
-      <div class="stat"><div class="stat-n" id="stat-total">—</div><div class="stat-l">Doramas</div></div>
-      <div class="stat"><div class="stat-n" id="stat-concluido">—</div><div class="stat-l">Concluídos</div></div>
-      <div class="stat"><div class="stat-n" id="stat-assistindo">—</div><div class="stat-l">Assistindo</div></div>
-      <div class="stat"><div class="stat-n" id="stat-media">—</div><div class="stat-l">Nota Média</div></div>
+
+    <!-- Cards de navegação -->
+    <div class="home-nav-section">
+      <div class="home-nav-cards">
+        <div class="home-nav-card home-nav-card-doramas" onclick="navigate('doramas')">
+          <div class="home-nav-card-icon">🎬</div>
+          <div>
+            <div class="home-nav-card-title">Doramas</div>
+            <div class="home-nav-card-sub">Sua coleção pessoal de séries, com avaliações, elenco e galeria</div>
+          </div>
+          <div>
+            <div class="home-nav-card-stat" id="hnc-stat-doramas">—</div>
+            <div class="home-nav-card-stat-label">séries catalogadas</div>
+          </div>
+          <div class="home-nav-card-arrow">↗</div>
+        </div>
+        <div class="home-nav-card home-nav-card-atores" onclick="navigate('atores')">
+          <div class="home-nav-card-icon">🌟</div>
+          <div>
+            <div class="home-nav-card-title">Atores & Atrizes</div>
+            <div class="home-nav-card-sub">Os rostos que tornaram cada história inesquecível</div>
+          </div>
+          <div>
+            <div class="home-nav-card-stat" id="hnc-stat-atores">—</div>
+            <div class="home-nav-card-stat-label">atores cadastrados</div>
+          </div>
+          <div class="home-nav-card-arrow">↗</div>
+        </div>
+        <div class="home-nav-card home-nav-card-blog" onclick="navigate('blog')">
+          <div class="home-nav-card-icon">✍️</div>
+          <div>
+            <div class="home-nav-card-title">Blog</div>
+            <div class="home-nav-card-sub">Resenhas completas e posts sobre o universo K-Drama</div>
+          </div>
+          <div>
+            <div class="home-nav-card-stat" id="hnc-stat-blog">—</div>
+            <div class="home-nav-card-stat-label">posts publicados</div>
+          </div>
+          <div class="home-nav-card-arrow">↗</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notícias -->
+    <div class="home-news-section">
+      <div class="home-section-header">
+        <div class="home-section-title">
+          Notícias
+          <span class="news-source-badge">MyDramaList</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div id="news-translate-status" class="news-translating" style="display:none">
+            <span class="spinner" style="width:14px;height:14px;display:inline-block;border-width:2px"></span>
+            Traduzindo…
+          </div>
+          <button class="btn-outline btn-sm" id="btn-traduzir" onclick="traduzirNoticias()" style="display:none">
+            🇧🇷 Traduzir
+          </button>
+          <button class="btn-outline btn-sm" onclick="carregarNoticias(true)">↺ Atualizar</button>
+        </div>
+      </div>
+      <div class="news-grid" id="news-grid"></div>
+    </div>
+  </div>
+
+  <!-- DORAMAS (antiga home) -->
+  <div class="page" id="page-home">
+    <div class="doramas-header">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:8px">
+        <div>
+          <h2 class="page-heading">Doramas</h2>
+          <p class="page-sub">Sua coleção completa</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn-new-drama" onclick="openNewDramaModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Novo Dorama
+          </button>
+          <button class="btn-new-drama" onclick="openFormAtor()" style="background:var(--surface);border:1px solid var(--border);color:var(--text2)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Novo Ator
+          </button>
+        </div>
+      </div>
     </div>
     <div id="filters-bar">
-      <button class="btn-new-drama" onclick="openNewDramaModal()" title="Adicionar novo dorama via TMDB">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-        Novo Dorama
-      </button>
-      <button class="btn-new-drama" onclick="openFormAtor()" title="Adicionar novo ator" style="background:var(--surface);border:1px solid var(--border);color:var(--text2)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Novo Ator
-      </button>
       <div class="search-wrap">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="search-input" placeholder="Buscar doramas…">
@@ -623,6 +833,38 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <button class="edit-toggle" onclick="editCurrentAtor()" style="background:var(--gold);color:#0a0a0c;border-color:var(--gold)">📝 Formulário</button>
     </div>
     <div id="ator-content"></div>
+  </div>
+
+
+  <!-- BLOG LIST -->
+  <div class="page" id="page-blog">
+    <div class="blog-header">
+      <div class="blog-header-inner">
+        <div>
+          <div class="blog-title-kr">블로그 · 리뷰</div>
+          <h2 class="page-heading">Blog <em>&amp;</em> Resenhas</h2>
+          <p class="page-sub">Opiniões, rankings e análises sem papas na língua</p>
+        </div>
+        <button class="btn-gold" onclick="openBlogForm()" style="align-self:flex-end">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Novo Post
+        </button>
+      </div>
+      <div class="blog-type-tabs">
+        <button class="blog-tab active" data-btype="" onclick="setBlogFilter(this)">Todos</button>
+        <button class="blog-tab" data-btype="Resenha" onclick="setBlogFilter(this)">Resenhas</button>
+        <button class="blog-tab" data-btype="Post" onclick="setBlogFilter(this)">Posts Livres</button>
+      </div>
+    </div>
+    <div id="blog-list"></div>
+  </div>
+
+  <!-- POST DETAIL -->
+  <div class="page" id="page-post">
+    <div class="post-wrap">
+      <button class="post-back" onclick="navigate('blog')">← Voltar ao Blog</button>
+      <div id="post-content"></div>
+    </div>
   </div>
 
   <!-- CONFIG -->
@@ -845,10 +1087,26 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           <span class="fl" style="font-size:.65rem">Tipo</span>
           <span></span>
         </div>
+        <!-- MDL Import Box -->
+        <div class="mdl-search-box" id="mdl-cast-box">
+          <div class="mdl-search-box-title">
+            <span>🎬</span> Importar Elenco do MyDramaList
+          </div>
+          <div class="mdl-search-row">
+            <input class="mdl-input" id="mdl-cast-input" placeholder="Nome do dorama em inglês…" onkeydown="if(event.key==='Enter') mdlSearchDrama()">
+            <button class="btn-gold btn-sm" onclick="mdlSearchDrama()">Buscar</button>
+          </div>
+          <div id="mdl-search-results"></div>
+          <div id="mdl-cast-preview"></div>
+          <div id="mdl-cast-actions" style="display:none;margin-top:8px;display:flex;gap:8px">
+            <button class="btn-gold btn-sm" id="mdl-import-btn" onclick="mdlImportCast()">⬇️ Importar para o formulário</button>
+            <button class="btn-outline btn-sm" onclick="mdlClearPreview()">Limpar</button>
+          </div>
+        </div>
         <div class="cast-list" id="fd-cast-list"></div>
         <button class="btn-add-cast" onclick="fdAddCastRow()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          Adicionar ator
+          Adicionar ator manualmente
         </button>
       </div>
     </div>
@@ -898,7 +1156,13 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             <input class="fi" id="fa-foto-url" placeholder="ou cole URL…" style="margin-top:6px;font-size:.78rem" oninput="faPreviewFotoUrl(this.value)">
           </div>
           <div style="display:flex;flex-direction:column;gap:12px">
-            <div class="fg"><label class="fl">Nome (Romanizado)</label><input class="fi" id="fa-nome" placeholder="Park Seo-joon"></div>
+            <div class="fg">
+              <label class="fl">Nome (Romanizado)</label>
+              <div style="display:flex;gap:8px">
+                <input class="fi" id="fa-nome" placeholder="Park Seo-joon" style="flex:1">
+                <button class="btn-ai" onclick="faBuscarFilmografiaMDL()" id="fa-btn-filmografia" title="Buscar filmografia no MDL pelo nome">🎬 Filmografia</button>
+              </div>
+            </div>
             <div class="fg"><label class="fl">Nome Coreano</label><input class="fi" id="fa-nome-kor" placeholder="박서준"></div>
             <div class="fg"><label class="fl">Data de Nascimento</label><input class="fi" id="fa-nasc" type="date"></div>
           </div>
@@ -926,16 +1190,16 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         </div>
       </div>
 
-      <!-- Link + Filmografia -->
+      <!-- MDL ID -->
       <div class="form-sect">
-        <div class="form-sect-title">HanCinema</div>
+        <div class="form-sect-title">MyDramaList</div>
         <div class="fg" style="margin-bottom:10px">
-          <label class="fl">URL HanCinema do Ator</label>
+          <label class="fl">ID ou URL do Ator no MDL</label>
           <div style="display:flex;gap:8px">
-            <input class="fi" id="fa-link" placeholder="https://www.hancinema.net/korean_Park_Min-young.php" style="flex:1">
-            <button class="btn-ai" onclick="faBuscarFilmografia()" id="fa-btn-filmografia">🎬 Buscar Filmografia</button>
+            <input class="fi" id="fa-link" placeholder="1234 ou https://mydramalist.com/people/1234-lee-min-ho" style="flex:1">
+            <button class="btn-ai" onclick="faBuscarFilmografiaMDL()" id="fa-btn-filmografia-mdl">🎬 Buscar</button>
           </div>
-          <span style="font-size:.7rem;color:var(--text3);margin-top:4px;display:block">A URL da filmografia é gerada automaticamente a partir desta</span>
+          <span style="font-size:.7rem;color:var(--text3);margin-top:4px;display:block">Cole o ID numérico ou a URL completa do perfil no MDL</span>
         </div>
       </div>
     </div>
@@ -1004,38 +1268,51 @@ function showToast(msg,dur=3000){
 }
 
 // ── NAVIGATION ────────────────────────────────────────────
-function navigate(page,id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+function navigate(page, id) {
+  // Alias: 'doramas' aponta pra page-home, 'inicio' pra page-inicio
+  const pageAlias = page === 'doramas' ? 'home' : page;
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
   document.getElementById('nav-menu').classList.remove('open');
-  editMode=false;
-  document.querySelectorAll('.edit-toggle').forEach(b=>{b.classList.remove('active');b.textContent='✏️ Editar'});
+  editMode = false;
+  document.querySelectorAll('.edit-toggle').forEach(b => { b.classList.remove('active'); b.textContent = '✏️ Editar'; });
   document.body.classList.remove('edit-mode');
 
-  const pageEl=document.getElementById('page-'+page);
-  if(pageEl) pageEl.classList.add('active');
-  const map={home:'home',dorama:'home',atores:'atores',ator:'atores',config:'config'};
-  const navEl=document.querySelector(`.nav-links a[data-page="${map[page]||page}"]`);
-  if(navEl) navEl.classList.add('active');
+  const pageEl = document.getElementById('page-' + pageAlias);
+  if (pageEl) pageEl.classList.add('active');
 
-  const hash=id?`#${page}/${id}`:`#${page}`;
-  history.pushState(null,'',hash);
-  window.scrollTo(0,0);
+  // Mapa page → aba ativa no nav
+  const navMap = {
+    inicio:'inicio', home:'doramas', doramas:'doramas',
+    dorama:'doramas', atores:'atores', ator:'atores',
+    blog:'blog', post:'blog', config:'config'
+  };
+  const navTarget = navMap[page] || navMap[pageAlias] || page;
+  const navEl = document.querySelector(`.nav-links a[data-page="${navTarget}"]`);
+  if (navEl) navEl.classList.add('active');
 
-  if(page==='home')   renderHome();
-  if(page==='atores') renderAtores();
-  if(page==='dorama'&&id) renderDorama(id);
-  if(page==='ator'&&id)   renderAtor(id);
-  if(page==='config'){
-    const ki=document.getElementById('api-key-input');
-    const ti=document.getElementById('tmdb-key-input');
-    if(ki&&apiKey) ki.value=apiKey;
-    if(ti&&tmdbKey) ti.value=tmdbKey;
+  const hash = id ? `#${page}/${id}` : `#${page}`;
+  history.pushState(null, '', hash);
+  window.scrollTo(0, 0);
+
+  if (pageAlias === 'inicio')                   renderInicio();
+  if (pageAlias === 'home')                     renderHome();
+  if (pageAlias === 'atores')                   renderAtores();
+  if (pageAlias === 'dorama' && id)             renderDorama(id);
+  if (pageAlias === 'ator' && id)               renderAtor(id);
+  if (pageAlias === 'blog')                     renderBlog();
+  if (pageAlias === 'post' && id)               renderPost(id);
+  if (pageAlias === 'config') {
+    const ki = document.getElementById('api-key-input');
+    const ti = document.getElementById('tmdb-key-input');
+    if (ki && apiKey) ki.value = apiKey;
+    if (ti && tmdbKey) ti.value = tmdbKey;
   }
 }
 
 function parseHash(){
-  const h=window.location.hash.slice(1)||'home';
+  const h=window.location.hash.slice(1)||'inicio';
   const p=h.split('/');
   navigate(p[0],p[1]);
 }
@@ -1116,7 +1393,7 @@ async function loadAllData(){
         'Biografia','Dramas em Destaque','Filmes em Destaque'
       ]}),
       fetchTable(TABLES.elenco, {fields:[
-        'Personagem','Tipo','Séries','Ator/Atriz'
+        'Personagem','Tipo','Séries','Atores'
       ]}),
       fetchTable(TABLES.plataformas, {fields:[
         'Nome','Logo','Séries'
@@ -1184,11 +1461,14 @@ function skeletons(n,ratio='2/3'){
 
 // ── STATS ─────────────────────────────────────────────────
 function renderStats(){
-  document.getElementById('stat-total').textContent=allSeries.length;
-  document.getElementById('stat-concluido').textContent=allSeries.filter(s=>s.fields['Status']==='Concluído').length;
-  document.getElementById('stat-assistindo').textContent=allSeries.filter(s=>s.fields['Status']==='Assistindo').length;
+  const s = id => document.getElementById(id);
+  if(s('stat-total'))     s('stat-total').textContent=allSeries.length;
+  if(s('stat-concluido')) s('stat-concluido').textContent=allSeries.filter(s=>s.fields['Status']==='Concluído').length;
+  if(s('stat-assistindo'))s('stat-assistindo').textContent=allSeries.filter(s=>s.fields['Status']==='Assistindo').length;
   const notas=allSeries.map(s=>s.fields['Nota']).filter(Boolean);
-  document.getElementById('stat-media').textContent=notas.length?(notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1):'—';
+  if(s('stat-media'))     s('stat-media').textContent=notas.length?(notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1):'—';
+  // Atualizar cards da home
+  atualizarStatsHome();
 }
 
 // ── PLATFORM FILTER ───────────────────────────────────────
@@ -1328,7 +1608,7 @@ async function renderDorama(id){
     if(castIds.length){
       const elencoRecs=allElenco.length?allElenco.filter(e=>castIds.includes(e.id)):await fetchTable(TABLES.elenco,{formula:`OR(${castIds.map(i=>`RECORD_ID()='${i}'`).join(',')})`});
       castRecords=await Promise.all(elencoRecs.map(async e=>{
-        const atorIds=e.fields['Ator/Atriz']||[];
+        const atorIds=e.fields['Atores']||[];
         let ator=atorIds.length?(allAtores.find(a=>a.id===atorIds[0])||null):null;
         if(!ator&&atorIds.length){
           try{const r=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.atores}/${atorIds[0]}`,{headers:{Authorization:`Bearer ${apiKey}`}});ator=await r.json();}catch(_){}
@@ -2394,7 +2674,7 @@ async function fdSalvarElenco(serieId, castData) {
       // Cria registro de elenco
       await createRecord(TABLES.elenco, {
         'Séries': [serieId],
-        'Ator/Atriz': [atorId],
+        'Atores': [atorId],
         'Personagem': membro.personagem || '',
         'Tipo': membro.tipo || 'Principal'
       });
@@ -2941,76 +3221,108 @@ async function faImportTMDB(personId){
 }
 
 
-async function faBuscarFilmografia() {
-  const linkAtorUrl = document.getElementById('fa-link').value.trim();
-  if (!linkAtorUrl) { showToast('Cole a URL do ator no HanCinema primeiro'); return; }
-  if (!linkAtorUrl.includes('hancinema.net')) { showToast('URL inválida — use hancinema.net'); return; }
+async function faBuscarFilmografiaMDL() {
+  // Pega ID do campo MDL ou extrai da URL
+  const input = document.getElementById('fa-link').value.trim();
+  const nomeAtor = document.getElementById('fa-nome').value.trim();
 
-  const btn = document.getElementById('fa-btn-filmografia');
-  btn.disabled = true; btn.textContent = '⏳ Buscando…';
+  // Extrair ID: aceita número puro ou URL tipo /people/1234-nome
+  let mdlId = null;
+  if (/^\d+$/.test(input)) {
+    mdlId = input;
+  } else {
+    const match = input.match(/\/people\/(\d+)/);
+    if (match) mdlId = match[1];
+  }
+
+  // Se não tem ID no campo MDL mas tem nome, busca pelo nome
+  if (!mdlId && !nomeAtor) {
+    showToast('Preencha o nome do ator ou o ID do MDL'); return;
+  }
+
+  // Botões a desabilitar — pode ser chamado de dois lugares
+  const btnNome = document.getElementById('fa-btn-filmografia');
+  const btnMdl  = document.getElementById('fa-btn-filmografia-mdl');
+  const setBtns = (txt, dis) => {
+    if (btnNome) { btnNome.disabled = dis; btnNome.textContent = txt; }
+    if (btnMdl)  { btnMdl.disabled  = dis; btnMdl.textContent  = txt; }
+  };
+  setBtns('⏳ Buscando…', true);
 
   try {
-    // Monta URL da filmografia a partir da URL do ator
-    const filmografiaUrl = linkAtorUrl.replace('.php', '-filmography.html');
-    const jinaUrl = `https://r.jina.ai/${filmografiaUrl}`;
-
-    // Busca via Jina
-    const res = await fetch(jinaUrl);
-    if (!res.ok) throw new Error(`Jina retornou ${res.status}`);
-    const texto = await res.text();
-
-    if (!texto || texto.length < 100) throw new Error('Página vazia ou bloqueada');
-
-    btn.textContent = '🤖 Processando…';
-
-    // Manda pro Claude extrair e formatar
-    const nomeAtor = document.getElementById('fa-nome').value.trim() || 'o ator';
-    const systemPrompt = `Você extrai filmografia de atores coreanos de páginas do HanCinema e formata em listas limpas em português. Responda APENAS com as listas, sem explicação.`;
-    
-    const prompt = `Extraia a filmografia completa de ${nomeAtor} do texto abaixo do HanCinema.
-
-O texto tem formato como:
-[Título (título coreano)](url)
-Drama ou Movie, Ano
-Character
-Nome do personagem
-
-Separe em duas listas:
-DRAMAS:
-- Título em inglês (título coreano, canal se houver, ano) - personagem
-
-FILMES:
-- Título em inglês (título coreano, ano) - personagem
-
-Regras:
-- Ordene do mais recente pro mais antigo
-- Inclua TODOS os trabalhos com personagem definido
-- Se não tiver personagem, inclua mesmo assim
-- Não invente nada que não esteja no texto
-
-Texto:
-${texto.slice(0, 12000)}`;
-
-    const resultado = await callClaude(prompt, systemPrompt);
-
-    // Separa dramas e filmes
-    const dramasMatch = resultado.split(/DRAMAS?:/i)[1]?.split(/FILMES?:/i)[0]?.trim();
-    const filmesMatch = resultado.split(/FILMES?:/i)[1]?.trim();
-
-    if (dramasMatch) {
-      document.getElementById('fa-dramas').value = dramasMatch.replace(/^- /gm, '').trim();
-    }
-    if (filmesMatch) {
-      document.getElementById('fa-filmes').value = filmesMatch.replace(/^- /gm, '').trim();
+    // Se não tem ID, precisa buscar pelo nome primeiro
+    if (!mdlId) {
+      const srRes = await fetch(`${MDL_API}/api/search/q/${encodeURIComponent(nomeAtor)}`);
+      if (!srRes.ok) throw new Error(`Erro na busca: HTTP ${srRes.status}`);
+      const srData = await srRes.json();
+      // O scraper retorna dramas na busca — tentar achar pelo nome exato
+      // Como não tem busca de pessoas, vamos pedir pro usuário fornecer o ID
+      throw new Error('Sem ID do MDL — cole o ID ou URL do ator no campo MDL abaixo');
     }
 
-    showToast('🎬 Filmografia importada!');
+    // Buscar dados do ator no MDL
+    const res = await fetch(`${MDL_API}/api/people/${mdlId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.description || 'Ator não encontrado');
+
+    setBtns('🤖 Processando…', true);
+
+    // Extrair filmografia do response
+    // O scraper retorna credits com dramas e filmes
+    const credits = data.credits || data.filmography || data;
+    const dramas  = credits.dramas  || credits.drama  || data.dramas  || [];
+    const filmes  = credits.movies  || credits.film   || data.movies  || data.films || [];
+
+    // Formatar como texto — um por linha
+    const formatarLista = (lista) => lista
+      .map(item => {
+        const titulo = item.title || item.name || '';
+        const ano    = item.year  || '';
+        const papel  = item.role  || item.character || item.character_name || '';
+        const canal  = item.network || item.channel || '';
+        const parts  = [titulo];
+        if (canal) parts.push(canal);
+        if (ano)   parts.push(ano);
+        let linha = parts.join(', ');
+        if (papel) linha += ` - ${papel}`;
+        return linha;
+      })
+      .filter(Boolean)
+      .join('\n');
+
+    if (dramas.length) {
+      document.getElementById('fa-dramas').value = formatarLista(dramas);
+    }
+    if (filmes.length) {
+      document.getElementById('fa-filmes').value = formatarLista(filmes);
+    }
+
+    if (!dramas.length && !filmes.length) {
+      // Se vier vazio, mostrar o raw pra debug e tentar IA
+      const raw = JSON.stringify(data).slice(0, 8000);
+      setBtns('🤖 Extraindo com IA…', true);
+      const sys = `Você extrai filmografia de atores coreanos de dados JSON do MyDramaList. Responda APENAS com as listas, sem explicação.`;
+      const prompt = `Extraia a filmografia de ${nomeAtor || 'o ator'} deste JSON do MDL.\n\nSepare em:\nDRAMAS:\n- Título (canal, ano) - personagem\n\nFILMES:\n- Título (ano) - personagem\n\nJSON:\n${raw}`;
+      const resultado = await callClaude(prompt, sys);
+      const dramasMatch = resultado.split(/DRAMAS?:/i)[1]?.split(/FILMES?:/i)[0]?.trim();
+      const filmesMatch = resultado.split(/FILMES?:/i)[1]?.trim();
+      if (dramasMatch) document.getElementById('fa-dramas').value = dramasMatch.replace(/^- /gm, '').trim();
+      if (filmesMatch) document.getElementById('fa-filmes').value = filmesMatch.replace(/^- /gm, '').trim();
+    }
+
+    showToast('🎬 Filmografia importada do MDL!');
   } catch(e) {
     showToast('Erro: ' + e.message);
     console.error(e);
   }
-  btn.disabled = false; btn.textContent = '🎬 Buscar Filmografia';
+  setBtns('🎬 Filmografia', false);
+  if (btnMdl) { btnMdl.disabled = false; btnMdl.textContent = '🎬 Buscar'; }
 }
+
+// Manter nome antigo como alias por compatibilidade
+function faBuscarFilmografia() { faBuscarFilmografiaMDL(); }
 
 async function faSalvar(){
   const nome=document.getElementById('fa-nome').value.trim();
@@ -3064,8 +3376,663 @@ async function faSalvar(){
 function editCurrentDorama(){ if(currentSerie) openFormDoramaEdit(currentSerie); }
 function editCurrentAtor(){ if(currentAtor) openFormAtor(currentAtor); }
 
+
+// ════════════════════════════════════════════════════════
+// MDL CAST IMPORT
+// ════════════════════════════════════════════════════════
+
+const MDL_API = 'https://mdl-api-three.vercel.app';
+let mdlCastData = []; // cache do cast importado
+
+async function mdlSearchDrama() {
+  const q = document.getElementById('mdl-cast-input').value.trim();
+  if (!q) { showToast('Digite o nome do dorama'); return; }
+  const res = document.getElementById('mdl-search-results');
+  res.innerHTML = `<div style="color:var(--text3);font-size:.8rem;padding:8px;display:flex;align-items:center;gap:8px"><span class="spinner" style="width:14px;height:14px;display:inline-block;border-width:2px"></span> Buscando no MyDramaList…</div>`;
+  document.getElementById('mdl-cast-preview').innerHTML = '';
+  document.getElementById('mdl-cast-actions').style.display = 'none';
+  mdlCastData = [];
+  try {
+    const r = await fetch(`${MDL_API}/api/search/q/${encodeURIComponent(q)}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    const results = (data.results || []).slice(0, 8);
+    if (!results.length) { res.innerHTML = `<div style="color:var(--text3);font-size:.8rem;padding:8px">Nenhum resultado encontrado.</div>`; return; }
+    res.innerHTML = results.map(d => `
+      <div class="mdl-result-item" onclick="mdlLoadCast('${d.slug}', this)">
+        ${d.image ? `<img class="mdl-result-img" src="${d.image}" loading="lazy">` : `<div class="mdl-result-img"></div>`}
+        <div class="mdl-result-info">
+          <div class="mdl-result-title">${d.title}</div>
+          <div class="mdl-result-year">${d.year || ''}</div>
+        </div>
+        ${d.rating ? `<span class="mdl-result-rating">★ ${d.rating}</span>` : ''}
+      </div>`).join('');
+  } catch(e) {
+    res.innerHTML = `<div style="color:var(--red);font-size:.8rem;padding:8px">Erro: ${e.message}. Verifique se a API está no ar.</div>`;
+  }
+}
+
+async function mdlLoadCast(slug, el) {
+  // highlight selecionado
+  document.querySelectorAll('.mdl-result-item').forEach(i => i.style.background = '');
+  if (el) el.style.background = 'var(--gold-glow)';
+
+  const preview = document.getElementById('mdl-cast-preview');
+  preview.innerHTML = `<div style="color:var(--text3);font-size:.8rem;padding:8px;display:flex;align-items:center;gap:8px"><span class="spinner" style="width:14px;height:14px;display:inline-block;border-width:2px"></span> Carregando elenco…</div>`;
+  document.getElementById('mdl-cast-actions').style.display = 'none';
+  mdlCastData = [];
+
+  try {
+    const r = await fetch(`${MDL_API}/api/id/${slug}/cast`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+
+    // O scraper retorna { cast: [...] } ou diretamente array
+    const castRaw = data.cast || data || [];
+    if (!castRaw.length) {
+      preview.innerHTML = `<div style="color:var(--text3);font-size:.8rem;padding:8px">Nenhum elenco encontrado.</div>`;
+      return;
+    }
+
+    mdlCastData = castRaw;
+
+    preview.innerHTML = `
+      <div style="font-size:.72rem;color:var(--text3);margin:8px 0 4px">${castRaw.length} membros encontrados — prévia:</div>
+      <div class="mdl-cast-preview">
+        ${castRaw.slice(0, 15).map(m => `
+          <div class="mdl-cast-item">
+            ${m.image ? `<img src="${m.image}" loading="lazy">` : `<div style="width:28px;height:36px;background:var(--surface2);border-radius:3px;flex-shrink:0"></div>`}
+            <div class="mdl-cast-item-info">
+              <div class="mdl-cast-item-name">${m.name || m.actor || '—'}</div>
+              <div class="mdl-cast-item-char">${m.character || m.role || ''}</div>
+              <div class="mdl-cast-item-type">${m.type || 'Principal'}</div>
+            </div>
+          </div>`).join('')}
+        ${castRaw.length > 15 ? `<div style="color:var(--text3);font-size:.75rem;padding:6px 8px">… e mais ${castRaw.length - 15}</div>` : ''}
+      </div>`;
+
+    document.getElementById('mdl-cast-actions').style.display = 'flex';
+    showToast(`✓ ${castRaw.length} membros carregados — confirme a importação`);
+  } catch(e) {
+    preview.innerHTML = `<div style="color:var(--red);font-size:.8rem;padding:8px">Erro ao carregar cast: ${e.message}</div>`;
+  }
+}
+
+function mdlImportCast() {
+  if (!mdlCastData.length) { showToast('Nenhum cast carregado'); return; }
+
+  // Mapear tipo MDL → nosso padrão
+  const tipoMap = {
+    'main role': 'Principal',
+    'main': 'Principal',
+    'support role': 'Suporte',
+    'support': 'Suporte',
+    'supporting': 'Suporte',
+    'guest role': 'Participação especial',
+    'guest': 'Participação especial',
+    'special appearance': 'Participação especial',
+  };
+
+  // Limpar cast atual do formulário
+  document.getElementById('fd-cast-list').innerHTML = '';
+  fdCastRows = [];
+  fdCastCounter = 0;
+
+  // Adicionar cada membro
+  mdlCastData.forEach(m => {
+    const nome = m.name || m.actor || '';
+    const personagem = m.character || m.role || '';
+    const tipoRaw = (m.type || 'main').toLowerCase();
+    const tipo = tipoMap[tipoRaw] || 'Principal';
+    if (nome) fdAddCastRow({ nome, personagem, tipo });
+  });
+
+  showToast(`✓ ${mdlCastData.length} membros importados!`);
+  mdlClearPreview();
+}
+
+function mdlClearPreview() {
+  mdlCastData = [];
+  document.getElementById('mdl-cast-preview').innerHTML = '';
+  document.getElementById('mdl-cast-actions').style.display = 'none';
+  document.getElementById('mdl-search-results').innerHTML = '';
+  document.getElementById('mdl-cast-input').value = '';
+}
+
+
+
+// ════════════════════════════════════════════════════════
+// BLOG
+// ════════════════════════════════════════════════════════
+
+// Após criar a tabela Blog no Airtable, cole o ID aqui:
+// TABLES.blog = 'tblXXXXXXXXXXXXXX';
+
+let allPosts = [];
+let currentPost = null;
+let bfEditId = null;
+let blogFilter = '';
+let bfPreviewOpen = false;
+
+// navigate já unificado na função principal
+
+function getBlogTableId() { return TABLES.blog || null; }
+
+async function renderBlog() {
+  const list = document.getElementById('blog-list');
+  if (!list) return;
+  if (!apiKey) { list.innerHTML = `<div class="empty-state"><div class="icon">🔑</div><p>Configure a API Key primeiro.</p></div>`; return; }
+  const tbl = getBlogTableId();
+  if (!tbl) { list.innerHTML = `<div class="empty-state"><div class="icon">📝</div><p>Crie a tabela Blog no Airtable e adicione o ID em TABLES.blog no código.</p></div>`; return; }
+  list.innerHTML = skeletons(4, '16/7');
+  try {
+    const records = await fetchTable(tbl, { fields: ['Título','Tipo','Status','Kicker','Conteúdo','Capa','Tags','Nota','Dorama','Data'] });
+    allPosts = records.filter(p => p.fields['Status'] === 'Publicado').sort((a, b) => (b.fields['Data'] || '').localeCompare(a.fields['Data'] || ''));
+    filterBlog();
+  } catch(e) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro: ${e.message}</p></div>`;
+  }
+}
+
+function setBlogFilter(btn) {
+  document.querySelectorAll('.blog-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  blogFilter = btn.dataset.btype || '';
+  filterBlog();
+}
+
+function filterBlog() {
+  const list = document.getElementById('blog-list');
+  if (!list) return;
+  const filtered = blogFilter ? allPosts.filter(p => p.fields['Tipo'] === blogFilter) : allPosts;
+  if (!filtered.length) { list.innerHTML = `<div class="empty-state"><div class="icon">✍️</div><p>Nenhum post ainda.</p></div>`; return; }
+  list.innerHTML = filtered.map((p, i) => {
+    const f = p.fields;
+    const tipo = f['Tipo'] || 'Post';
+    const date = f['Data'] ? new Date(f['Data']).toLocaleDateString('pt-BR', {day:'numeric',month:'long',year:'numeric'}) : '';
+    const tags = (f['Tags'] || '').split(',').map(t => t.trim()).filter(Boolean);
+    const excerpt = (f['Conteúdo'] || '').replace(/---spoiler---[\s\S]*?---fim-spoiler---/g, '[spoiler]').replace(/[*>#]/g, '').slice(0, 220);
+    const capaUrl = Array.isArray(f['Capa']) ? f['Capa'][0]?.url : f['Capa'];
+    return `<div class="blog-card" onclick="navigate('post','${p.id}')" style="animation-delay:${i * .05}s">
+      <div class="blog-card-thumb">${capaUrl ? `<img src="${capaUrl}" loading="lazy">` : `<div class="blog-card-thumb-placeholder">韓</div>`}</div>
+      <div class="blog-card-body">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="blog-type-badge blog-type-${tipo === 'Resenha' ? 'resenha' : 'post'}">${tipo}</span>
+          ${date ? `<span class="blog-card-date">${date}</span>` : ''}
+        </div>
+        ${f['Kicker'] ? `<div style="font-size:.7rem;color:var(--gold);letter-spacing:.15em;opacity:.7">${f['Kicker']}</div>` : ''}
+        <div class="blog-card-title">${f['Título'] || 'Sem título'}</div>
+        ${excerpt ? `<div class="blog-card-excerpt">${excerpt}</div>` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${tags.slice(0, 4).map(t => `<span class="blog-card-tag">${t}</span>`).join('')}</div>
+          ${f['Nota'] ? `<div class="blog-card-nota">${parseFloat(f['Nota']).toFixed(1)}<span style="font-size:.8rem;color:var(--text3)">/10</span></div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function renderPost(id) {
+  const content = document.getElementById('post-content');
+  if (!content) return;
+  content.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text3)"><div class="spinner" style="width:28px;height:28px;display:inline-block;border-width:3px"></div></div>`;
+  try {
+    let post = allPosts.find(p => p.id === id);
+    if (!post) {
+      const tbl = getBlogTableId();
+      if (!tbl) throw new Error('Tabela Blog não configurada');
+      const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tbl}/${id}`, { headers: { Authorization: `Bearer ${apiKey}` } });
+      post = await res.json();
+    }
+    currentPost = post;
+    const f = post.fields;
+    const tipo = f['Tipo'] || 'Post';
+    const date = f['Data'] ? new Date(f['Data']).toLocaleDateString('pt-BR', {day:'numeric',month:'long',year:'numeric'}) : '';
+    const capaUrl = Array.isArray(f['Capa']) ? f['Capa'][0]?.url : f['Capa'];
+    const tags = (f['Tags'] || '').split(',').map(t => t.trim()).filter(Boolean);
+    content.innerHTML = `
+      <span class="post-type-badge blog-type-badge blog-type-${tipo === 'Resenha' ? 'resenha' : 'post'}">${tipo}</span>
+      ${f['Kicker'] ? `<div class="post-kicker">${f['Kicker']}</div>` : ''}
+      <h1 class="post-h1">${f['Título'] || 'Sem título'}</h1>
+      <div class="post-meta">
+        ${date ? `<span class="post-meta-date">${date}</span>` : ''}
+        ${f['Dorama'] ? `<span style="color:var(--text3);font-size:.78rem">· ${f['Dorama']}</span>` : ''}
+        ${f['Nota'] ? `<span style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end"><span class="post-nota-big">${parseFloat(f['Nota']).toFixed(1)}</span><span class="post-nota-label">nota / 10</span></span>` : ''}
+        <button class="btn-outline btn-sm" onclick="openBlogForm('${id}')" style="margin-left:8px">✏️ Editar</button>
+      </div>
+      ${capaUrl ? `<img class="post-cover" src="${capaUrl}">` : ''}
+      <div class="post-body">${renderPostBody(f['Conteúdo'] || '')}</div>
+      ${tags.length ? `<div class="post-tags">${tags.map(t => `<span class="post-tag">${t}</span>`).join('')}</div>` : ''}`;
+  } catch(e) {
+    content.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erro: ${e.message}</p></div>`;
+  }
+}
+
+function renderPostBody(text) {
+  let html = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
+    const sid = 'spl_' + Math.random().toString(36).slice(2, 7);
+    return `<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">🔒 Revelar Spoiler</button><div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`;
+  });
+  return renderMd(html);
+}
+
+function renderMd(text) {
+  return text.split('\n\n').map(block => {
+    if (block.startsWith('## ')) return `<h2>${block.slice(3)}</h2>`;
+    if (block.startsWith('### ')) return `<h3>${block.slice(4)}</h3>`;
+    if (block.startsWith('> ')) return `<blockquote>${block.slice(2)}</blockquote>`;
+    const inline = block.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
+    return `<p>${inline}</p>`;
+  }).join('');
+}
+
+function openBlogForm(editId) {
+  bfEditId = editId || null;
+  bfPreviewOpen = false;
+  document.getElementById('blog-form-overlay').classList.add('open');
+  document.getElementById('blog-form-titulo').innerHTML = bfEditId ? '✦ Editar Post' : '✦ Novo Post';
+  document.getElementById('bf-preview-area').style.display = 'none';
+  document.getElementById('bf-status-msg').textContent = '';
+  if (bfEditId) {
+    const post = allPosts.find(p => p.id === bfEditId) || currentPost;
+    if (post) {
+      const f = post.fields;
+      const capaUrl = Array.isArray(f['Capa']) ? f['Capa'][0]?.url : (f['Capa'] || '');
+      bfSet('bf-tipo', f['Tipo'] || 'Resenha');
+      bfSet('bf-status-select', f['Status'] || 'Publicado');
+      bfSet('bf-titulo', f['Título'] || '');
+      bfSet('bf-kicker', f['Kicker'] || '');
+      bfSet('bf-capa', capaUrl);
+      bfSet('bf-tags', f['Tags'] || '');
+      bfSet('bf-nota', f['Nota'] || '');
+      bfSet('bf-dorama-nome', f['Dorama'] || '');
+      bfSet('bf-conteudo', f['Conteúdo'] || '');
+    }
+  } else {
+    ['bf-titulo','bf-kicker','bf-capa','bf-tags','bf-nota','bf-dorama-nome','bf-conteudo'].forEach(id => bfSet(id, ''));
+    bfSet('bf-tipo', 'Resenha');
+    bfSet('bf-status-select', 'Publicado');
+  }
+  bfToggleDoramaRow();
+}
+
+function bfSet(id, val) { const el = document.getElementById(id); if (el) el.value = val == null ? '' : val; }
+function closeBlogForm() { document.getElementById('blog-form-overlay').classList.remove('open'); }
+function bfToggleDoramaRow() {
+  const row = document.getElementById('bf-row-dorama');
+  if (row) row.style.display = document.getElementById('bf-tipo').value === 'Resenha' ? 'grid' : 'none';
+}
+function bfInsert(txt) {
+  const ta = document.getElementById('bf-conteudo');
+  const s = ta.selectionStart;
+  ta.value = ta.value.slice(0, s) + txt + ta.value.slice(ta.selectionEnd);
+  ta.selectionStart = ta.selectionEnd = s + txt.length;
+  ta.focus();
+}
+function bfWrap(before, after) {
+  const ta = document.getElementById('bf-conteudo');
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  const sel = ta.value.slice(s, e) || 'texto';
+  ta.value = ta.value.slice(0, s) + before + sel + after + ta.value.slice(e);
+  ta.selectionStart = s + before.length; ta.selectionEnd = s + before.length + sel.length;
+  ta.focus();
+}
+function bfTogglePreview() {
+  bfPreviewOpen = !bfPreviewOpen;
+  document.getElementById('bf-preview-area').style.display = bfPreviewOpen ? 'block' : 'none';
+  if (bfPreviewOpen) document.getElementById('bf-preview-box').innerHTML = renderPostBody(document.getElementById('bf-conteudo').value);
+}
+async function bfGerarComIA() {
+  const titulo = document.getElementById('bf-titulo').value.trim();
+  const dorama = document.getElementById('bf-dorama-nome').value.trim();
+  const tipo = document.getElementById('bf-tipo').value;
+  const atual = document.getElementById('bf-conteudo').value.trim();
+  if (!titulo) { showToast('Preencha o título primeiro'); return; }
+  const btn = document.getElementById('bf-btn-ai');
+  btn.disabled = true; btn.textContent = '⏳ Gerando…';
+  const sys = tipo === 'Resenha'
+    ? `Você escreve resenhas de K-dramas no estilo de Pathy — brasileira apaixonada por doramas. Tom: direto, apaixonado, com opinião. Use ## para subtítulos, > para citações, **negrito**, *itálico*. Spoilers: ---spoiler--- conteúdo ---fim-spoiler---. Português brasileiro. Máx 600 palavras. Só o texto.`
+    : `Você escreve posts sobre K-drama no estilo de Pathy. Tom: irônico, direto. Markdown simples. Português brasileiro. Máx 500 palavras. Só o texto.`;
+  const prompt = tipo === 'Resenha'
+    ? `Resenha do dorama "${dorama || titulo}".${atual ? ' Expanda: ' + atual : ''}`
+    : `Post sobre: "${titulo}".${atual ? ' Expanda: ' + atual : ''}`;
+  try {
+    const txt = await callClaude(prompt, sys);
+    document.getElementById('bf-conteudo').value = txt;
+    showToast('✨ Gerado!');
+  } catch(e) { showToast('Erro: ' + e.message); }
+  btn.disabled = false; btn.textContent = '✨ IA';
+}
+async function bfSalvar() {
+  const tbl = getBlogTableId();
+  if (!tbl) { showToast('Configure TABLES.blog com o ID da tabela no Airtable'); return; }
+  const titulo = document.getElementById('bf-titulo').value.trim();
+  if (!titulo) { showToast('Título é obrigatório'); return; }
+  if (!apiKey) { showToast('Configure a API Key primeiro'); return; }
+  const statusEl = document.getElementById('bf-status-msg');
+  const prog = document.getElementById('bf-prog');
+  const bar = document.getElementById('bf-prog-bar');
+  statusEl.textContent = 'Salvando…'; prog.style.display = 'block'; bar.style.width = '30%';
+  try {
+    const fields = { 'Título': titulo, 'Tipo': document.getElementById('bf-tipo').value, 'Status': document.getElementById('bf-status-select').value, 'Data': new Date().toISOString().slice(0, 10) };
+    const kicker = document.getElementById('bf-kicker').value.trim(); if (kicker) fields['Kicker'] = kicker;
+    const tags = document.getElementById('bf-tags').value.trim(); if (tags) fields['Tags'] = tags;
+    const conteudo = document.getElementById('bf-conteudo').value.trim(); if (conteudo) fields['Conteúdo'] = conteudo;
+    const nota = parseFloat(document.getElementById('bf-nota').value); if (!isNaN(nota)) fields['Nota'] = nota;
+    const dor = document.getElementById('bf-dorama-nome').value.trim(); if (dor) fields['Dorama'] = dor;
+    const capa = document.getElementById('bf-capa').value.trim(); if (capa) fields['Capa'] = capa;
+    bar.style.width = '70%';
+    let record;
+    if (bfEditId) {
+      record = await patchRecord(tbl, bfEditId, fields);
+      const idx = allPosts.findIndex(p => p.id === bfEditId);
+      if (idx > -1) Object.assign(allPosts[idx].fields, fields);
+    } else {
+      record = await createRecord(tbl, fields);
+      allPosts.unshift(record);
+    }
+    bar.style.width = '100%';
+    showToast(bfEditId ? '✓ Post atualizado!' : '✓ Post publicado!');
+    closeBlogForm();
+    if (document.getElementById('page-blog')?.classList.contains('active')) filterBlog();
+    if (bfEditId && currentPost?.id === bfEditId) renderPost(bfEditId);
+  } catch(e) {
+    statusEl.textContent = '❌ Erro: ' + e.message;
+    bar.style.width = '0%'; prog.style.display = 'none';
+  }
+}
+
+
+// ════════════════════════════════════════════════════════
+// NOVA HOME + NOTÍCIAS
+// ════════════════════════════════════════════════════════
+
+// navigate unificado abaixo — patches removidos
+
+async function renderInicio() {
+  // Atualiza stats dos cards
+  if (allSeries.length || allAtores.length) atualizarStatsHome();
+  else {
+    if (apiKey) {
+      try { await loadAllData(); } catch(e) {}
+      atualizarStatsHome();
+    }
+  }
+  // Carrega notícias se ainda não carregou
+  const grid = document.getElementById('news-grid');
+  if (grid && !grid.dataset.loaded) carregarNoticias();
+}
+
+function atualizarStatsHome() {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '—'; };
+  set('hnc-stat-doramas', allSeries.length || null);
+  set('hnc-stat-atores', allAtores.length || null);
+  set('hnc-stat-blog', allPosts.filter(p => p.fields['Status'] === 'Publicado').length || null);
+}
+
+// ── NOTÍCIAS ──────────────────────────────────────────────
+const RSS_URL = 'https://mydramalist.com/rss';
+// Proxy CORS com fallback duplo
+const RSS_PROXIES = [
+  `https://corsproxy.io/?url=${encodeURIComponent(RSS_URL)}`,
+  `https://api.codetabs.com/v1/proxy?quest=${RSS_URL}`,
+];
+let newsItems = [];
+
+async function carregarNoticias(forcar = false) {
+  const grid = document.getElementById('news-grid');
+  const btnTrad = document.getElementById('btn-traduzir');
+  if (!grid) return;
+
+  // Cache de 30min no sessionStorage
+  if (!forcar) {
+    try {
+      const cached = sessionStorage.getItem('kdrama_news');
+      if (cached) {
+        const { items, ts } = JSON.parse(cached);
+        if (Date.now() - ts < 30 * 60 * 1000) {
+          newsItems = items;
+          renderNoticias();
+          if (btnTrad) btnTrad.style.display = 'inline-flex';
+          grid.dataset.loaded = '1';
+          return;
+        }
+      }
+    } catch(e) {}
+  }
+
+  grid.innerHTML = Array(6).fill(0).map(() => `
+    <div class="skeleton-card" style="border-radius:var(--card-r)">
+      <div class="sk-poster" style="aspect-ratio:16/9"></div>
+      <div class="sk-info"><div class="sk-line"></div><div class="sk-line short"></div></div>
+    </div>`).join('');
+
+  try {
+    // Tenta cada proxy até um funcionar
+    let xml = null;
+    for (const proxyUrl of RSS_PROXIES) {
+      try {
+        const res = await fetch(proxyUrl);
+        if (!res.ok) continue;
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('json')) {
+          const w = await res.json();
+          xml = w.contents || w.data || null;
+        } else {
+          xml = await res.text();
+        }
+        if (xml && xml.length > 100) break;
+      } catch(e) { continue; }
+    }
+    if (!xml) throw new Error('Não foi possível carregar o RSS — tente novamente em instantes');
+    // Parsear XML do RSS
+    const parser = new DOMParser();
+    // Tentar como XML primeiro, fallback pra HTML
+    let doc = parser.parseFromString(xml, 'text/xml');
+    let items = [...doc.querySelectorAll('item')];
+    if (!items.length) {
+      doc = parser.parseFromString(xml, 'text/html');
+      items = [...doc.querySelectorAll('item')];
+    }
+    // Fallback: extrair via regex se DOMParser falhar
+    if (!items.length) {
+      const itemMatches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)];
+      if (!itemMatches.length) throw new Error('Nenhum artigo encontrado no RSS');
+      newsItems = itemMatches.slice(0, 12).map(m => {
+        const block = m[1];
+        const getTag = tag => { const r = new RegExp(`<${tag}[^>]*><!\[CDATA\[([\s\S]*?)\]\]><\/${tag}>|<${tag}[^>]*>([\s\S]*?)<\/${tag}>`, 'i'); const x = block.match(r); return (x?.[1]||x?.[2]||'').trim(); };
+        const linkM = block.match(/<link>([^<]+)<\/link>/i) || block.match(/<guid[^>]*>([^<]+)<\/guid>/i);
+        const encM = block.match(/<enclosure[^>]+url="([^"]+)"/i);
+        const catM = [...block.matchAll(/<category[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/gi)].map(c=>c[1].trim());
+        const desc = getTag('description').replace(/<[^>]+>/g,'').slice(0,160);
+        return { title: getTag('title'), titlePT: null, link: linkM?.[1]||'', pubDate: getTag('pubDate'), thumbnail: encM?.[1]||'', categories: catM, description: desc, descriptionPT: null };
+      });
+    } else {
+      newsItems = items.slice(0, 12).map(item => {
+        const get = tag => item.querySelector(tag)?.textContent?.trim() || '';
+        const enclosure = item.querySelector('enclosure');
+        const thumb = enclosure?.getAttribute('url') || '';
+        const cats = [...item.querySelectorAll('category')].map(c => c.textContent.trim());
+        return { title: get('title'), titlePT: null, link: get('link') || get('guid'), pubDate: get('pubDate'), thumbnail: thumb, categories: cats, description: get('description').replace(/<[^>]+>/g,'').slice(0,160), descriptionPT: null };
+      });
+    }
+    sessionStorage.setItem('kdrama_news', JSON.stringify({ items: newsItems, ts: Date.now() }));
+    renderNoticias();
+    if (btnTrad) btnTrad.style.display = 'inline-flex';
+    grid.dataset.loaded = '1';
+  } catch(e) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">📡</div><p>Não foi possível carregar as notícias.<br><small style="color:var(--text3)">${e.message}</small></p></div>`;
+  }
+}
+
+function renderNoticias(traduzidas = false) {
+  const grid = document.getElementById('news-grid');
+  if (!grid || !newsItems.length) return;
+  grid.innerHTML = newsItems.map((item, i) => {
+    const titulo = (traduzidas && item.titlePT) ? item.titlePT : item.title;
+    const desc = (traduzidas && item.descriptionPT) ? item.descriptionPT : item.description;
+    const cat = item.categories[0] || 'Notícia';
+    const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('pt-BR', {day:'numeric',month:'short'}) : '';
+    return `<div class="news-card" onclick="window.open('${item.link}','_blank')" style="animation-delay:${i * .04}s">
+      ${item.thumbnail
+        ? `<img class="news-card-img" src="${item.thumbnail}" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="news-card-img-placeholder">韓</div>`}
+      <div class="news-card-body">
+        <div class="news-card-cat">${cat}</div>
+        <div class="news-card-title ${traduzidas ? 'translated' : ''}">${titulo}</div>
+        ${desc ? `<div style="font-size:.78rem;color:var(--text2);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${desc}</div>` : ''}
+        <div class="news-card-date">${date}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function traduzirNoticias() {
+  if (!newsItems.length) return;
+  const btn = document.getElementById('btn-traduzir');
+  const status = document.getElementById('news-translate-status');
+  btn.style.display = 'none';
+  status.style.display = 'flex';
+
+  // Verifica se já traduzidas
+  if (newsItems.every(n => n.titlePT)) {
+    renderNoticias(true);
+    status.style.display = 'none';
+    return;
+  }
+
+  // Traduz em lote — manda tudo de uma vez pro Gemini
+  const titulos = newsItems.map((n, i) => `${i + 1}. ${n.title}`).join('\n');
+  const descricoes = newsItems.map((n, i) => `${i + 1}. ${n.description}`).join('\n');
+
+  const sys = `Você é um tradutor especializado em entretenimento asiático. Traduza do inglês para o português brasileiro. Retorne APENAS as traduções numeradas, sem explicações.`;
+
+  try {
+    const [resTitulos, resDescs] = await Promise.all([
+      callClaude(`Traduza estes títulos de notícias sobre K-Drama:\n${titulos}`, sys),
+      callClaude(`Traduza estas descrições de notícias sobre K-Drama:\n${descricoes}`, sys),
+    ]);
+
+    // Parsear resultado numerado
+    const parsearLinhas = txt => txt.split('\n')
+      .filter(l => /^\d+\./.test(l.trim()))
+      .map(l => l.replace(/^\d+\.\s*/, '').trim());
+
+    const titulosPT = parsearLinhas(resTitulos);
+    const descsPT = parsearLinhas(resDescs);
+
+    newsItems = newsItems.map((n, i) => ({
+      ...n,
+      titlePT: titulosPT[i] || n.title,
+      descriptionPT: descsPT[i] || n.description,
+    }));
+
+    // Atualiza cache com traduções
+    try { sessionStorage.setItem('kdrama_news', JSON.stringify({ items: newsItems, ts: Date.now() })); } catch(e) {}
+
+    renderNoticias(true);
+    showToast('🇧🇷 Notícias traduzidas!');
+  } catch(e) {
+    showToast('Erro ao traduzir: ' + e.message);
+    btn.style.display = 'inline-flex';
+  }
+  status.style.display = 'none';
+}
+
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
 </script>
+
+<!-- BLOG FORM MODAL -->
+<div class="blog-form-overlay" id="blog-form-overlay">
+  <div class="blog-form-panel">
+    <div class="form-head">
+      <h2 id="blog-form-titulo">✦ Novo Post</h2>
+      <button class="form-x" onclick="closeBlogForm()">✕</button>
+    </div>
+    <div class="form-body">
+      <div class="form-row cols-2">
+        <div class="fg">
+          <label class="fl">Tipo</label>
+          <select id="bf-tipo" class="fs" onchange="bfToggleDoramaRow()">
+            <option value="Resenha">Resenha de Dorama</option>
+            <option value="Post">Post Livre</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Status</label>
+          <select id="bf-status-select" class="fs">
+            <option value="Publicado">Publicado</option>
+            <option value="Rascunho">Rascunho</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg">
+          <label class="fl">Título do Post</label>
+          <input type="text" id="bf-titulo" class="fi" placeholder="Ex: Crash Landing on You me destruiu de um jeito bom">
+        </div>
+      </div>
+      <div class="form-row cols-2" id="bf-row-dorama">
+        <div class="fg">
+          <label class="fl">Nome do Dorama</label>
+          <input type="text" id="bf-dorama-nome" class="fi" placeholder="Ex: Crash Landing on You">
+        </div>
+        <div class="fg">
+          <label class="fl">Nota (0–10)</label>
+          <input type="number" id="bf-nota" class="fi" placeholder="8.5" min="0" max="10" step="0.1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg">
+          <label class="fl">Kicker / Subtítulo</label>
+          <input type="text" id="bf-kicker" class="fi" placeholder="Ex: ROMANCE · 2019">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg">
+          <label class="fl">Imagem de Capa (URL)</label>
+          <input type="url" id="bf-capa" class="fi" placeholder="https://…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg">
+          <label class="fl">Tags (separadas por vírgula)</label>
+          <input type="text" id="bf-tags" class="fi" placeholder="Romance, Viagem no tempo, Recomendo">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg">
+          <label class="fl">Conteúdo</label>
+          <div class="blog-toolbar">
+            <button class="blog-tool" onclick="bfInsert('## ')">H2</button>
+            <button class="blog-tool" onclick="bfInsert('### ')">H3</button>
+            <button class="blog-tool" onclick="bfWrap('**','**')"><b>B</b></button>
+            <button class="blog-tool" onclick="bfWrap('*','*')"><i>I</i></button>
+            <button class="blog-tool" onclick="bfInsert('> ')">❝</button>
+            <button class="blog-tool" onclick="bfInsert('\n---spoiler---\n\n---fim-spoiler---\n')">🔒 Spoiler</button>
+            <button class="blog-tool" id="bf-btn-ai" onclick="bfGerarComIA()">✨ IA</button>
+            <span style="flex:1"></span>
+            <button class="blog-tool" onclick="bfTogglePreview()">👁 Preview</button>
+          </div>
+          <textarea id="bf-conteudo" class="blog-editor" placeholder="Escreva aqui. Use ## para H2, > para citação, **negrito**, *itálico*, ---spoiler--- para bloco spoiler…"></textarea>
+        </div>
+      </div>
+      <div id="bf-preview-area" style="display:none">
+        <label class="fl" style="margin-bottom:8px">Preview</label>
+        <div class="blog-preview-box" id="bf-preview-box"></div>
+      </div>
+    </div>
+    <div class="form-foot">
+      <div class="form-foot-status">
+        <span id="bf-status-msg"></span>
+        <div class="form-prog" id="bf-prog"><div class="form-prog-bar" id="bf-prog-bar"></div></div>
+      </div>
+      <button class="btn-outline" onclick="closeBlogForm()">Cancelar</button>
+      <button class="btn-gold" onclick="bfSalvar()">Salvar Post</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
