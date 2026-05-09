@@ -749,6 +749,30 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .ost-item-title{flex:1;font-size:.83rem;color:var(--text)}
 .ost-item-artist{font-size:.72rem;color:var(--text2)}
 
+
+/* CALENDÁRIO DE ANIVERSÁRIOS */
+.bday-section{padding:0 clamp(16px,4vw,48px) 48px;max-width:1100px;margin:0 auto}
+.bday-cal{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden}
+.bday-cal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(to right,var(--surface),var(--bg3))}
+.bday-cal-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:8px}
+.bday-cal-nav{display:flex;gap:6px;align-items:center}
+.bday-nav-btn{width:32px;height:32px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--text2);font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition)}
+.bday-nav-btn:hover{color:var(--gold);border-color:var(--gold-dim)}
+.bday-nav-month{font-size:.82rem;color:var(--text2);min-width:110px;text-align:center;font-weight:600}
+.bday-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0}
+.bday-dow{padding:8px 4px;text-align:center;font-size:.65rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border)}
+.bday-cell{min-height:72px;padding:6px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;transition:background .15s}
+.bday-cell:nth-child(7n){border-right:none}
+.bday-cell.empty{background:var(--bg)}
+.bday-cell.today{background:var(--gold-glow)}
+.bday-cell.today .bday-day{color:var(--gold);font-weight:700}
+.bday-day{font-size:.75rem;color:var(--text3);margin-bottom:4px;font-weight:500}
+.bday-item{display:flex;align-items:center;gap:4px;padding:2px 4px;border-radius:4px;background:rgba(201,168,76,.12);border:1px solid var(--gold-dim);cursor:pointer;transition:background .15s;margin-bottom:2px}
+.bday-item:hover{background:rgba(201,168,76,.25)}
+.bday-item img{width:18px;height:18px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--surface2)}
+.bday-item-nome{font-size:.62rem;color:var(--gold);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+.bday-item-age{font-size:.58rem;color:var(--text3);flex-shrink:0}
+@media(max-width:640px){.bday-item-nome{max-width:48px}.bday-item img{display:none}}
 </style>
 </head>
 <body>
@@ -821,6 +845,32 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     </div>
 
     <!-- Notícias -->
+    <!-- CALENDÁRIO DE ANIVERSÁRIOS -->
+    <div class="bday-section">
+      <div class="home-section-header" style="margin-bottom:16px">
+        <div class="home-section-title">🎂 Aniversários</div>
+      </div>
+      <div class="bday-cal">
+        <div class="bday-cal-head">
+          <div class="bday-cal-title">
+            <span>🎂</span>
+            <span id="bday-mes-label">—</span>
+          </div>
+          <div class="bday-cal-nav">
+            <button class="bday-nav-btn" onclick="bdayNavegar(-1)">‹</button>
+            <span class="bday-nav-month" id="bday-nav-label"></span>
+            <button class="bday-nav-btn" onclick="bdayNavegar(1)">›</button>
+          </div>
+        </div>
+        <div class="bday-grid" id="bday-grid">
+          <div class="bday-dow">Dom</div><div class="bday-dow">Seg</div>
+          <div class="bday-dow">Ter</div><div class="bday-dow">Qua</div>
+          <div class="bday-dow">Qui</div><div class="bday-dow">Sex</div>
+          <div class="bday-dow">Sáb</div>
+        </div>
+      </div>
+    </div>
+
     <div class="home-news-section">
       <div class="news-section-bg"></div>
       <div class="home-section-header">
@@ -3884,6 +3934,10 @@ async function renderInicio() {
       atualizarStatsHome();
     }
   }
+  // Renderiza calendário de aniversários
+  _bdayMes = new Date().getMonth();
+  _bdayAno = new Date().getFullYear();
+  renderBdayCal();
   // Carrega notícias se ainda não carregou
   const grid = document.getElementById('news-grid');
   if (grid && !grid.dataset.loaded) carregarNoticias();
@@ -4852,6 +4906,95 @@ async function faBuscarFilmografiaMDL(){
     if(btnMdl){  btnMdl.disabled=false;  btnMdl.textContent='🎬 Filmografia'; }
   }
 }
+
+// ── CALENDÁRIO DE ANIVERSÁRIOS ──────────────────────────────
+let _bdayMes = new Date().getMonth();
+let _bdayAno = new Date().getFullYear();
+
+const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function bdayNavegar(dir) {
+  _bdayMes += dir;
+  if (_bdayMes > 11) { _bdayMes = 0; _bdayAno++; }
+  if (_bdayMes < 0)  { _bdayMes = 11; _bdayAno--; }
+  renderBdayCal();
+}
+
+function renderBdayCal() {
+  const grid = document.getElementById('bday-grid');
+  if (!grid) return;
+
+  const hoje = new Date();
+  const ano = _bdayAno, mes = _bdayMes;
+  const mesLabel = document.getElementById('bday-mes-label');
+  const navLabel = document.getElementById('bday-nav-label');
+  if (mesLabel) mesLabel.textContent = MESES_PT[mes] + ' ' + ano;
+  if (navLabel) navLabel.textContent = MESES_PT[mes].slice(0,3) + ' ' + ano;
+
+  // Montar mapa dia → atores
+  const mapa = {};
+  (allAtores||[]).forEach(a => {
+    const nasc = a.fields['Data de Nascimento'];
+    if (!nasc) return;
+    const d = new Date(nasc + 'T00:00:00');
+    if (isNaN(d)) return;
+    if (d.getMonth() !== mes) return;
+    const dia = d.getDate();
+    if (!mapa[dia]) mapa[dia] = [];
+    const idade = ano - d.getFullYear();
+    mapa[dia].push({ id: a.id, nome: a.fields['Nome']||'', foto: getAtorFoto(a), idade });
+  });
+
+  // Calcular dias do mês
+  const primeiroDia = new Date(ano, mes, 1).getDay(); // 0=Dom
+  const totalDias = new Date(ano, mes + 1, 0).getDate();
+
+  // Remover células antigas (manter cabeçalho DOW = primeiros 7 filhos)
+  const dows = grid.querySelectorAll('.bday-dow');
+  grid.innerHTML = '';
+  dows.forEach(d => grid.appendChild(d));
+
+  // Células vazias iniciais
+  for (let i = 0; i < primeiroDia; i++) {
+    const el = document.createElement('div');
+    el.className = 'bday-cell empty';
+    grid.appendChild(el);
+  }
+
+  // Dias
+  for (let d = 1; d <= totalDias; d++) {
+    const el = document.createElement('div');
+    el.className = 'bday-cell';
+    const isHoje = (d === hoje.getDate() && mes === hoje.getMonth() && ano === hoje.getFullYear());
+    if (isHoje) el.classList.add('today');
+
+    el.innerHTML = `<div class="bday-day">${d}</div>`;
+
+    (mapa[d]||[]).forEach(a => {
+      const item = document.createElement('div');
+      item.className = 'bday-item';
+      item.title = `${a.nome} · ${a.idade} anos`;
+      item.onclick = () => navigate('ator', a.id);
+      item.innerHTML = `
+        <img src="${a.foto||''}" onerror="this.style.display='none'">
+        <span class="bday-item-nome">${a.nome.split(' ')[0]}</span>
+        <span class="bday-item-age">${a.idade}</span>`;
+      el.appendChild(item);
+    });
+
+    grid.appendChild(el);
+  }
+}
+
+function getAtorFoto(a) {
+  const foto = a.fields['Foto'];
+  if (!foto) return '';
+  if (typeof foto === 'string') return foto;
+  if (Array.isArray(foto) && foto[0]) return foto[0].url || foto[0].thumbnails?.small?.url || '';
+  return '';
+}
+
 </script>
 
 <!-- BLOG FORM MODAL -->
