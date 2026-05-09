@@ -727,6 +727,32 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .sidebar-ranking-title{font-size:.82rem;color:var(--text);flex:1;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .sidebar-ranking-nota{font-family:'Playfair Display',serif;font-size:.9rem;font-weight:700;color:var(--gold)}
 
+
+/* ── OST PLAYER ──────────────────────────────────────────── */
+#ost-player{position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--bg2);border-top:1px solid var(--gold-dim);padding:0;transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -8px 40px rgba(0,0,0,.5)}
+#ost-player.open{transform:translateY(0)}
+.ost-player-bar{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer}
+.ost-player-toggle{width:36px;height:36px;border-radius:50%;background:var(--gold);border:none;color:#0a0a0c;font-size:1rem;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .2s}
+.ost-player-toggle:hover{transform:scale(1.1)}
+.ost-player-info{flex:1;min-width:0}
+.ost-player-drama{font-size:.7rem;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.ost-player-track{font-size:.88rem;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ost-player-artist{font-size:.75rem;color:var(--text2)}
+.ost-player-controls{display:flex;align-items:center;gap:8px}
+.ost-ctrl-btn{background:none;border:none;color:var(--text2);font-size:1.1rem;cursor:pointer;padding:6px;border-radius:6px;transition:var(--transition)}
+.ost-ctrl-btn:hover{color:var(--gold);background:var(--gold-glow)}
+.ost-playlist{max-height:220px;overflow-y:auto;border-top:1px solid var(--border)}
+.ost-playlist-item{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.03)}
+.ost-playlist-item:hover{background:var(--surface)}
+.ost-playlist-item.playing{background:var(--gold-glow)}
+.ost-playlist-num{font-size:.75rem;color:var(--text3);min-width:20px;text-align:center}
+.ost-playlist-title{flex:1;font-size:.85rem;color:var(--text)}
+.ost-playlist-artist{font-size:.75rem;color:var(--text2)}
+.ost-playlist-item.playing .ost-playlist-title{color:var(--gold)}
+.ost-expand-btn{background:none;border:none;color:var(--text3);cursor:pointer;padding:4px 8px;font-size:.75rem;transition:var(--transition)}
+.ost-expand-btn:hover{color:var(--gold)}
+#ost-iframe{display:none}
+
 </style>
 </head>
 <body>
@@ -738,7 +764,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     <a data-page="doramas" onclick="navigate('doramas')">Doramas</a>
     <a data-page="atores" onclick="navigate('atores')">Atores</a>
     <a data-page="blog" onclick="navigate('blog')">Blog</a>
-    <a data-page="config" onclick="navigate('config')">Configurações</a>
+    <a data-page="config" onclick="navigate('config')" id="nav-config">Configurações</a>
     <button id="theme-btn" title="Alternar tema">☀</button>
   </div>
   <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
@@ -949,7 +975,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           <div id="sidebar-tags"></div>
         </div>
         <div class="sidebar-card" id="sidebar-ranking-card">
-          <div class="sidebar-card-title">⭐ Melhores Notas</div>
+          <div class="sidebar-card-title">✨ Experiências</div>
           <div id="sidebar-ranking"></div>
         </div>
       </aside>
@@ -1261,8 +1287,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <div class="form-sect">
         <div class="form-sect-title">Destaques</div>
         <div class="form-row cols-2">
-          <div class="fg"><label class="fl">Dramas</label><textarea class="fta" id="fa-dramas" placeholder="Um por linha…" style="min-height:70px"></textarea></div>
-          <div class="fg"><label class="fl">Filmes</label><textarea class="fta" id="fa-filmes" placeholder="Um por linha…" style="min-height:70px"></textarea></div>
+
         </div>
       </div>
 
@@ -1294,6 +1319,7 @@ const BASE_ID = 'appXQDVAeZi10Xpsr';
 const TABLES = {
   blog:'tbl9qOAfh4w8SHEFt',
   comentarios:'tblCSiNYFlJau2All',
+  ost:'tblEpRL55kuQAdc8x',
   series:'tblFawuYItXnHnC2z',
   atores:'tbllXIzMRWnN4CuPk',
   elenco:'tblUCtO9f0tNeiTZu',
@@ -1307,6 +1333,8 @@ const TMDB_IMG  = 'https://image.tmdb.org/t/p/w500';
 const PUBLIC_READ_TOKEN = 'patHXkACXpdF9j3a5.5d4c6f7395abc28567ec5aef891db8b8b540b1045a3a710d16094b0327d5856a';
 const PUBLIC_WRITE_TOKEN = 'patvL1pYN4yp87KKf.91213ede2ebaf59ee405bc449b3e5d5ccc53af58a974002a7475f8212feea1fd';
 let apiKey = localStorage.getItem('kdrama_apikey') || PUBLIC_READ_TOKEN;
+// isOwner: true se tiver token próprio salvo (não o público)
+function isOwner() { return localStorage.getItem('kdrama_apikey') && localStorage.getItem('kdrama_apikey') !== PUBLIC_READ_TOKEN; }
 let githubUser  = localStorage.getItem('kdrama_github_user') || '';
 let githubToken = localStorage.getItem('kdrama_github_token') || '';
 let githubRepo  = localStorage.getItem('kdrama_github_repo') || 'kdrama-media';
@@ -1699,8 +1727,14 @@ async function renderDorama(id){
 
     // Buscar resenha do blog para este dorama
     const nomeDorama = f['Nome'] || '';
+    // Se allPosts vazio, tenta carregar
+    if (!allPosts.length && TABLES.blog && apiKey) {
+      try {
+        const bRecs = await fetchTable(TABLES.blog, { fields: ['Título','Tipo','Status','Dorama'] });
+        allPosts = bRecs.filter(p => p.fields['Status'] === 'Publicado');
+      } catch(_) {}
+    }
     const resenhaPost = allPosts.find(p =>
-      p.fields['Status'] === 'Publicado' &&
       p.fields['Tipo'] === 'Resenha' &&
       (p.fields['Dorama'] || '').toLowerCase() === nomeDorama.toLowerCase()
     )?.id || null;
@@ -1778,6 +1812,9 @@ async function renderDorama(id){
           <button class="btn-gold btn-sm" onclick="navigate('post','${resenhaPost}')" style="margin-bottom:24px;display:inline-flex;align-items:center;gap:8px">
             ✍️ Ver Resenha
           </button>` : ''}
+        <button class="btn-outline btn-sm" onclick="carregarOST('${s.id}','${(f['Nome']||'').replace(/'/g,"\'")}')" style="margin-bottom:24px;display:inline-flex;align-items:center;gap:8px">
+          🎵 OST
+        </button>
         ${f['Sinopse']?`<div class="section-title">Sinopse</div><p class="detail-sinopse editable" contenteditable="false" data-field="Sinopse">${f['Sinopse']}</p>`:''}
 
         ${gallery.length?`
@@ -2434,6 +2471,10 @@ async function renderAtor(id){
           ${dob?`<span class="badge badge-exp">🎂 ${dob}${age?` · ${age} anos`:''}</span>`:''}
           ${filmografia.length?`<span class="badge badge-status-concluido">${filmografia.length} drama${filmografia.length>1?'s':''} no catálogo</span>`:''}
         </div>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          ${f['Instagram']?`<a href="${f['Instagram']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.1);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">📸 Instagram</a>`:''}
+          ${f['Site']?`<a href="${f['Site']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.1);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">🌐 Site Oficial</a>`:''}
+        </div>
       </div>
     </div>
 
@@ -2449,17 +2490,7 @@ async function renderAtor(id){
 
       ${filmografiaHTML}
 
-      ${dramas.length?`
-      <div class="actor-detail-section" id="section-dramas-destaque">
-        <div class="section-title">Dramas em Destaque</div>
-        <div class="highlights-list" id="list-dramas-destaque">${dramas.map(d=>`<div class="highlight-item">${d}</div>`).join('')}</div>
-      </div>`:`<div class="actor-detail-section" id="section-dramas-destaque" style="display:none"><div class="section-title">Dramas em Destaque</div><div class="highlights-list" id="list-dramas-destaque"></div></div>`}
 
-      ${filmes.length?`
-      <div class="actor-detail-section" id="section-filmes-destaque">
-        <div class="section-title">Filmes em Destaque</div>
-        <div class="highlights-list" id="list-filmes-destaque">${filmes.map(fi=>`<div class="highlight-item">${fi}</div>`).join('')}</div>
-      </div>`:`<div class="actor-detail-section" id="section-filmes-destaque" style="display:none"><div class="section-title">Filmes em Destaque</div><div class="highlights-list" id="list-filmes-destaque"></div></div>`}
 
 
       </div>
@@ -3523,7 +3554,7 @@ async function renderBlog() {
   list.innerHTML = skeletons(4, '16/7');
   try {
     const records = await fetchTable(tbl, { fields: ['Título','Tipo','Status','Kicker','Conteúdo','Capa','Tags','Nota','Dorama','Data'] });
-    allPosts = records.filter(p => p.fields['Status'] === 'Publicado').sort((a, b) => (b.fields['Data'] || '').localeCompare(a.fields['Data'] || ''));
+    allPosts = records.filter(p => p.fields['Status'] === 'Publicado').sort((a, b) => { const da = a.fields['Data'] || ''; const db = b.fields['Data'] || ''; return db > da ? 1 : db < da ? -1 : 0; });
     filterBlog();
     renderBlogSidebar();
   } catch(e) {
@@ -3599,7 +3630,7 @@ async function renderPost(id) {
       </div>
       ${capaUrl ? `<img class="post-cover" src="${capaUrl}">` : ''}
       <div class="post-body">${renderPostBody(f['Conteúdo'] || '')}</div>
-      ${tags.length ? `<div class="post-tags">${tags.map(t => `<span class="post-tag">${t}</span>`).join('')}</div>` : ''}
+      ${tags.length ? `<div class="post-tags">${tags.map(t => `<span class="post-tag" style="cursor:pointer" onclick="navigate('blog');setTimeout(()=>setSidebarTag('${t}'),300)">${t}</span>`).join('')}</div>` : ''}
       <div id="post-comments-placeholder"></div>`;
 
     // Carregar comentários depois do HTML estar pronto
@@ -3957,7 +3988,13 @@ async function carregarNoticias(forcar = false) {
         return { title: getTag('title'), titlePT: null, link: linkM?.[1]||'', pubDate: getTag('pubDate'), thumbnail: encM?.[1]||'', categories: catM, description: desc, descriptionPT: null };
       });
     } else {
-      newsItems = items.slice(0, 12).map(item => {
+      // Ordenar por data mais recente
+    items.sort((a, b) => {
+      const da = new Date(a.querySelector('pubDate')?.textContent || 0);
+      const db = new Date(b.querySelector('pubDate')?.textContent || 0);
+      return db - da;
+    });
+    newsItems = items.slice(0, 12).map(item => {
         const get = tag => item.querySelector(tag)?.textContent?.trim() || '';
         const enclosure = item.querySelector('enclosure');
         const thumb = enclosure?.getAttribute('url') || '';
@@ -4399,17 +4436,23 @@ function renderBlogSidebar() {
     ).join('') || '<span style="color:var(--text3);font-size:.82rem">Nenhuma tag ainda</span>';
   }
 
-  // Ranking
+  // Experiências
   const rankEl = document.getElementById('sidebar-ranking');
   if (rankEl) {
-    const comNota = allPosts.filter(p => p.fields['Status'] === 'Publicado' && p.fields['Nota']).sort((a, b) => b.fields['Nota'] - a.fields['Nota']).slice(0, 8);
-    rankEl.innerHTML = comNota.map((p, i) =>
-      `<div class="sidebar-ranking-item" onclick="navigate('post','${p.id}')">
-        <span class="sidebar-ranking-num">${i + 1}</span>
-        <span class="sidebar-ranking-title">${p.fields['Título'] || 'Sem título'}</span>
-        <span class="sidebar-ranking-nota">${parseFloat(p.fields['Nota']).toFixed(1)}</span>
+    const expOrder = ['Obra de Arte','Perfeito','Na Medida','Valeu a Pena','Faltou Algo','Não Recomendo'];
+    const expMap = {};
+    allPosts.filter(p => p.fields['Status'] === 'Publicado' && p.fields['Experiência']).forEach(p => {
+      const exp = p.fields['Experiência'];
+      if (!expMap[exp]) expMap[exp] = 0;
+      expMap[exp]++;
+    });
+    const expColors = {'Obra de Arte':'var(--gold)','Perfeito':'var(--teal)','Na Medida':'var(--text)','Valeu a Pena':'var(--text2)','Faltou Algo':'var(--text3)','Não Recomendo':'#e05'};
+    rankEl.innerHTML = expOrder.filter(e => expMap[e]).map(exp =>
+      `<div class="sidebar-ranking-item" onclick="filtrarPorExperiencia('${exp}')">
+        <span style="font-size:.75rem;font-weight:700;color:${expColors[exp]||'var(--text)'};flex:1">${exp}</span>
+        <span class="sidebar-ranking-nota" style="font-size:.85rem">${expMap[exp]}</span>
       </div>`
-    ).join('') || '<span style="color:var(--text3);font-size:.82rem">Nenhuma nota ainda</span>';
+    ).join('') || '<span style="color:var(--text3);font-size:.82rem">Nenhuma experiência registrada</span>';
   }
 }
 
@@ -4426,8 +4469,180 @@ function navegarParaDorama(nome) {
   else showToast('Dorama não encontrado na sua lista');
 }
 
+
+// ── FILTROS BLOG ──────────────────────────────────────────
+let blogExpFilter = '';
+
+function filtrarPorExperiencia(exp) {
+  blogExpFilter = blogExpFilter === exp ? '' : exp;
+  blogFilter = '';
+  document.querySelectorAll('.blog-tab').forEach(b => b.classList.toggle('active', (b.dataset.btype || '') === ''));
+  filterBlog();
+}
+
+// Patch no filterBlog para incluir filtro de experiência
+const _filterBlogBase = filterBlog;
+function filterBlog() {
+  const list = document.getElementById('blog-list');
+  if (!list) return;
+  let filtered = [...allPosts];
+  if (blogFilter) filtered = filtered.filter(p => p.fields['Tipo'] === blogFilter);
+  if (blogSearchQuery) filtered = filtered.filter(p => {
+    const titulo = (p.fields['Título'] || '').toLowerCase();
+    const tags = (p.fields['Tags'] || '').toLowerCase();
+    const conteudo = (p.fields['Conteúdo'] || '').toLowerCase();
+    return titulo.includes(blogSearchQuery) || tags.includes(blogSearchQuery) || conteudo.includes(blogSearchQuery);
+  });
+  if (blogExpFilter) filtered = filtered.filter(p => p.fields['Experiência'] === blogExpFilter);
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Nenhum post encontrado.</p></div>`;
+    renderBlogSidebar();
+    return;
+  }
+  list.innerHTML = filtered.map((p, i) => {
+    const f = p.fields;
+    const tipo = f['Tipo'] || 'Post';
+    const date = f['Data'] ? new Date(f['Data']).toLocaleDateString('pt-BR', {day:'numeric',month:'long',year:'numeric'}) : '';
+    const tags = (f['Tags'] || '').split(',').map(t => t.trim()).filter(Boolean);
+    const excerpt = (f['Conteúdo'] || '').replace(/---spoiler---[\s\S]*?---fim-spoiler---/g, '[spoiler]').replace(/[*>#![\]()]/g, '').slice(0, 220);
+    const capaUrl = Array.isArray(f['Capa']) ? f['Capa'][0]?.url : f['Capa'];
+    return `<div class="blog-card" onclick="navigate('post','${p.id}')" style="animation-delay:${i * .05}s">
+      <div class="blog-card-thumb">${capaUrl ? `<img src="${capaUrl}" loading="lazy">` : `<div class="blog-card-thumb-placeholder">韓</div>`}</div>
+      <div class="blog-card-body">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="blog-type-badge blog-type-${tipo === 'Resenha' ? 'resenha' : 'post'}">${tipo}</span>
+          ${date ? `<span class="blog-card-date">${date}</span>` : ''}
+        </div>
+        ${f['Kicker'] ? `<div style="font-size:.7rem;color:var(--gold);letter-spacing:.15em;opacity:.7">${f['Kicker']}</div>` : ''}
+        <div class="blog-card-title">${f['Título'] || 'Sem título'}</div>
+        ${excerpt ? `<div class="blog-card-excerpt">${excerpt}</div>` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${tags.slice(0, 4).map(t => `<span class="blog-card-tag" style="cursor:pointer" onclick="event.stopPropagation();setSidebarTag('${t}')">${t}</span>`).join('')}</div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            ${f['Nota'] ? `<div class="blog-card-nota">${parseFloat(f['Nota']).toFixed(1)}<span style="font-size:.8rem;color:var(--text3)">/10</span></div>` : ''}
+            ${f['Experiência'] ? `<span style="font-size:.65rem;font-weight:700;color:var(--gold-dim);text-transform:uppercase;letter-spacing:.06em">${f['Experiência']}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  renderBlogSidebar();
+}
+
+
+// ── OST PLAYER ────────────────────────────────────────────
+let ostPlaylist = [];
+let ostCurrentIdx = 0;
+let ostPlaying = false;
+let ostListVisible = false;
+let ostCurrentDramaId = null;
+let ostCurrentDramaName = '';
+
+async function carregarOST(serieId, serieNome) {
+  if (!TABLES.ost || !apiKey) return;
+  if (ostCurrentDramaId === serieId && ostPlaylist.length) {
+    // Já carregado — só abre o player
+    document.getElementById('ost-player').classList.add('open');
+    return;
+  }
+  try {
+    // Buscar faixas linkadas a este dorama
+    const recs = await fetchTable(TABLES.ost, {
+      fields: ['Nome da Faixa', 'Artista', 'URL Youtube', 'Ordem', 'Dorama'],
+      formula: `FIND('${serieId}', ARRAYJOIN({Dorama}))`
+    });
+    if (!recs.length) { showToast('Nenhuma OST cadastrada para este dorama'); return; }
+    ostPlaylist = recs.sort((a, b) => (a.fields['Ordem'] || 99) - (b.fields['Ordem'] || 99));
+    ostCurrentDramaId = serieId;
+    ostCurrentDramaName = serieNome;
+    ostCurrentIdx = 0;
+    ostTocarFaixa(0);
+    document.getElementById('ost-player').classList.add('open');
+  } catch(e) { showToast('Erro ao carregar OST: ' + e.message); }
+}
+
+function ostTocarFaixa(idx) {
+  if (!ostPlaylist.length) return;
+  ostCurrentIdx = idx;
+  const faixa = ostPlaylist[idx].fields;
+  const url = faixa['URL Youtube'] || '';
+  let videoId = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1] || url;
+
+  document.getElementById('ost-drama-name').textContent = ostCurrentDramaName;
+  document.getElementById('ost-track-name').textContent = faixa['Nome da Faixa'] || 'Faixa ' + (idx + 1);
+  document.getElementById('ost-artist-name').textContent = faixa['Artista'] || '';
+  document.getElementById('ost-play-btn').textContent = '⏸';
+
+  // Usar YouTube embed com autoplay
+  const iframe = document.getElementById('ost-iframe');
+  iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`;
+  ostPlaying = true;
+  ostRenderPlaylist();
+}
+
+function ostRenderPlaylist() {
+  const list = document.getElementById('ost-playlist');
+  if (!list) return;
+  list.innerHTML = ostPlaylist.map((r, i) => {
+    const f = r.fields;
+    return `<div class="ost-playlist-item ${i === ostCurrentIdx ? 'playing' : ''}" onclick="ostTocarFaixa(${i})">
+      <span class="ost-playlist-num">${i === ostCurrentIdx ? '♪' : (i + 1)}</span>
+      <span class="ost-playlist-title">${f['Nome da Faixa'] || 'Faixa ' + (i + 1)}</span>
+      <span class="ost-playlist-artist">${f['Artista'] || ''}</span>
+    </div>`;
+  }).join('');
+}
+
+function ostTogglePlay() {
+  const iframe = document.getElementById('ost-iframe');
+  if (ostPlaying) {
+    iframe.src = '';
+    document.getElementById('ost-play-btn').textContent = '▶';
+    ostPlaying = false;
+  } else {
+    ostTocarFaixa(ostCurrentIdx);
+  }
+}
+
+function ostNext() {
+  if (!ostPlaylist.length) return;
+  ostTocarFaixa((ostCurrentIdx + 1) % ostPlaylist.length);
+}
+
+function ostPrev() {
+  if (!ostPlaylist.length) return;
+  ostTocarFaixa((ostCurrentIdx - 1 + ostPlaylist.length) % ostPlaylist.length);
+}
+
+function ostClose() {
+  document.getElementById('ost-player').classList.remove('open');
+  document.getElementById('ost-iframe').src = '';
+  ostPlaying = false;
+  document.getElementById('ost-play-btn').textContent = '▶';
+}
+
+function ostToggleList() {
+  ostListVisible = !ostListVisible;
+  const list = document.getElementById('ost-playlist');
+  const btn = document.getElementById('ost-expand-btn');
+  if (list) list.style.display = ostListVisible ? 'block' : 'none';
+  if (btn) btn.textContent = ostListVisible ? '▼ Fechar' : '▲ Playlist';
+  if (ostListVisible) ostRenderPlaylist();
+}
+
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
+// Auto-refresh notícias a cada 1 hora
+setInterval(() => carregarNoticias(true), 60 * 60 * 1000);
+// Esconder elementos de edição para visitantes
+if (!isOwner()) {
+  document.querySelectorAll('.edit-toggle, #nav-config, .btn-new-drama, #blog-form-overlay').forEach(el => {
+    if (el) el.style.display = 'none';
+  });
+  // Esconder botão Novo Post no blog
+  const newPostBtn = document.querySelector('[onclick="openBlogForm()"]');
+  if (newPostBtn) newPostBtn.style.display = 'none';
+}
 
 
 // ── ACTOR MDL SEARCH (movido para dentro do documento) ──────
@@ -4811,6 +5026,27 @@ async function faBuscarFilmografiaMDL(){
       <button class="btn-gold" onclick="bfSalvar()">Salvar Post</button>
     </div>
   </div>
+</div>
+
+
+<!-- OST PLAYER -->
+<div id="ost-player">
+  <div class="ost-player-bar">
+    <button class="ost-player-toggle" id="ost-play-btn" onclick="ostTogglePlay()">▶</button>
+    <div class="ost-player-info">
+      <div class="ost-player-drama" id="ost-drama-name">—</div>
+      <div class="ost-player-track" id="ost-track-name">Nenhuma faixa</div>
+      <div class="ost-player-artist" id="ost-artist-name"></div>
+    </div>
+    <div class="ost-player-controls">
+      <button class="ost-ctrl-btn" onclick="ostPrev()" title="Anterior">⏮</button>
+      <button class="ost-ctrl-btn" onclick="ostNext()" title="Próxima">⏭</button>
+      <button class="ost-expand-btn" onclick="ostToggleList()" id="ost-expand-btn">▲ Playlist</button>
+      <button class="ost-ctrl-btn" onclick="ostClose()" title="Fechar">✕</button>
+    </div>
+  </div>
+  <div id="ost-playlist" style="display:none"></div>
+  <iframe id="ost-iframe" width="0" height="0" allow="autoplay" style="position:absolute;opacity:0;pointer-events:none"></iframe>
 </div>
 
 </body>
