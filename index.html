@@ -729,9 +729,9 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 
 /* OST Player */
-#ost-player{position:fixed;bottom:24px;right:24px;width:320px;z-index:300;background:var(--bg2);border:1px solid var(--gold-dim);border-radius:16px;transform:translateY(calc(100% + 40px));transition:transform .35s cubic-bezier(.34,1.2,.64,1);box-shadow:0 8px 40px rgba(0,0,0,.7)}
+#ost-player{position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--bg2);border-top:1px solid var(--gold-dim);transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -8px 40px rgba(0,0,0,.5)}
 #ost-player.open{transform:translateY(0)}
-.ost-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:16px 16px 0 0}
+.ost-bar{display:flex;align-items:center;gap:12px;padding:10px 20px}
 .ost-play-btn{width:36px;height:36px;border-radius:50%;background:var(--gold);border:none;color:#0a0a0c;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s}
 .ost-play-btn:hover{transform:scale(1.1)}
 .ost-info{flex:1;min-width:0}
@@ -740,7 +740,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .ost-artist{font-size:.75rem;color:var(--text2)}
 .ost-ctrl{background:none;border:none;color:var(--text2);font-size:1.1rem;cursor:pointer;padding:6px;border-radius:6px;transition:var(--transition)}
 .ost-ctrl:hover{color:var(--gold)}
-.ost-list{max-height:160px;overflow-y:auto;border-top:1px solid var(--border);display:none;border-radius:0 0 16px 16px}
+.ost-list{max-height:200px;overflow-y:auto;border-top:1px solid var(--border);display:none}
 .ost-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.03)}
 .ost-item:hover{background:var(--surface)}
 .ost-item.playing{background:var(--gold-glow)}
@@ -1622,7 +1622,6 @@ function cardHTML(s,i){
       </div>
       <div class="card-badges">
         ${statusBadge(f['Status'])}
-        
       </div>
       ${platformLogosHTML(f['Plataformas']||[])}
     </div>
@@ -3587,6 +3586,7 @@ async function renderPost(id) {
         ${date ? `<span class="post-meta-date">${date}</span>` : ''}
         ${f['Dorama'] ? `<span style="color:var(--text3);font-size:.78rem">· <span style="color:var(--gold);cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold-dim)" onclick="navegarParaDorama('${f['Dorama']}')">${f['Dorama']}</span></span>` : ''}
         ${f['Nota'] ? `<span style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end"><span class="post-nota-big">${parseFloat(f['Nota']).toFixed(1)}</span><span class="post-nota-label">nota / 10</span></span>` : ''}
+        ${expBadge(f['Experiência'])}
         <button class="btn-outline btn-sm" onclick="openBlogForm('${id}')" style="margin-left:8px">✏️ Editar</button>
       </div>
       ${capaUrl ? `<img class="post-cover" src="${capaUrl}">` : ''}
@@ -3646,7 +3646,12 @@ function renderMd(text) {
     const inline = t
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--gold);text-decoration:underline">$1</a>');
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--gold);text-decoration:underline">$1</a>')
+      .replace(/@([\wÀ-ú][\wÀ-ú ]+?)(?=[^\wÀ-ú]|$)/g, (match, nome) => {
+        const ator = (allAtores||[]).find(a => (a.fields['Nome']||'').toLowerCase() === nome.trim().toLowerCase());
+        if(ator) return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${ator.id}')">${nome.trim()}</a></em></strong>`;
+        return `<strong><em>${nome.trim()}</em></strong>`;
+      });
     return `<p>${inline}</p>`;
   }).join('');
 }
@@ -4446,11 +4451,7 @@ function renderBlogSidebar() {
   }
 }
 
-function setSidebarTag(tag) {
-  blogFilter = blogFilter === tag ? '' : tag;
-  document.querySelectorAll('.blog-tab').forEach(b => b.classList.toggle('active', (b.dataset.btype || '') === blogFilter));
-  filterBlog();
-}
+// setSidebarTag movida para cima (fix duplicata)
 
 // ── NAVEGAR PARA DORAMA POR NOME ──────────────────────────
 function navegarParaDorama(nome) {
@@ -4971,10 +4972,6 @@ async function faBuscarFilmografiaMDL(){
 
 
 <div id="ost-player">
-  <div style="padding:10px 14px 0;display:flex;align-items:center;justify-content:space-between">
-    <span style="font-size:.65rem;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;font-weight:700">🎵 OST Player</span>
-    <button class="ost-ctrl" onclick="ostClose()" style="font-size:.9rem;padding:2px 6px">✕</button>
-  </div>
   <div class="ost-bar">
     <button class="ost-play-btn" id="ost-play-btn" onclick="ostTogglePlay()">▶</button>
     <div class="ost-info">
@@ -4986,13 +4983,14 @@ async function faBuscarFilmografiaMDL(){
     <button class="ost-ctrl" onclick="ostNext()">⏭</button>
     <button class="ost-ctrl" id="ost-mute-btn" onclick="ostToggleMute()" title="Ativar/Desativar som">🔇</button>
     <button class="ost-ctrl" onclick="ostToggleList()" id="ost-expand">▲</button>
+    <button class="ost-ctrl" onclick="ostClose()">✕</button>
   </div>
   <div class="ost-list" id="ost-list"></div>
-  <div id="ost-video-wrap" style="display:none;padding:8px 8px 0">
-    <iframe id="ost-iframe" width="100%" height="160" 
+  <div id="ost-video-wrap" style="display:none;padding:0 20px 12px">
+    <iframe id="ost-iframe" width="100%" height="120" 
       allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
       allowfullscreen
-      style="border:none;border-radius:12px;display:block"></iframe>
+      style="border:none;border-radius:8px;display:block"></iframe>
   </div>
 </div>
 
