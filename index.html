@@ -1544,7 +1544,7 @@ async function loadAllData(){
       ]}),
       fetchTable(TABLES.atores, {fields:[
         'Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco',
-        'Biografia','Instagram','Site'
+        'Biografia','Instagram','Site','Url Hancinema'
       ]}),
       fetchTable(TABLES.elenco, {fields:[
         'Personagem','Tipo','Séries','Atores'
@@ -3595,15 +3595,11 @@ async function renderBlog() {
   try {
     const records = await fetchTable(tbl, { fields: ['Título','Tipo','Status','Kicker','Conteúdo','Capa','Tags','Nota','Dorama','Data','Experiência'] });
     allPosts = records.filter(p => p.fields['Status'] === 'Publicado').sort((a, b) => {
-      const parseData = d => {
-        if (!d) return 0;
-        // Formato DD/MM/YYYY
-        const br = d.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-        if (br) return new Date(br[3], br[2]-1, br[1]).getTime();
-        // Formato YYYY-MM-DD ou ISO
-        return new Date(d).getTime();
-      };
-      return parseData(b.fields['Data']) - parseData(a.fields['Data']);
+      const parseData = d => d ? new Date(d).getTime() : 0;
+      const dataDiff = parseData(b.fields['Data']) - parseData(a.fields['Data']);
+      if (dataDiff !== 0) return dataDiff;
+      // Desempate: data de criação do registro no Airtable (mais novo primeiro)
+      return new Date(b.createdTime || 0) - new Date(a.createdTime || 0);
     });
     filterBlog();
     renderBlogSidebar();
@@ -3628,7 +3624,7 @@ async function renderPost(id) {
   if (apiKey) {
     try {
       if (!allAtores.length && TABLES.atores)
-        allAtores = await fetchTable(TABLES.atores, {fields:['Nome','Data de Nascimento','Biografia','Foto','Instagram','Site']});
+        allAtores = await fetchTable(TABLES.atores, {fields:['Nome','Data de Nascimento','Biografia','Foto','Instagram','Site','Url Hancinema']});
       if (!allElenco.length && TABLES.elenco)
         allElenco = await fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']});
     } catch(_){}
