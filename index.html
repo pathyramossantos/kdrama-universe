@@ -1661,7 +1661,7 @@ function cardHTML(s,i){
   const f=s.fields;
   const photo=getPhoto(s);
   const expVal=f['Experiência']||'';
-  return`<div class="drama-card" data-exp="${expVal}" onclick="navigate('dorama','${s.id}')" style="animation-delay:${i*0.04}s">
+  return`<div class="drama-card" data-exp="${expVal}" onclick="navigate('dorama','${s.id}')" oncontextmenu="cardContextMenu(event,'dorama','${s.id}')" style="animation-delay:${i*0.04}s">
     ${photo?`<img class="card-poster" src="${photo}" alt="${f['Nome']||''}" loading="lazy">`:`<div class="card-poster-placeholder"><span class="kr">드라마</span></div>`}
     <div class="card-overlay"><p class="card-synopsis">${f['Sinopse']||''}</p></div>
     <div class="card-info">
@@ -2358,7 +2358,7 @@ function filterAtores(resetPage=true){
   grid.innerHTML=paged.map((a,i)=>{
     const f=a.fields;
     const photo=getPhoto(a,'Foto');
-    return`<div class="actor-card" onclick="navigate('ator','${a.id}')" style="animation-delay:${i*0.03}s">
+    return`<div class="actor-card" onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')" style="animation-delay:${i*0.03}s">
       ${photo?`<img class="actor-photo" src="${photo}" alt="${f['Nome']||''}" loading="lazy">`:`<div class="actor-photo-placeholder">👤</div>`}
       <div class="actor-info"><div class="actor-name">${f['Nome']||'—'}</div>${f['Nome Estrangeiro']?`<div style="font-family:'Noto Serif KR',serif;font-size:.73rem;color:var(--text3);margin-bottom:2px">${f['Nome Estrangeiro']}</div>`:''}<div class="actor-dob">${f['Data de Nascimento']?`${parseDateBR(f['Data de Nascimento'])} · ${calcAge(f['Data de Nascimento'])} anos`:''}</div></div>
     </div>`;
@@ -2494,12 +2494,17 @@ async function renderAtor(id){
       <button class="btn-gold btn-sm" onclick="saveAatorBannerPos()">Salvar Posição</button>
       <div class="banner-ctrl-sep"></div>
       <div class="banner-ctrl-group" style="flex:1;min-width:240px">
-        <label class="banner-ctrl-label">🖼 Trocar Imagem (URL)</label>
+        <label class="banner-ctrl-label">🖼 Trocar Imagem (URL ou Upload)</label>
         <div style="display:flex;gap:6px">
-          <input type="text" id="banner-url-input" class="tmdb-input" placeholder="https://…" style="font-size:.78rem">
+          <input type="text" id="banner-url-input" class="tmdb-input" placeholder="https://…" style="font-size:.78rem;flex:1">
           <button class="btn-gold btn-sm" onclick="changeAatorBannerUrl()">Aplicar</button>
+          <label class="btn-outline btn-sm" style="cursor:pointer;display:flex;align-items:center;gap:4px" title="Upload para GitHub">
+            📁
+            <input type="file" accept="image/*" style="display:none" onchange="uploadAtorBannerImg(this)">
+          </label>
           <button class="btn-outline btn-sm" onclick="resetAatorBannerUrl()" title="Voltar para foto do Airtable">↺</button>
         </div>
+        <div id="ator-banner-upload-status" style="font-size:.72rem;color:var(--text3);margin-top:4px;display:none"></div>
       </div>
     </div>
 
@@ -4473,7 +4478,7 @@ function filterBlog() {
     const tags = (f['Tags'] || '').split(',').map(t => t.trim()).filter(Boolean);
     const excerpt = (f['Conteúdo'] || '').replace(/---spoiler---[\s\S]*?---fim-spoiler---/g, '[spoiler]').replace(/[*>#![\]()]/g, '').slice(0, 220);
     const capaUrl = Array.isArray(f['Capa']) ? f['Capa'][0]?.url : f['Capa'];
-    return `<div class="blog-card" onclick="navigate('post','${p.id}')" style="animation-delay:${i * .05}s">
+    return `<div class="blog-card" onclick="navigate('post','${p.id}')" oncontextmenu="cardContextMenu(event,'post','${p.id}')" style="animation-delay:${i * .05}s">
       <div class="blog-card-thumb">${capaUrl ? `<img src="${capaUrl}" loading="lazy">` : `<div class="blog-card-thumb-placeholder">韓</div>`}</div>
       <div class="blog-card-body">
         <div style="display:flex;align-items:center;gap:8px">
@@ -5032,6 +5037,57 @@ window.addEventListener('message', function(e) {
     }
   } catch(_) {}
 });
+
+async function uploadAtorBannerImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('ator-banner-upload-status');
+  if (status) { status.style.display = 'block'; status.textContent = '⏳ Enviando para o GitHub…'; }
+  try {
+    const url = await uploadParaGithub(file, 'banners');
+    document.getElementById('banner-url-input').value = url;
+    changeAatorBannerUrl();
+    if (status) { status.textContent = '✅ Banner aplicado!'; setTimeout(() => status.style.display='none', 3000); }
+  } catch(e) {
+    if (status) { status.textContent = '❌ ' + e.message; }
+  }
+  input.value = '';
+}
+
+// Menu contextual nos cards
+function cardContextMenu(e, page, id) {
+  e.preventDefault();
+  // Remover menu anterior se existir
+  const old = document.getElementById('ctx-menu');
+  if (old) old.remove();
+
+  const menu = document.createElement('div');
+  menu.id = 'ctx-menu';
+  menu.style.cssText = `position:fixed;top:${e.clientY}px;left:${e.clientX}px;background:var(--bg2);border:1px solid var(--gold-dim);border-radius:10px;padding:6px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.6);min-width:180px`;
+
+  const items = [
+    { icon:'↗', label:'Abrir em nova aba', fn: () => window.open(`${location.pathname}#${page}/${id}`, '_blank') },
+    { icon:'🔗', label:'Copiar link', fn: () => { navigator.clipboard.writeText(`${location.href.split('#')[0]}#${page}/${id}`); showToast('Link copiado!'); } },
+  ];
+
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.style.cssText = 'padding:8px 12px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--text);transition:background .15s';
+    el.innerHTML = `<span style="font-size:.9rem">${item.icon}</span>${item.label}`;
+    el.onmouseenter = () => el.style.background = 'var(--gold-glow)';
+    el.onmouseleave = () => el.style.background = '';
+    el.onclick = () => { item.fn(); menu.remove(); };
+    menu.appendChild(el);
+  });
+
+  document.body.appendChild(menu);
+
+  // Fechar ao clicar fora
+  setTimeout(() => {
+    document.addEventListener('click', () => menu.remove(), { once: true });
+    document.addEventListener('contextmenu', () => menu.remove(), { once: true });
+  }, 10);
+}
 </script>
 
 <!-- BLOG FORM MODAL -->
