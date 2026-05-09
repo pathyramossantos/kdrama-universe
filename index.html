@@ -4461,10 +4461,11 @@ async function carregarOST(serieId, serieNome) {
     document.getElementById('ost-player').classList.add('open'); return;
   }
   try {
-    const recs = await fetchTable(TABLES.ost, {
-      fields:['Nome da Faixa','Artista','URL do Youtube','Ordem','Dorama'],
-      formula:`FIND('${serieId}',ARRAYJOIN({Dorama}))`
+    // Busca todos e filtra pelo ID do dorama (linked record)
+    const allRecs = await fetchTable(TABLES.ost, {
+      fields:['Nome da Faixa','Artista','URL do Youtube','Ordem','Dorama']
     });
+    const recs = allRecs.filter(r => (r.fields['Dorama']||[]).includes(serieId));
     if(!recs.length) { showToast('Nenhuma OST cadastrada para este dorama'); return; }
     ostPlaylist = recs.sort((a,b)=>(a.fields['Ordem']||99)-(b.fields['Ordem']||99));
     ostDramaId = serieId;
