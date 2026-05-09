@@ -1803,7 +1803,7 @@ async function renderDorama(id){
           <button class="btn-gold btn-sm" onclick="navigate('post','${resenhaPost}')" style="margin-bottom:24px;display:inline-flex;align-items:center;gap:8px">
             ✍️ Ver Resenha
           </button>` : ''}
-        <button class="btn-outline btn-sm" onclick="carregarOST(currentSerie.id, currentSerie.fields['Nome']||'')" style="margin-bottom:16px;display:inline-flex;align-items:center;gap:6px">🎵 OST</button>
+        ${currentSerie?`<button class="btn-outline btn-sm" onclick="carregarOST(currentSerie.id,currentSerie.fields['Nome']||'')" style="margin-bottom:16px;display:inline-flex;align-items:center;gap:6px">🎵 OST</button>`:``}
         ${f['Sinopse']?`<div class="section-title">Sinopse</div><p class="detail-sinopse editable" contenteditable="false" data-field="Sinopse">${f['Sinopse']}</p>`:''}
 
         ${gallery.length?`
@@ -3132,7 +3132,7 @@ let faFotoUrlFinal = null;
 
 function openFormAtor(ator=null){
   faEditId = null; faFotoFile = null; faFotoUrlFinal = null;
-  ['fa-nome','fa-nome-kor','fa-bio','fa-dramas','fa-filmes','fa-foto-url'].forEach(id=>setVal(id,''));
+  ['fa-nome','fa-nome-kor','fa-bio','fa-instagram','fa-site','fa-foto-url'].forEach(id=>setVal(id,''));
   setVal('fa-nasc','');
   const faRes=document.getElementById('fa-tmdb-results'); if(faRes) faRes.innerHTML='';
   document.getElementById('fa-status-msg').textContent='';
@@ -3146,8 +3146,8 @@ function openFormAtor(ator=null){
     setVal('fa-nome-kor',f['Nome Estrangeiro']||'');
     setVal('fa-nasc',f['Data de Nascimento']||'');
     setVal('fa-bio',f['Biografia']||'');
-    setVal('fa-dramas',f['Dramas em Destaque']||'');
-    setVal('fa-filmes',f['Filmes em Destaque']||'');
+    setVal('fa-instagram',f['Instagram']||'');
+    setVal('fa-site',f['Site']||'');
         const foto=getPhoto(ator,'Foto');
     if(foto){ faFotoUrlFinal=foto; setVal('fa-foto-url',foto); faShowFoto(foto); }
   } else {
@@ -3357,8 +3357,8 @@ async function faSalvar(){
       'Nome Estrangeiro': document.getElementById('fa-nome-kor').value.trim()||undefined,
       'Data de Nascimento': document.getElementById('fa-nasc').value||undefined,
       'Biografia': document.getElementById('fa-bio').value.trim()||undefined,
-      'Dramas em Destaque': document.getElementById('fa-dramas').value.trim()||undefined,
-      'Filmes em Destaque': document.getElementById('fa-filmes').value.trim()||undefined,
+      'Instagram': document.getElementById('fa-instagram')?.value.trim()||undefined,
+      'Site': document.getElementById('fa-site')?.value.trim()||undefined,
       'Link': document.getElementById('fa-link').value.trim()||undefined,
     };
     if(fotoUrl) fields['Foto']=[{url:fotoUrl}];
@@ -4341,6 +4341,10 @@ function filtrarBlogPorBusca(q) {
 
 function setSidebarTag(tag) {
   _blogTagFilter = _blogTagFilter === tag ? '' : tag;
+  // Atualizar visual das tags no sidebar
+  document.querySelectorAll('.sidebar-tag').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim().startsWith(tag) && _blogTagFilter);
+  });
   filterBlog();
 }
 
@@ -4388,7 +4392,10 @@ function filterBlog() {
         ${excerpt ? `<div class="blog-card-excerpt">${excerpt}</div>` : ''}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px">
           <div style="display:flex;gap:6px;flex-wrap:wrap">${tags.slice(0, 4).map(t => `<span class="blog-card-tag">${t}</span>`).join('')}</div>
-          ${f['Nota'] ? `<div class="blog-card-nota">${parseFloat(f['Nota']).toFixed(1)}<span style="font-size:.8rem;color:var(--text3)">/10</span></div>` : ''}
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+            ${f['Nota'] ? `<div class="blog-card-nota">${parseFloat(f['Nota']).toFixed(1)}<span style="font-size:.8rem;color:var(--text3)">/10</span></div>` : ''}
+            ${f['Experiência'] ? `<span style="font-size:.65rem;font-weight:700;color:var(--gold-dim);text-transform:uppercase;letter-spacing:.05em">${f['Experiência']}</span>` : ''}
+          </div>
         </div>
       </div>
     </div>`;
@@ -4455,7 +4462,7 @@ async function carregarOST(serieId, serieNome) {
   }
   try {
     const recs = await fetchTable(TABLES.ost, {
-      fields:['Nome da Faixa','Artista','URL Youtube','Ordem','Dorama'],
+      fields:['Nome da Faixa','Artista','URL do Youtube','Ordem','Dorama'],
       formula:`FIND('${serieId}',ARRAYJOIN({Dorama}))`
     });
     if(!recs.length) { showToast('Nenhuma OST cadastrada para este dorama'); return; }
@@ -4472,7 +4479,7 @@ function ostTocar(idx) {
   if(!ostPlaylist.length) return;
   ostIdx = idx;
   const f = ostPlaylist[idx].fields;
-  const url = f['URL Youtube']||'';
+  const url = f['URL do Youtube']||'';
   const vid = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1] || url;
   document.getElementById('ost-track').textContent = f['Nome da Faixa']||('Faixa '+(idx+1));
   document.getElementById('ost-artist').textContent = f['Artista']||'';
