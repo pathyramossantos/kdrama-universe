@@ -1819,12 +1819,17 @@ async function renderDorama(id){
       <button class="btn-gold btn-sm" onclick="saveBannerPos()">Salvar Posição</button>
       <div class="banner-ctrl-sep"></div>
       <div class="banner-ctrl-group" style="flex:1;min-width:240px">
-        <label class="banner-ctrl-label">🖼 Trocar Imagem (URL)</label>
+        <label class="banner-ctrl-label">🖼 Trocar Imagem (URL ou Upload)</label>
         <div style="display:flex;gap:6px">
-          <input type="text" id="banner-url-input" class="tmdb-input" placeholder="https://…" style="font-size:.78rem">
+          <input type="text" id="banner-url-input" class="tmdb-input" placeholder="https://…" style="font-size:.78rem;flex:1">
           <button class="btn-gold btn-sm" onclick="changeBannerUrl()">Aplicar</button>
+          <label class="btn-outline btn-sm" style="cursor:pointer;display:flex;align-items:center;gap:4px" title="Upload para GitHub">
+            📁
+            <input type="file" accept="image/*" style="display:none" onchange="uploadBannerImg(this)">
+          </label>
           <button class="btn-outline btn-sm" onclick="resetBannerUrl()" title="Voltar para foto do Airtable">↺</button>
         </div>
+        <div id="banner-upload-status" style="font-size:.72rem;color:var(--text3);margin-top:4px;display:none"></div>
       </div>
     </div>
 
@@ -4588,7 +4593,7 @@ function ostTocar(idx) {
   const wrap = document.getElementById('ost-video-wrap');
   if(wrap) wrap.style.display = 'block';
   const ostIframe = document.getElementById('ost-iframe');
-  ostIframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0`;
+  ostIframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&enablejsapi=1`;
   ostMuted = false;
   const muteBtn = document.getElementById('ost-mute-btn');
   if(muteBtn) muteBtn.textContent = '🔊';
@@ -4995,6 +5000,38 @@ function getAtorFoto(a) {
   return '';
 }
 
+
+async function uploadBannerImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('banner-upload-status');
+  if (status) { status.style.display = 'block'; status.textContent = '⏳ Enviando para o GitHub…'; }
+  try {
+    const url = await uploadParaGithub(file, 'banners');
+    document.getElementById('banner-url-input').value = url;
+    changeBannerUrl();
+    if (status) { status.textContent = '✅ Banner aplicado!'; setTimeout(() => status.style.display='none', 3000); }
+  } catch(e) {
+    if (status) { status.textContent = '❌ ' + e.message; }
+  }
+  input.value = '';
+}
+
+// Autoplay sequencial do OST player
+window.addEventListener('message', function(e) {
+  if (!e.data || typeof e.data !== 'string') return;
+  try {
+    const data = JSON.parse(e.data);
+    // YouTube envia info: state 0 = ended
+    if (data.event === 'infoDelivery' && data.info && data.info.playerState === 0) {
+      // Música terminou - tocar próxima
+      if (ostPlaylist.length > 1) {
+        const nextIdx = (ostIdx + 1) % ostPlaylist.length;
+        ostTocar(nextIdx);
+      }
+    }
+  } catch(_) {}
+});
 </script>
 
 <!-- BLOG FORM MODAL -->
