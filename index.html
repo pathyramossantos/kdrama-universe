@@ -3594,7 +3594,17 @@ async function renderBlog() {
   list.innerHTML = skeletons(4, '16/7');
   try {
     const records = await fetchTable(tbl, { fields: ['Título','Tipo','Status','Kicker','Conteúdo','Capa','Tags','Nota','Dorama','Data','Experiência'] });
-    allPosts = records.filter(p => p.fields['Status'] === 'Publicado').sort((a, b) => (b.fields['Data'] || '').localeCompare(a.fields['Data'] || ''));
+    allPosts = records.filter(p => p.fields['Status'] === 'Publicado').sort((a, b) => {
+      const parseData = d => {
+        if (!d) return 0;
+        // Formato DD/MM/YYYY
+        const br = d.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (br) return new Date(br[3], br[2]-1, br[1]).getTime();
+        // Formato YYYY-MM-DD ou ISO
+        return new Date(d).getTime();
+      };
+      return parseData(b.fields['Data']) - parseData(a.fields['Data']);
+    });
     filterBlog();
     renderBlogSidebar();
   } catch(e) {
@@ -3788,11 +3798,16 @@ function bfToggleDoramaRow() {
   if (isResenha) bfPopularSelectDoramas();
 }
 
-function bfPopularSelectDoramas() {
+async function bfPopularSelectDoramas() {
   const sel = document.getElementById('bf-dorama-nome');
-  if (!sel || sel.options.length > 1) return; // já populado
+  if (!sel) return;
   const atual = sel.value;
-  // Usar allSeries que já está em memória
+  // Buscar do Airtable se allSeries estiver vazio
+  if (!allSeries.length && TABLES.series && apiKey) {
+    try {
+      allSeries = await fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro']});
+    } catch(_){}
+  }
   const series = [...allSeries].sort((a,b) => (a.fields['Nome']||'').localeCompare(b.fields['Nome']||''));
   sel.innerHTML = '<option value="">— Selecione o dorama —</option>';
   series.forEach(s => {
@@ -5177,7 +5192,7 @@ function cardContextMenu(e, page, id) {
           <label class="fl">Imagem de Capa</label>
           <div style="display:flex;gap:8px">
             <input type="url" id="bf-capa" class="fi" placeholder="https://… ou faça upload →" style="flex:1">
-            <button class="btn-outline btn-sm" onclick="uploadImagemGithub('capas').then(url=>bfSet('bf-capa',url)).catch(()={})" title="Upload via GitHub">⬆ Upload</button>
+            <button class="btn-outline btn-sm" onclick="uploadImagemGithub('capas').then(url=>{bfSet('bf-capa',url);showToast('✓ Capa definida!')}).catch(e=>showToast('Erro upload: ' + e.message))" title="Upload via GitHub">⬆ Upload</button>
           </div>
         </div>
       </div>
