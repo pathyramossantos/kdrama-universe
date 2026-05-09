@@ -1884,7 +1884,7 @@ async function renderDorama(id){
               const ef=e.fields;
               const name=a?(a.fields['Nome']||''):'';
               const ph=a?getPhoto(a,'Foto'):null;
-              return`<div class="cast-card"${a?` onclick="navigate('ator','${a.id}')"`:''}>${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div></div>`;
+              return`<div class="cast-card"${a?` onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')"`:''} >${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div></div>`;
             }).join('')}
           </div>`:''}​      </div>
     </div>`;
@@ -1892,6 +1892,7 @@ async function renderDorama(id){
     // store gallery for lightbox
     window._dramaGallery = gallery;
     setupEditableFields();
+    applyEditModeToDOM();
   }catch(e){
     content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Erro: ${e.message}</p></div>`;
   }
@@ -1914,6 +1915,17 @@ function toggleEditMode(){
   const bannerCtrl=document.getElementById('banner-controls');
   if(bannerCtrl) bannerCtrl.style.display=editMode?'flex':'none';
   document.querySelectorAll('.editable').forEach(el=>el.setAttribute('contenteditable',editMode?'true':'false'));
+}
+
+function applyEditModeToDOM() {
+  // Chamada após renderDorama/renderAtor para aplicar editMode ao DOM recém-criado
+  const bannerCtrl = document.getElementById('banner-controls');
+  if (bannerCtrl) bannerCtrl.style.display = editMode ? 'flex' : 'none';
+  const tmdb = document.getElementById('tmdb-box');
+  if (tmdb) tmdb.style.display = editMode ? 'block' : 'none';
+  const tmdbAtor = document.getElementById('tmdb-ator-box');
+  if (tmdbAtor) tmdbAtor.style.display = editMode ? 'block' : 'none';
+  document.querySelectorAll('.editable').forEach(el => el.setAttribute('contenteditable', editMode ? 'true' : 'false'));
 }
 
 function setupEditableFields(){
@@ -2549,6 +2561,7 @@ async function renderAtor(id){
 
     window._atorGallery=gallery;
     setupEditableFields();
+    applyEditModeToDOM();
   }catch(e){
     content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Erro: ${e.message}</p></div>`;
   }
