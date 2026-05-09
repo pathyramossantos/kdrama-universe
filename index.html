@@ -3728,7 +3728,15 @@ function renderMd(text) {
       })
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--gold);text-decoration:underline">$1</a>');
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, txt, url) => {
+      // Link interno (#post/ID, #ator/ID, etc) — navega dentro do site
+      const internalMatch = url.match(/^#(post|ator|dorama)\/(.+)$/);
+      if (internalMatch) {
+        return `<a style="color:var(--gold);text-decoration:underline;cursor:pointer" onclick="navigate('${internalMatch[1]}','${internalMatch[2]}')">${txt}</a>`;
+      }
+      // Link externo — abre nova aba
+      return `<a href="${url}" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline">${txt}</a>`;
+    });
     return `<p>${inline}</p>`;
   }).join('');
 }
