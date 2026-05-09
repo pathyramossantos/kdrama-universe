@@ -1544,8 +1544,7 @@ async function loadAllData(){
       ]}),
       fetchTable(TABLES.atores, {fields:[
         'Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco',
-        'Biografia','Dramas em Destaque','Filmes em Destaque',
-        'Instagram','Site'
+        'Biografia','Instagram','Site'
       ]}),
       fetchTable(TABLES.elenco, {fields:[
         'Personagem','Tipo','Séries','Atores'
@@ -2258,25 +2257,7 @@ async function importFromTMDBator(tmdbPersonId){
       if(fields[fname]!==undefined) el.textContent=fields[fname];
     });
 
-    // Atualiza Dramas em Destaque na tela
-    if(fields['Dramas em Destaque']){
-      const listD=document.getElementById('list-dramas-destaque');
-      const secD=document.getElementById('section-dramas-destaque');
-      if(listD){
-        listD.innerHTML=fields['Dramas em Destaque'].split('\n').filter(Boolean).map(d=>`<div class="highlight-item">${d}</div>`).join('');
-        if(secD) secD.style.display='';
-      }
-    }
-
-    // Atualiza Filmes em Destaque na tela
-    if(fields['Filmes em Destaque']){
-      const listF=document.getElementById('list-filmes-destaque');
-      const secF=document.getElementById('section-filmes-destaque');
-      if(listF){
-        listF.innerHTML=fields['Filmes em Destaque'].split('\n').filter(Boolean).map(fi=>`<div class="highlight-item">${fi}</div>`).join('');
-        if(secF) secF.style.display='';
-      }
-    }
+    
 
   }catch(e){
     document.getElementById('tmdb-ator-results').innerHTML=`<p style="color:var(--red);font-size:.82rem;padding:8px">Erro: ${e.message}</p>`;
@@ -2448,9 +2429,6 @@ async function renderAtor(id){
       }));
       filmografia.sort((a,b)=>(b.serieAno||0)-(a.serieAno||0));
     }
-
-    const dramas=(f['Dramas em Destaque']||'').split('\n').filter(Boolean);
-    const filmes=(f['Filmes em Destaque']||'').split('\n').filter(Boolean);
 
     const filmografiaHTML = filmografia.length ? `
       <div class="actor-detail-section">
@@ -2944,7 +2922,7 @@ async function faGerarBio() {
 
   const systemPrompt = `Você é um assistente especializado em escrever biografias de atores coreanos no estilo pessoal e literário de Pathy (Patrícia Ramos), uma brasileira apaixonada por K-dramas.\n\nEstilo obrigatório:\n- Começa com nome completo (romanização, hangul, hanja se tiver), nacionalidade, data e local de nascimento\n- Inclui dados físicos e agência se souber\n- Narra o percurso com personalidade — contextualiza a carreira, destaca o que torna o ator único, não só lista fatos\n- Percorre a filmografia cronologicamente com comentários sobre os papéis mais importantes\n- Tem opinião — diz o que funciona na atuação desse ator específico\n- Escreve em português brasileiro com qualidade literária mas sem formalidade excessiva\n- Máximo 600 palavras. Sem asteriscos ou markdown.\n\nExemplo de tom (NÃO COPIE, só guia):\n"...é o raro caso de ator cujo físico foi literalmente o primeiro instrumento de trabalho... um percurso tardio o bastante para ter peso, cedo o bastante para virar carreira completa."`;
 
-  const prompt = `Escreva uma biografia completa no estilo Pathy para o ator/atriz:\nNome: ${nome}\nNome coreano: ${nomeKor || 'não informado'}\nData de nascimento: ${nasc || 'não informada'}\n${dramas ? 'Dramas em destaque: ' + dramas : ''}\n${filmes ? 'Filmes em destaque: ' + filmes : ''}\n${bioAtual ? 'Informações do TMDB para referência (reescreva com personalidade e estilo): ' + bioAtual : ''}\n\nUse seus conhecimentos sobre esse ator para enriquecer a biografia com dados reais (agência, universidade, carreira, papéis marcantes). Escreva com a mesma riqueza e personalidade do exemplo.`;
+  const prompt = `Escreva uma biografia completa no estilo Pathy para o ator/atriz:\nNome: ${nome}\nNome coreano: ${nomeKor || 'não informado'}\nData de nascimento: ${nasc || 'não informada'}\n${bioAtual ? 'Informações do TMDB para referência (reescreva com personalidade e estilo): ' + bioAtual : ''}\n\nUse seus conhecimentos sobre esse ator para enriquecer a biografia com dados reais (agência, universidade, carreira, papéis marcantes). Escreva com a mesma riqueza e personalidade do exemplo.`;
 
   try {
     const texto = await callClaude(prompt, systemPrompt);
@@ -3638,7 +3616,7 @@ async function renderPost(id) {
   if (!content) return;
   // Garantir allAtores carregado para @nome funcionar
   if (!allAtores.length && TABLES.atores && apiKey) {
-    try { allAtores = await fetchTable(TABLES.atores, {fields:['Nome','Data de Nascimento','Biografia','Foto','Instagram','Site','Dramas em Destaque','Filmes em Destaque']}); } catch(_){}
+    try { allAtores = await fetchTable(TABLES.atores, {fields:['Nome','Data de Nascimento','Biografia','Foto','Instagram','Site']}); } catch(_){}
   }
   content.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text3)"><div class="spinner" style="width:28px;height:28px;display:inline-block;border-width:3px"></div></div>`;
   try {
