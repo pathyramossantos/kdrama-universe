@@ -729,9 +729,9 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 
 /* OST Player */
-#ost-player{position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--bg2);border-top:1px solid var(--gold-dim);transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.2,.64,1);box-shadow:0 -8px 40px rgba(0,0,0,.5)}
+#ost-player{position:fixed;bottom:24px;right:24px;width:320px;z-index:300;background:var(--bg2);border:1px solid var(--gold-dim);border-radius:16px;transform:translateY(calc(100% + 40px));transition:transform .35s cubic-bezier(.34,1.2,.64,1);box-shadow:0 8px 40px rgba(0,0,0,.7)}
 #ost-player.open{transform:translateY(0)}
-.ost-bar{display:flex;align-items:center;gap:12px;padding:10px 20px}
+.ost-bar{display:flex;align-items:center;gap:10px;padding:10px 14px}
 .ost-play-btn{width:36px;height:36px;border-radius:50%;background:var(--gold);border:none;color:#0a0a0c;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s}
 .ost-play-btn:hover{transform:scale(1.1)}
 .ost-info{flex:1;min-width:0}
@@ -740,7 +740,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .ost-artist{font-size:.75rem;color:var(--text2)}
 .ost-ctrl{background:none;border:none;color:var(--text2);font-size:1.1rem;cursor:pointer;padding:6px;border-radius:6px;transition:var(--transition)}
 .ost-ctrl:hover{color:var(--gold)}
-.ost-list{max-height:200px;overflow-y:auto;border-top:1px solid var(--border);display:none}
+.ost-list{max-height:160px;overflow-y:auto;border-top:1px solid var(--border);display:none;border-radius:0 0 16px 16px}
 .ost-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.03)}
 .ost-item:hover{background:var(--surface)}
 .ost-item.playing{background:var(--gold-glow)}
@@ -3542,7 +3542,7 @@ async function renderBlog() {
   if (!tbl) { list.innerHTML = `<div class="empty-state"><div class="icon">📝</div><p>Crie a tabela Blog no Airtable e adicione o ID em TABLES.blog no código.</p></div>`; return; }
   list.innerHTML = skeletons(4, '16/7');
   try {
-    const records = await fetchTable(tbl, { fields: ['Título','Tipo','Status','Kicker','Conteúdo','Capa','Tags','Nota','Dorama','Data'] });
+    const records = await fetchTable(tbl, { fields: ['Título','Tipo','Status','Kicker','Conteúdo','Capa','Tags','Nota','Dorama','Data','Experiência'] });
     allPosts = records.filter(p => p.fields['Status'] === 'Publicado').sort((a, b) => (b.fields['Data'] || '').localeCompare(a.fields['Data'] || ''));
     filterBlog();
     renderBlogSidebar();
@@ -3563,6 +3563,10 @@ function setBlogFilter(btn) {
 async function renderPost(id) {
   const content = document.getElementById('post-content');
   if (!content) return;
+  // Garantir allAtores carregado para @nome funcionar
+  if (!allAtores.length && TABLES.atores && apiKey) {
+    try { allAtores = await fetchTable(TABLES.atores, {fields:['Nome','Data de Nascimento','Biografia','Foto','Instagram','Site','Dramas em Destaque','Filmes em Destaque']}); } catch(_){}
+  }
   content.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text3)"><div class="spinner" style="width:28px;height:28px;display:inline-block;border-width:3px"></div></div>`;
   try {
     let post = allPosts.find(p => p.id === id);
@@ -3644,14 +3648,31 @@ function renderMd(text) {
     }
 
     const inline = t
+      .replace(/\*@([\wÀ-ú][\wÀ-ú\/-]*(?:\s[\wÀ-ú][\wÀ-ú\/-]*){0,3})\*/g, '@$1').replace(/@([\wÀ-ú][\wÀ-ú\/-]*(?:\s[\wÀ-ú][\wÀ-ú\/-]*){0,3})/g, (match, captured) => {
+        const words = captured.split(' ');
+        for (let len = words.length; len >= 1; len--) {
+          const nome = words.slice(0, len).join(' ');
+          const resto = words.slice(len).join(' ');
+          const sufixo = resto ? ' ' + resto : '';
+          // 1. Busca por nome do ator
+          const ator = (allAtores||[]).find(a => (a.fields['Nome']||'').toLowerCase() === nome.toLowerCase());
+          if (ator) {
+            return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${ator.id}')">${nome}</a></em></strong>${sufixo}`;
+          }
+          // 2. Fallback: busca por nome do personagem no elenco
+          const elencoRec = (allElenco||[]).find(e => (e.fields['Personagem']||'').toLowerCase() === nome.toLowerCase());
+          if (elencoRec) {
+            const atorId = (elencoRec.fields['Atores']||[])[0];
+            if (atorId) {
+              return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${atorId}')">${nome}</a></em></strong>${sufixo}`;
+            }
+          }
+        }
+        return `<strong><em>${words[0]}</em></strong>${words.slice(1).length ? ' ' + words.slice(1).join(' ') : ''}`;
+      })
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--gold);text-decoration:underline">$1</a>')
-      .replace(/@([\wÀ-ú][\wÀ-ú ]+?)(?=[^\wÀ-ú]|$)/g, (match, nome) => {
-        const ator = (allAtores||[]).find(a => (a.fields['Nome']||'').toLowerCase() === nome.trim().toLowerCase());
-        if(ator) return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${ator.id}')">${nome.trim()}</a></em></strong>`;
-        return `<strong><em>${nome.trim()}</em></strong>`;
-      });
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--gold);text-decoration:underline">$1</a>');
     return `<p>${inline}</p>`;
   }).join('');
 }
@@ -4972,6 +4993,10 @@ async function faBuscarFilmografiaMDL(){
 
 
 <div id="ost-player">
+  <div style="padding:10px 14px 0;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:.65rem;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;font-weight:700">🎵 OST Player</span>
+    <button class="ost-ctrl" onclick="ostClose()" style="font-size:.9rem;padding:2px 6px">✕</button>
+  </div>
   <div class="ost-bar">
     <button class="ost-play-btn" id="ost-play-btn" onclick="ostTogglePlay()">▶</button>
     <div class="ost-info">
@@ -4983,14 +5008,13 @@ async function faBuscarFilmografiaMDL(){
     <button class="ost-ctrl" onclick="ostNext()">⏭</button>
     <button class="ost-ctrl" id="ost-mute-btn" onclick="ostToggleMute()" title="Ativar/Desativar som">🔇</button>
     <button class="ost-ctrl" onclick="ostToggleList()" id="ost-expand">▲</button>
-    <button class="ost-ctrl" onclick="ostClose()">✕</button>
   </div>
   <div class="ost-list" id="ost-list"></div>
-  <div id="ost-video-wrap" style="display:none;padding:0 20px 12px">
-    <iframe id="ost-iframe" width="100%" height="120" 
+  <div id="ost-video-wrap" style="display:none;padding:8px 8px 0">
+    <iframe id="ost-iframe" width="100%" height="160" 
       allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
       allowfullscreen
-      style="border:none;border-radius:8px;display:block"></iframe>
+      style="border:none;border-radius:12px;display:block"></iframe>
   </div>
 </div>
 
