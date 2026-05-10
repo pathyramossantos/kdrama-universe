@@ -5546,24 +5546,11 @@ function cardContextMenu(e, page, id) {
 
 
 <!-- RÁDIO K-DRAMA - RODAPÉ -->
-<div id="radio-footer">
-  <div class="radio-footer-bar">
-    <span class="radio-label">K·RADIO</span>
-    <div class="radio-sep"></div>
-    <button class="radio-play-btn" id="radio-play-btn" onclick="radioToggle()">▶</button>
-    <div class="radio-track-info">
-      <div class="radio-track-name" id="radio-track">Carregando OSTs…</div>
-      <div class="radio-track-status">
-        <span class="radio-live-dot" id="radio-dot"></span>
-        <span id="radio-status-txt">K-Drama OST Radio</span>
-      </div>
-    </div>
-
-    <div class="radio-vol-wrap">
-      <span style="font-size:.75rem;color:var(--text3)">🔊</span>
-      <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
-    </div>
-    <audio id="radio-audio" preload="none"></audio>
+<div id="radio-footer" style="position:fixed;bottom:0;left:0;right:0;z-index:400;background:linear-gradient(90deg,rgba(10,10,12,.98),rgba(26,26,46,.98));backdrop-filter:blur(20px);border-top:1px solid rgba(201,168,76,.3);display:flex;align-items:center;padding:4px clamp(16px,4vw,48px);gap:16px;min-height:60px">
+  <span style="font-family:'Playfair Display',serif;font-size:.68rem;font-weight:700;color:#c9a84c;letter-spacing:.15em;text-transform:uppercase;flex-shrink:0;opacity:.8;white-space:nowrap">K·RADIO</span>
+  <div style="width:1px;height:24px;background:rgba(255,255,255,.1);flex-shrink:0"></div>
+  <div style="flex:1;min-width:0;overflow:hidden">
+    <script src="//myradiostream.com/embed/Pathyramos"></script>
   </div>
 </div>
 
