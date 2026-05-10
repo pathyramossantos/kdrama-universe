@@ -2080,6 +2080,10 @@ function saveBannerPos(){
   const pos=`${x}% ${y}%`;
   const key=`kdrama_bannerpos_${currentRecordId}`;
   localStorage.setItem(key,pos);
+  // Salvar no Airtable
+  const url = localStorage.getItem(`kdrama_bannerurl_${currentRecordId}`) || '';
+  const tipo = currentSerie ? 'dorama' : 'ator';
+  bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
   showToast('Posição salva ✓');
 }
 
@@ -2091,7 +2095,11 @@ async function changeBannerUrl(){
   if(img) img.src=url;
   if(poster) poster.src=url;
   localStorage.setItem(`kdrama_bannerurl_${currentRecordId}`,url);
-  showToast('Imagem aplicada e salva no navegador ✓');
+  // Salvar no Airtable
+  const pos = localStorage.getItem(`kdrama_bannerpos_${currentRecordId}`) || '50% 30%';
+  const tipo = currentSerie ? 'dorama' : 'ator';
+  bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
+  showToast('Imagem salva ✓');
 }
 
 // ── NEW DRAMA MODAL ───────────────────────────────────────
@@ -3749,7 +3757,7 @@ async function renderPost(id) {
       <h1 class="post-h1">${f['Título'] || 'Sem título'}</h1>
       <div class="post-meta">
         ${date ? `<span class="post-meta-date">${date}</span>` : ''}
-        ${f['Dorama'] ? `<span style="color:var(--text3);font-size:.78rem">· <span style="color:var(--gold);cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold-dim)" onclick="navegarParaDorama('${f['Dorama']}')">${f['Dorama']}</span></span>` : ''}
+        ${f['Dorama'] ? `<span style="color:var(--text3);font-size:.78rem">· <span style="color:var(--gold);cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold-dim)" onclick="navegarParaDorama('${f['Dorama']}','${f['Dorama ID']||''}')">${f['Dorama']}</span></span>` : ''}
         ${f['Nota'] ? `<span style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end"><span class="post-nota-big">${parseFloat(f['Nota']).toFixed(1)}</span><span class="post-nota-label">nota / 10</span></span>` : ''}
         ${expBadge(f['Experiência'])}
         <button class="btn-outline btn-sm" onclick="openBlogForm('${id}')" style="margin-left:8px">✏️ Editar</button>
@@ -3909,9 +3917,10 @@ async function bfPopularSelectDoramas() {
     const nome = s.fields['Nome'] || '';
     if (!nome) return;
     const opt = document.createElement('option');
-    opt.value = nome;
+    opt.value = s.id; // salva o ID do Airtable
+    opt.dataset.nome = nome;
     opt.textContent = nome;
-    if (nome === atual) opt.selected = true;
+    if (s.id === atual || nome === atual) opt.selected = true;
     sel.appendChild(opt);
   });
 }
@@ -4019,7 +4028,11 @@ async function bfSalvar() {
     if (!isNaN(notaCalc)) fields['Nota'] = notaCalc;
     const tags = document.getElementById('bf-tags').value.trim(); if (tags) fields['Tags'] = tags;
     const conteudo = document.getElementById('bf-conteudo').value.trim(); if (conteudo) fields['Conteúdo'] = conteudo;
-    const dor = document.getElementById('bf-dorama-nome').value.trim(); if (dor) fields['Dorama'] = dor;
+    const sel = document.getElementById('bf-dorama-nome');
+    const dorId = sel?.value || '';
+    const dorNome = sel?.options[sel.selectedIndex]?.dataset.nome || sel?.options[sel.selectedIndex]?.text || '';
+    if (dorNome) fields['Dorama'] = dorNome;
+    if (dorId && dorId !== dorNome) fields['Dorama ID'] = dorId;
     const capa = document.getElementById('bf-capa').value.trim(); if (capa) fields['Capa'] = capa;
     bar.style.width = '70%';
     let record;
@@ -4656,7 +4669,7 @@ function renderBlogSidebar() {
 // setSidebarTag movida para cima (fix duplicata)
 
 // ── NAVEGAR PARA DORAMA POR NOME ──────────────────────────
-async function navegarParaDorama(nome) {
+async function navegarParaDorama(nome, id) {
   // Se allSeries ainda não carregou, tenta carregar primeiro
   if (!allSeries.length && apiKey) {
     try {
@@ -4664,9 +4677,15 @@ async function navegarParaDorama(nome) {
       allSeries = recs;
     } catch(_) {}
   }
-  const serie = allSeries.find(s => (s.fields['Nome'] || '').toLowerCase() === nome.toLowerCase());
+  // Buscar por ID primeiro (mais preciso), depois por nome
+  let serie = id ? allSeries.find(s => s.id === id) : null;
+  if (!serie) {
+    // Busca flexível — ignora acentos, maiúsculas e espaços extras
+    const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+    serie = allSeries.find(s => norm(s.fields['Nome']||'') === norm(nome));
+  }
   if (serie) navigate('dorama', serie.id);
-  else showToast('Dorama não encontrado na sua lista');
+  else showToast(`Dorama "${nome}" não encontrado na sua lista`);
 }
 
 
