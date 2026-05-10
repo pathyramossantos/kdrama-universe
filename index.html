@@ -578,7 +578,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-cover{width:100%;border-radius:var(--radius);aspect-ratio:16/7;object-fit:cover;margin-bottom:32px;border:1px solid var(--border)}
 .post-body{font-size:.95rem;line-height:1.9;color:var(--text2)}
 .post-body p{margin-bottom:1.4em}
-.post-body h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);margin:2em 0 .8em;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.post-body h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);margin:2em 0 .8em;padding-bottom:8px;border-bottom:2px solid var(--gold-dim);display:flex;align-items:center;gap:8px}.post-body h2::before{content:'';display:block;width:3px;height:1em;background:var(--gold);border-radius:2px;flex-shrink:0}
 .post-body h3{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);margin:1.6em 0 .6em}
 .post-body blockquote{margin:1.5em 0;padding:16px 22px;border-left:3px solid var(--gold);background:var(--surface);border-radius:0 8px 8px 0;color:var(--text);font-style:italic}
 .post-body strong{color:var(--text);font-weight:600}
@@ -861,6 +861,10 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-cover-slider-label{font-size:.68rem;color:rgba(255,255,255,.5);width:12px;text-align:center}
 .post-cover-slider{flex:1;accent-color:var(--gold);cursor:pointer}
 .post-cover-slider-val{font-size:.68rem;color:var(--gold);min-width:30px;text-align:right}
+
+
+.post-body .txt-small{font-size:.78rem;color:var(--text3)}
+.post-body .txt-large{font-size:1.15rem;font-weight:500;color:var(--text)}
 
 </style>
 </head>
@@ -3821,9 +3825,20 @@ function renderPostBody(text) {
 }
 
 function renderMd(text) {
+  // Normalizar quebras — garantir que ## funciona com 
+ simples também
+  text = text.replace(/
+(#{1,3} )/g, '
+
+$1').replace(/
+(> )/g, '
+
+$1');
   return text.split('\n\n').map(block => {
     const t = block.trim();
     if (!t) return '';
+    // Suporte a # H1, ## H2, ### H3
+    if (t.startsWith('# ') && !t.startsWith('## ')) return `<h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--text);margin:1.5em 0 .5em">${t.slice(2)}</h1>`;
     if (t.startsWith('## ')) return `<h2>${t.slice(3)}</h2>`;
     if (t.startsWith('### ')) return `<h3>${t.slice(4)}</h3>`;
     if (t.startsWith('> ')) return `<blockquote>${t.slice(2)}</blockquote>`;
@@ -4007,6 +4022,12 @@ function bfInsert(txt) {
   ta.selectionStart = ta.selectionEnd = s + txt.length;
   ta.focus();
 }
+function bfWrapFonte(size) {
+  const tag = size === 'small' ? '[small]' : '[large]';
+  const endTag = size === 'small' ? '[/small]' : '[/large]';
+  bfWrap(tag, endTag);
+}
+
 function bfWrap(before, after) {
   const ta = document.getElementById('bf-conteudo');
   const s = ta.selectionStart, e = ta.selectionEnd;
@@ -5569,6 +5590,8 @@ function cardContextMenu(e, page, id) {
             <button class="blog-tool" onclick="bfWrap('**','**')"><b>B</b></button>
             <button class="blog-tool" onclick="bfWrap('*','*')"><i>I</i></button>
             <button class="blog-tool" onclick="bfInsert('> ')">❝</button>
+            <button class="blog-tool" onclick="bfWrapFonte('small')" title="Texto pequeno">P</button>
+            <button class="blog-tool" onclick="bfWrapFonte('large')" title="Texto grande" style="font-size:1rem;font-weight:700">G</button>
             <button class="blog-tool" onclick="bfInsert('\n---spoiler---\n\n---fim-spoiler---\n')">🔒 Spoiler</button>
             <button class="blog-tool" onclick="bfInsertImagem()">🖼 URL</button>
             <button class="blog-tool" onclick="bfInsertImagemUpload()">⬆ Upload</button>
