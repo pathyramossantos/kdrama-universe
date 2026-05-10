@@ -4905,7 +4905,27 @@ function renderAniversarios() {
 
 
 // ── RÁDIO K-DRAMA ─────────────────────────────────────────
-const RADIO_STREAM_URL = 'https://kdrama-radio.pathyzinharamos.workers.dev/';
+const ARCHIVE_ID = 'kdrama-osts';
+const ARCHIVE_BASE = `https://archive.org/download/${ARCHIVE_ID}/`;
+let radioPlaylist = [];
+let radioIdx = 0;
+let radioLoaded = false;
+
+async function radioCarregarPlaylist() {
+  if (radioLoaded) return;
+  try {
+    const res = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
+    const data = await res.json();
+    const mp3s = (data.files || []).filter(f => f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
+    if (!mp3s.length) return;
+    radioPlaylist = mp3s.map(f => ({
+      url: ARCHIVE_BASE + encodeURIComponent(f.name),
+      name: f.name.replace(/\.mp3$/i, '').replace(/_/g, ' ')
+    })).sort(() => Math.random() - 0.5);
+    radioLoaded = true;
+    document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || 'K-Drama OST Radio';
+  } catch(e) { console.warn('Radio load error:', e); }
+}
 let radioPlaying = false;
 
 function radioCarregarPlaylist() {
@@ -4915,32 +4935,18 @@ function radioCarregarPlaylist() {
 }
 
 function radioPlay() {
+  if (!radioPlaylist.length) return;
   const audio = document.getElementById('radio-audio');
-  audio.src = RADIO_STREAM_URL;
+  const track = radioPlaylist[radioIdx];
+  audio.src = track.url;
   audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
   audio.play().catch(() => {});
+  audio.onended = () => radioNext();
   radioPlaying = true;
   document.getElementById('radio-play-btn').textContent = '⏸';
+  document.getElementById('radio-track').textContent = track.name;
   document.getElementById('radio-dot').style.display = 'block';
   document.getElementById('radio-status-txt').textContent = 'Ao vivo';
-  // Buscar nome da música via proxy (evita bloqueio http)
-  radioAtualizarMusica();
-  if (!window.radioMetaInterval) {
-    window.radioMetaInterval = setInterval(radioAtualizarMusica, 15000);
-  }
-}
-
-async function radioAtualizarMusica() {
-  try {
-    const res = await fetch('https://kdrama-proxy.vercel.app/api/proxy?url=' + encodeURIComponent('http://s38.myradiostream.com:17116/7.html'));
-    const txt = await res.text();
-    const clean = txt.replace('</body></html>', '');
-    const split = clean.split(',');
-    if (split[6]) {
-      const titulo = split.slice(6).join(',').slice(0, -1).trim();
-      if (titulo) document.getElementById('radio-track').textContent = titulo;
-    }
-  } catch(_) {}
 }
 
 function radioStop() {
@@ -4955,12 +4961,12 @@ function radioStop() {
 
 function radioToggle() {
   if (radioPlaying) radioStop();
-  else radioPlay();
+  else { radioCarregarPlaylist().then(() => radioPlay()); }
 }
 
 function radioNext() {
-  // Stream ao vivo — próxima não se aplica
-  showToast('É uma rádio ao vivo! 🎵');
+  radioIdx = (radioIdx + 1) % radioPlaylist.length;
+  radioPlay();
 }
 
 function radioSetVol(val) {
@@ -5576,6 +5582,7 @@ function cardContextMenu(e, page, id) {
         <span id="radio-status-txt">Clique para ouvir</span>
       </div>
     </div>
+    <button class="radio-next-btn" onclick="radioNext()" title="Próxima">⏭</button>
     <div class="radio-vol-wrap">
       <span style="font-size:.75rem;color:var(--text3)">🔊</span>
       <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
