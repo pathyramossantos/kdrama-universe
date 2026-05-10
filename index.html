@@ -817,15 +817,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .ost-letra-empty{color:var(--text3);font-style:italic;font-size:.85rem}
 
 
-.ost-letra-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-@media(max-width:640px){.ost-letra-grid{grid-template-columns:1fr}}
-.ost-letra-col-title{font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
-.ost-letra-text{font-size:.88rem;line-height:2.1;color:var(--text2);white-space:pre-wrap}
-.ost-letra-loading{color:var(--text3);font-size:.85rem;font-style:italic;display:flex;align-items:center;gap:8px}
-.ost-letra-iframe{width:100%;height:480px;border:none;border-radius:8px;background:var(--surface)}
-.ost-letra-link{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--gold);text-decoration:none;margin-top:12px;opacity:.7;transition:opacity .2s}
-.ost-letra-link:hover{opacity:1}
-
 </style>
 </head>
 <body>
@@ -1109,10 +1100,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
               <span>Selecione uma faixa para ouvir</span>
             </div>
           </div>
-          <div class="ost-letra-box" id="ost-letra-box" style="display:none">
-            <div class="ost-letra-title">Letra</div>
-            <div class="ost-letra-content" id="ost-letra-content"></div>
-          </div>
+
         </div>
       </div>
     </div>
@@ -4826,7 +4814,7 @@ function renderOstTracks() {
   }).join('');
 }
 
-async function ostPageTocar(idx) {
+function ostPageTocar(idx) {
   ostPageIdx = idx;
   const f = ostPagePlaylist[idx].fields;
   const url = f['URL do Youtube'] || '';
@@ -4840,49 +4828,14 @@ async function ostPageTocar(idx) {
     videoBox.innerHTML = `<div class="ost-video-placeholder"><span style="font-size:2rem">🎵</span><span>Vídeo não disponível</span></div>`;
   }
 
-  // Letra — busca do Letras.mus ou usa campo manual
-  const urlLetra = f['URL Letra'] || '';
-  const letraManual = f['Letra'] || '';
-  const letraBox = document.getElementById('ost-letra-box');
-  
-  if (urlLetra) {
-    letraBox.style.display = 'block';
-    letraBox.querySelector('.ost-letra-title').textContent = `🎵 ${f['Nome da Faixa'] || 'Letra'}`;
-    await buscarLetraLetras(urlLetra, letraBox);
-  } else if (letraManual) {
-    letraBox.style.display = 'block';
-    letraBox.querySelector('.ost-letra-title').textContent = `🎵 ${f['Nome da Faixa'] || 'Letra'}`;
-    letraBox.querySelector('.ost-letra-content').innerHTML = `<div class="ost-letra-text">${letraManual}</div>`;
-  } else {
-    letraBox.style.display = 'none';
-  }
+
 
   // Atualizar playlist visual
   renderOstTracks();
 }
 
 
-// ── BUSCAR LETRA DO LETRAS.MUS ────────────────────────────
-async function buscarLetraLetras(url, container) {
-  const content = container.querySelector('.ost-letra-content');
-  content.innerHTML = `<div class="ost-letra-loading"><span class="spinner" style="width:14px;height:14px;display:inline-block;border-width:2px"></span> Carregando letra…</div>`;
 
-  // Montar URL da versão com tradução
-  let urlTrad = url.trim();
-  if (!urlTrad.endsWith('/')) urlTrad += '/';
-  urlTrad += 'traducao.html';
-
-  // Tentar iframe da versão tradução primeiro, senão URL original
-  content.innerHTML = `
-    <iframe 
-      class="ost-letra-iframe" 
-      src="${urlTrad}" 
-      loading="lazy"
-      onerror="this.src='${url}'"
-      style="width:100%;height:480px;border:none;border-radius:8px;background:var(--surface)">
-    </iframe>
-    <a class="ost-letra-link" href="${urlTrad}" target="_blank">↗ Abrir no Letras.mus</a>`;
-}
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
