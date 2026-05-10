@@ -4785,7 +4785,7 @@ async function renderOstPage(serieId) {
 
   try {
     const allRecs = await fetchTable(TABLES.ost, {
-      fields: ['Nome da Faixa', 'Artista', 'URL do Youtube', 'Ordem', 'Dorama', 'Letra']
+      fields: ['Nome da Faixa', 'Artista', 'URL do Youtube', 'Ordem', 'Dorama']
     });
     const recs = allRecs.filter(r => (r.fields['Dorama'] || []).includes(serieId));
     if (!recs.length) {
