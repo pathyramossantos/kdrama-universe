@@ -4660,8 +4660,6 @@ async function carregarOST(serieId, serieNome) {
     const allRecs = await fetchTable(TABLES.ost, {
       fields:['Nome da Faixa','Artista','URL do Youtube','Ordem','Dorama']
     });
-    console.log('serieId:', serieId);
-    console.log('allRecs:', allRecs.length, allRecs.map(r=>r.fields['Dorama']));
     const recs = allRecs.filter(r => (r.fields['Dorama']||[]).includes(serieId));
     if(!recs.length) { 
       // Tentar com o nome do dorama como fallback
@@ -4779,7 +4777,6 @@ async function renderOstPage(serieId) {
   // Reset visual
   document.getElementById('ost-page-tracks').innerHTML = `<div style="padding:20px;color:var(--text3);font-size:.85rem">Carregando…</div>`;
   document.getElementById('ost-page-video').innerHTML = `<div class="ost-video-placeholder"><span style="font-size:2rem">🎵</span><span>Selecione uma faixa para ouvir</span></div>`;
-  document.getElementById('ost-letra-box').style.display = 'none';
 
   if (!TABLES.ost) { showToast('Tabela OST não configurada'); return; }
 
