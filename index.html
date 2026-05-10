@@ -4078,9 +4078,10 @@ function atualizarStatsHome() {
 // Google News RSS — sem bloqueio, já em português
 const RSS_URL = 'https://news.google.com/rss/search?q=k-drama+OR+dorama+coreano+OR+kdrama&hl=pt-BR&gl=BR&ceid=BR:pt-419';
 const RSS_PROXIES = [
-  `https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`,
-  `https://corsproxy.io/?url=${encodeURIComponent(RSS_URL)}`,
-  `https://api.codetabs.com/v1/proxy?quest=${RSS_URL}`,
+  { url: `https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`, json: true },
+  { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`, json: false },
+  { url: `https://corsproxy.io/?url=${encodeURIComponent(RSS_URL)}`, json: false },
+  { url: `https://test.cors.workers.dev/?${RSS_URL}`, json: false },
 ];
 let newsItems = [];
 
@@ -4115,21 +4116,22 @@ async function carregarNoticias(forcar = false) {
   try {
     // Tenta cada proxy até um funcionar
     let xml = null;
-    for (const proxyUrl of RSS_PROXIES) {
+    for (const proxy of RSS_PROXIES) {
       try {
-        const res = await fetch(proxyUrl);
+        const res = await fetch(proxy.url);
         if (!res.ok) continue;
-        const ct = res.headers.get('content-type') || '';
-        if (ct.includes('json')) {
+        if (proxy.json) {
           const w = await res.json();
           xml = w.contents || w.data || null;
         } else {
-          const txt = await res.text();
-          // Tentar parse como JSON primeiro (allorigins às vezes retorna JSON sem content-type)
-          try { const w = JSON.parse(txt); xml = w.contents || w.data || txt; }
-          catch(_) { xml = txt; }
+          xml = await res.text();
+          // Se vier JSON mesmo sendo raw, tenta parsear
+          if (xml && xml.trim().startsWith('{')) {
+            try { const w = JSON.parse(xml); xml = w.contents || w.data || xml; } catch(_) {}
+          }
         }
-        if (xml && xml.length > 100) break;
+        if (xml && xml.length > 200 && (xml.includes('<item') || xml.includes('<rss'))) break;
+        xml = null; // não era XML válido, tenta próximo
       } catch(e) { continue; }
     }
     if (!xml) throw new Error('Não foi possível carregar o RSS — tente novamente em instantes');
@@ -4606,12 +4608,10 @@ function filterBlog() {
         <div class="blog-card-title">${f['Título'] || 'Sem título'}</div>
         ${excerpt ? `<div class="blog-card-excerpt">${excerpt}</div>` : ''}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px">
-          <div style="display:flex;gap:6px;flex-wrap:wrap">${tags.slice(0, 4).map(t => `<span class="blog-card-tag">${t}</span>`).join('')}</div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
-            ${f['Nota'] ? `<div class="blog-card-nota">${parseFloat(f['Nota']).toFixed(1)}<span style="font-size:.8rem;color:var(--text3)">/10</span></div>` : ''}
-            ${expBadge(f['Experiência'])}
-          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${tags.slice(0, 4).map(t => `<span class="blog-card-tag" style="cursor:pointer" onclick="event.stopPropagation();setSidebarTag('${t}')">${t}</span>`).join('')}</div>
+          ${f['Nota'] ? `<div class="blog-card-nota">${parseFloat(f['Nota']).toFixed(1)}<span style="font-size:.8rem;color:var(--text3)">/10</span></div>` : ''}
         </div>
+        ${f['Experiência'] ? `<div style="margin-top:4px">${expBadge(f['Experiência'])}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -4656,7 +4656,14 @@ function renderBlogSidebar() {
 // setSidebarTag movida para cima (fix duplicata)
 
 // ── NAVEGAR PARA DORAMA POR NOME ──────────────────────────
-function navegarParaDorama(nome) {
+async function navegarParaDorama(nome) {
+  // Se allSeries ainda não carregou, tenta carregar primeiro
+  if (!allSeries.length && apiKey) {
+    try {
+      const recs = await fetchTable(TABLES.series, { fields: ['Nome'] });
+      allSeries = recs;
+    } catch(_) {}
+  }
   const serie = allSeries.find(s => (s.fields['Nome'] || '').toLowerCase() === nome.toLowerCase());
   if (serie) navigate('dorama', serie.id);
   else showToast('Dorama não encontrado na sua lista');
