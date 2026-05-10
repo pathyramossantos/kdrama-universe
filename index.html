@@ -817,6 +817,25 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .ost-letra-empty{color:var(--text3);font-style:italic;font-size:.85rem}
 
 
+
+/* ── RÁDIO K-DRAMA ───────────────────────────────────────── */
+#radio-player{position:fixed;top:0;left:0;right:0;z-index:500;background:linear-gradient(90deg,var(--bg2),#1a1a2e);border-bottom:1px solid var(--gold-dim);transform:translateY(-100%);transition:transform .4s cubic-bezier(.34,1.2,.64,1);box-shadow:0 4px 24px rgba(0,0,0,.6)}
+#radio-player.open{transform:translateY(0)}
+.radio-bar{display:flex;align-items:center;gap:12px;padding:8px 20px;height:52px}
+.radio-logo{font-family:'Playfair Display',serif;font-size:.7rem;font-weight:700;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;opacity:.8;flex-shrink:0}
+.radio-logo span{color:var(--text3);font-size:.6rem;display:block;letter-spacing:.05em}
+.radio-sep{width:1px;height:28px;background:var(--border);flex-shrink:0}
+.radio-play-btn{width:32px;height:32px;border-radius:50%;background:var(--gold);border:none;color:#0a0a0c;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s}
+.radio-play-btn:hover{transform:scale(1.1)}
+.radio-info{flex:1;min-width:0}
+.radio-track{font-size:.82rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.radio-status{font-size:.68rem;color:var(--gold);display:flex;align-items:center;gap:6px}
+.radio-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 1.5s ease-in-out infinite;flex-shrink:0}
+.radio-ctrl{background:none;border:none;color:var(--text3);font-size:1rem;cursor:pointer;padding:4px 6px;border-radius:6px;transition:var(--transition);flex-shrink:0}
+.radio-ctrl:hover{color:var(--gold)}
+.radio-vol{width:70px;accent-color:var(--gold)}
+@media(max-width:480px){.radio-vol{display:none}.radio-logo span{display:none}}
+
 </style>
 </head>
 <body>
@@ -829,6 +848,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     <a data-page="atores" onclick="navigate('atores')">Atores</a>
     <a data-page="blog" onclick="navigate('blog')">Blog</a>
     <a data-page="config" onclick="navigate('config')" id="nav-config">Configurações</a>
+    <button onclick="radioOpen()" title="K·Radio OST" style="background:none;border:none;color:var(--gold);font-size:.75rem;font-weight:700;cursor:pointer;padding:6px 10px;border-radius:8px;letter-spacing:.05em;opacity:.8;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.8">📻</button>
     <button id="theme-btn" title="Alternar tema">☀</button>
   </div>
   <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
@@ -4882,6 +4902,91 @@ async function bannerCarregarAirtable(recordId, tipo) {
   return null;
 }
 
+
+// ── RÁDIO K-DRAMA ─────────────────────────────────────────
+const ARCHIVE_ID = 'kdrama-ost-radio';
+const ARCHIVE_BASE = `https://archive.org/download/${ARCHIVE_ID}/`;
+let radioPlaylist = [];
+let radioIdx = 0;
+let radioPlaying = false;
+let radioLoaded = false;
+
+async function radioCarregarPlaylist() {
+  if (radioLoaded) return;
+  try {
+    const res = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
+    const data = await res.json();
+    const mp3s = (data.files || []).filter(f => f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
+    if (!mp3s.length) return;
+    // Embaralhar
+    radioPlaylist = mp3s.map(f => ({
+      url: ARCHIVE_BASE + encodeURIComponent(f.name),
+      name: f.name.replace(/\.mp3$/i, '').replace(/%20/g, ' ')
+    })).sort(() => Math.random() - 0.5);
+    radioLoaded = true;
+    radioIdx = 0;
+    document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || '—';
+  } catch(e) { console.warn('Radio load error:', e); }
+}
+
+function radioOpen() {
+  const player = document.getElementById('radio-player');
+  player.classList.add('open');
+  // Ajustar nav pra não sobrepor
+  document.querySelector('nav') && (document.querySelector('nav').style.top = '52px');
+  document.querySelector('.page.active') && (document.querySelector('.page.active').style.paddingTop = '52px');
+  radioCarregarPlaylist().then(() => {
+    if (!radioPlaying) radioPlay();
+  });
+}
+
+function radioClose() {
+  document.getElementById('radio-player').classList.remove('open');
+  document.querySelector('nav') && (document.querySelector('nav').style.top = '');
+  document.querySelector('.page.active') && (document.querySelector('.page.active').style.paddingTop = '');
+  radioStop();
+}
+
+function radioPlay() {
+  if (!radioPlaylist.length) return;
+  const audio = document.getElementById('radio-audio');
+  const track = radioPlaylist[radioIdx];
+  audio.src = track.url;
+  audio.volume = parseFloat(document.getElementById('radio-vol').value);
+  audio.play().catch(() => {});
+  audio.onended = () => radioNext();
+  radioPlaying = true;
+  document.getElementById('radio-play-btn').textContent = '⏸';
+  document.getElementById('radio-track').textContent = track.name;
+  document.getElementById('radio-dot').style.display = 'block';
+  document.getElementById('radio-status-txt').textContent = 'Ao vivo';
+}
+
+function radioStop() {
+  const audio = document.getElementById('radio-audio');
+  audio.pause();
+  audio.src = '';
+  radioPlaying = false;
+  document.getElementById('radio-play-btn').textContent = '▶';
+  document.getElementById('radio-dot').style.display = 'none';
+  document.getElementById('radio-status-txt').textContent = 'K-Drama OST Radio';
+}
+
+function radioToggle() {
+  if (radioPlaying) radioStop();
+  else radioPlay();
+}
+
+function radioNext() {
+  radioIdx = (radioIdx + 1) % radioPlaylist.length;
+  radioPlay();
+}
+
+function radioSetVol(val) {
+  const audio = document.getElementById('radio-audio');
+  if (audio) audio.volume = parseFloat(val);
+}
+
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
 setInterval(() => carregarNoticias(true), 60 * 60 * 1000);
@@ -5472,6 +5577,27 @@ function cardContextMenu(e, page, id) {
       allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
       allowfullscreen
       style="border:none;border-radius:12px;display:block"></iframe>
+  </div>
+</div>
+
+
+<!-- RÁDIO K-DRAMA -->
+<div id="radio-player">
+  <div class="radio-bar">
+    <div class="radio-logo">K·Radio<span>OST 24h</span></div>
+    <div class="radio-sep"></div>
+    <button class="radio-play-btn" id="radio-play-btn" onclick="radioToggle()">▶</button>
+    <div class="radio-info">
+      <div class="radio-track" id="radio-track">Carregando playlist…</div>
+      <div class="radio-status">
+        <span class="radio-dot" id="radio-dot" style="display:none"></span>
+        <span id="radio-status-txt">K-Drama OST Radio</span>
+      </div>
+    </div>
+    <button class="radio-ctrl" onclick="radioNext()" title="Próxima">⏭</button>
+    <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)" title="Volume">
+    <button class="radio-ctrl" onclick="radioClose()" title="Fechar">✕</button>
+    <audio id="radio-audio" preload="none"></audio>
   </div>
 </div>
 
