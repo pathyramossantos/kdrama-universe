@@ -855,12 +855,12 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-cover-ctrl{background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:.7rem;padding:4px 8px;border-radius:6px;cursor:pointer;backdrop-filter:blur(4px);transition:background .2s}
 .post-cover-ctrl:hover{background:rgba(201,168,76,.6)}
 .post-cover-ctrl.active{background:rgba(201,168,76,.8);border-color:var(--gold)}
-.post-cover-pos-panel{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.85);border:1px solid var(--gold-dim);border-radius:10px;padding:12px;display:none;backdrop-filter:blur(8px)}
+.post-cover-pos-panel{position:absolute;bottom:10px;left:10px;right:10px;background:rgba(0,0,0,.85);border:1px solid var(--gold-dim);border-radius:10px;padding:14px 16px;display:none;backdrop-filter:blur(8px)}
 .post-cover-pos-panel.open{display:block}
-.post-cover-pos-grid{display:grid;grid-template-columns:repeat(3,28px);gap:4px;margin-bottom:8px}
-.post-cover-pos-btn{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.7rem;transition:background .15s}
-.post-cover-pos-btn:hover{background:rgba(201,168,76,.4)}
-.post-cover-pos-btn.active{background:var(--gold);border-color:var(--gold)}
+.post-cover-slider-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.post-cover-slider-label{font-size:.68rem;color:rgba(255,255,255,.5);width:12px;text-align:center}
+.post-cover-slider{flex:1;accent-color:var(--gold);cursor:pointer}
+.post-cover-slider-val{font-size:.68rem;color:var(--gold);min-width:30px;text-align:right}
 
 </style>
 </head>
@@ -3783,17 +3783,16 @@ async function renderPost(id) {
           <button class="post-cover-ctrl" onclick="togglePostCoverPanel('${id}')">⊹ Ajustar posição</button>
         </div>
         <div class="post-cover-pos-panel" id="post-cover-panel-${id}">
-          <div style="font-size:.68rem;color:rgba(255,255,255,.5);margin-bottom:6px;text-align:center">Posição da imagem</div>
-          <div class="post-cover-pos-grid">
-            <button class="post-cover-pos-btn" onclick="setPostCoverPos('${id}','left top')" title="↖">↖</button>
-            <button class="post-cover-pos-btn" onclick="setPostCoverPos('${id}','center top')" title="↑">↑</button>
-            <button class="post-cover-pos-btn" onclick="setPostCoverPos('${id}','right top')" title="↗">↗</button>
-            <button class="post-cover-pos-btn" onclick="setPostCoverPos('${id}','left center')" title="←">←</button>
-            <button class="post-cover-pos-btn active" onclick="setPostCoverPos('${id}','center center')" title="●">●</button>
-            <button class="post-cover-pos-btn" onclick="setPostCoverPos('${id}','right center')" title="→">→</button>
-            <button class="post-cover-pos-btn" onclick="setPostCoverPos('${id}','left bottom')" title="↙">↙</button>
-            <button class="post-cover-pos-btn" onclick="setPostCoverPos('${id}','center bottom')" title="↓">↓</button>
-            <button class="post-cover-pos-btn" onclick="setPostCoverPos('${id}','right bottom')" title="↘">↘</button>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.5);margin-bottom:10px;text-align:center">Ajustar posição da imagem</div>
+          <div class="post-cover-slider-row">
+            <span class="post-cover-slider-label">↕</span>
+            <input type="range" class="post-cover-slider" id="post-cover-y-${id}" min="0" max="100" value="50" oninput="setPostCoverPosSlider('${id}')">
+            <span class="post-cover-slider-val" id="post-cover-y-val-${id}">50%</span>
+          </div>
+          <div class="post-cover-slider-row">
+            <span class="post-cover-slider-label">↔</span>
+            <input type="range" class="post-cover-slider" id="post-cover-x-${id}" min="0" max="100" value="50" oninput="setPostCoverPosSlider('${id}')">
+            <span class="post-cover-slider-val" id="post-cover-x-val-${id}">50%</span>
           </div>
         </div>
       </div>` : ''}
@@ -5010,27 +5009,32 @@ function togglePostCoverPanel(id) {
   if (panel) panel.classList.toggle('open');
 }
 
-function setPostCoverPos(id, pos) {
+function setPostCoverPosSlider(id) {
+  const x = document.getElementById(`post-cover-x-${id}`)?.value || 50;
+  const y = document.getElementById(`post-cover-y-${id}`)?.value || 50;
   const img = document.getElementById(`post-cover-img-${id}`);
-  if (img) img.style.objectPosition = pos;
-  // Atualizar botão ativo
-  const panel = document.getElementById(`post-cover-panel-${id}`);
-  if (panel) {
-    panel.querySelectorAll('.post-cover-pos-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${pos}'`));
-    });
-  }
-  // Salvar no localStorage
-  localStorage.setItem(`kdrama_postcoverpos_${id}`, pos);
+  if (img) img.style.objectPosition = `${x}% ${y}%`;
+  const xVal = document.getElementById(`post-cover-x-val-${id}`);
+  const yVal = document.getElementById(`post-cover-y-val-${id}`);
+  if (xVal) xVal.textContent = `${x}%`;
+  if (yVal) yVal.textContent = `${y}%`;
+  localStorage.setItem(`kdrama_postcoverpos_${id}`, `${x},${y}`);
 }
 
-// Restaurar posição salva ao abrir post
 function restorePostCoverPos(id) {
-  const pos = localStorage.getItem(`kdrama_postcoverpos_${id}`);
-  if (pos) {
-    const img = document.getElementById(`post-cover-img-${id}`);
-    if (img) img.style.objectPosition = pos;
-  }
+  const saved = localStorage.getItem(`kdrama_postcoverpos_${id}`);
+  if (!saved) return;
+  const [x, y] = saved.split(',');
+  const img = document.getElementById(`post-cover-img-${id}`);
+  if (img) img.style.objectPosition = `${x}% ${y}%`;
+  const sx = document.getElementById(`post-cover-x-${id}`);
+  const sy = document.getElementById(`post-cover-y-${id}`);
+  if (sx) sx.value = x;
+  if (sy) sy.value = y;
+  const xVal = document.getElementById(`post-cover-x-val-${id}`);
+  const yVal = document.getElementById(`post-cover-y-val-${id}`);
+  if (xVal) xVal.textContent = `${x}%`;
+  if (yVal) yVal.textContent = `${y}%`;
 }
 
 // ── INIT ──────────────────────────────────────────────────
