@@ -4826,7 +4826,7 @@ function renderOstTracks() {
   }).join('');
 }
 
-function ostPageTocar(idx) {
+async function ostPageTocar(idx) {
   ostPageIdx = idx;
   const f = ostPagePlaylist[idx].fields;
   const url = f['URL do Youtube'] || '';
