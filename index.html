@@ -4091,10 +4091,9 @@ function atualizarStatsHome() {
 // Google News RSS — sem bloqueio, já em português
 const RSS_URL = 'https://news.google.com/rss/search?q=k-drama+OR+dorama+coreano+OR+kdrama&hl=pt-BR&gl=BR&ceid=BR:pt-419';
 const RSS_PROXIES = [
-  { url: `https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`, json: true },
-  { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`, json: false },
-  { url: `https://corsproxy.io/?url=${encodeURIComponent(RSS_URL)}`, json: false },
-  { url: `https://test.cors.workers.dev/?${RSS_URL}`, json: false },
+  `https://kdrama-proxy.vercel.app/api/proxy?url=${encodeURIComponent(RSS_URL)}`,
+  `https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`,
+  `https://corsproxy.io/?url=${encodeURIComponent(RSS_URL)}`,
 ];
 let newsItems = [];
 
@@ -4136,10 +4135,12 @@ async function carregarNoticias(forcar = false) {
     };
     for (const proxyUrl of RSS_PROXIES) {
       try {
-        const res = await fetchTimeout(proxyUrl);
+        const url = typeof proxyUrl === 'object' ? proxyUrl.url : proxyUrl;
+        const res = await fetchTimeout(url);
         if (!res.ok) continue;
         const ct = res.headers.get('content-type') || '';
         let txt = await res.text();
+        // allorigins /get retorna JSON com contents
         if (ct.includes('json') || txt.trim().startsWith('{')) {
           try { const w = JSON.parse(txt); txt = w.contents || w.data || txt; } catch(_) {}
         }
