@@ -1436,6 +1436,7 @@ const TABLES = {
   blog:'tbl9qOAfh4w8SHEFt',
   comentarios:'tblCSiNYFlJau2All',
   ost:'tblEpRL55kuQAdc8x',
+  banners:'tblvOPJT6wD2O1ACz',
   series:'tblFawuYItXnHnC2z',
   atores:'tbllXIzMRWnN4CuPk',
   elenco:'tblUCtO9f0tNeiTZu',
@@ -1882,8 +1883,16 @@ async function renderDorama(id){
       <div class="tmdb-results" id="tmdb-results"></div>
     </div>`;
 
-    const bannerPos = localStorage.getItem(`kdrama_bannerpos_${id}`) || '50% 30%';
-    const savedBannerUrl = localStorage.getItem(`kdrama_bannerurl_${id}`);
+    // Tentar carregar banner do Airtable primeiro, depois localStorage
+    let bannerPos = localStorage.getItem(`kdrama_bannerpos_${id}`) || '50% 30%';
+    let savedBannerUrl = localStorage.getItem(`kdrama_bannerurl_${id}`);
+    try {
+      const bannerData = await bannerCarregarAirtable(id, 'dorama');
+      if (bannerData) {
+        if (bannerData.pos) { bannerPos = bannerData.pos; localStorage.setItem(`kdrama_bannerpos_${id}`, bannerData.pos); }
+        if (bannerData.url) { savedBannerUrl = bannerData.url; localStorage.setItem(`kdrama_bannerurl_${id}`, bannerData.url); }
+      }
+    } catch(_) {}
     const bannerSrc = savedBannerUrl || photo;
 
     content.innerHTML=`
@@ -2068,6 +2077,10 @@ function saveBannerPos(){
   const pos=`${x}% ${y}%`;
   const key=`kdrama_bannerpos_${currentRecordId}`;
   localStorage.setItem(key,pos);
+  // Salvar no Airtable também
+  const url = localStorage.getItem(`kdrama_bannerurl_${currentRecordId}`) || '';
+  const tipo = currentSerie ? 'dorama' : 'ator';
+  bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
   showToast('Posição salva ✓');
 }
 
@@ -2079,7 +2092,11 @@ async function changeBannerUrl(){
   if(img) img.src=url;
   if(poster) poster.src=url;
   localStorage.setItem(`kdrama_bannerurl_${currentRecordId}`,url);
-  showToast('Imagem aplicada e salva no navegador ✓');
+  // Salvar no Airtable também
+  const pos = localStorage.getItem(`kdrama_bannerpos_${currentRecordId}`) || '50% 30%';
+  const tipo = currentSerie ? 'dorama' : 'ator';
+  bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
+  showToast('Imagem salva ✓');
 }
 
 // ── NEW DRAMA MODAL ───────────────────────────────────────
@@ -4833,6 +4850,37 @@ function ostPageTocar(idx) {
 
 
 
+
+
+// ── BANNER AIRTABLE SYNC ──────────────────────────────────
+async function bannerSalvarAirtable(recordId, tipo, dados) {
+  if (!TABLES.banners || !apiKey) return;
+  try {
+    // Buscar se já existe
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLES.banners}?filterByFormula=AND({Registro ID}='${recordId}',{Tipo}='${tipo}')&maxRecords=1`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
+    const data = await res.json();
+    const fields = { 'Registro ID': recordId, 'Tipo': tipo, 'Dados': JSON.stringify(dados) };
+    if (data.records?.length) {
+      await patchRecord(TABLES.banners, data.records[0].id, fields);
+    } else {
+      await createRecord(TABLES.banners, fields);
+    }
+  } catch(e) { console.warn('Banner sync falhou:', e.message); }
+}
+
+async function bannerCarregarAirtable(recordId, tipo) {
+  if (!TABLES.banners || !apiKey) return null;
+  try {
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLES.banners}?filterByFormula=AND({Registro ID}='${recordId}',{Tipo}='${tipo}')&maxRecords=1`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
+    const data = await res.json();
+    if (data.records?.length) {
+      return JSON.parse(data.records[0].fields['Dados'] || '{}');
+    }
+  } catch(_) {}
+  return null;
+}
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
