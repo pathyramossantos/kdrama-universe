@@ -4127,23 +4127,37 @@ async function carregarNoticias(forcar = false) {
     </div>`).join('');
 
   try {
-    // Usar rss2json.com — mais confiável que proxies diretos
-    const res = await fetch(RSS2JSON_URL);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message || 'RSS indisponível');
-    const items = data.items || [];
-    if (!items.length) throw new Error('Nenhuma notícia encontrada');
-    newsItems = items.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate)).slice(0,12).map(item => ({
-      title: item.title || '',
-      titlePT: null,
-      link: item.link || '',
-      pubDate: item.pubDate || '',
-      thumbnail: item.thumbnail || item.enclosure?.link || '',
-      categories: item.categories || [],
-      description: (item.description||'').replace(/<[^>]+>/g,'').slice(0,160),
-      descriptionPT: null,
-    }));
+    let xml = null;
+    for (const proxyUrl of RSS_PROXIES) {
+      try {
+        const res = await fetch(proxyUrl);
+        if (!res.ok) continue;
+        const ct = res.headers.get('content-type') || '';
+        let txt = await res.text();
+        // allorigins /get retorna JSON com contents
+        if (ct.includes('json') || txt.trim().startsWith('{')) {
+          try { const w = JSON.parse(txt); txt = w.contents || w.data || txt; } catch(_) {}
+        }
+        if (txt && txt.length > 200 && (txt.includes('<item') || txt.includes('<rss'))) {
+          xml = txt; break;
+        }
+      } catch(e) { continue; }
+    }
+    if (!xml) throw new Error('Não foi possível carregar as notícias');
+    const parser = new DOMParser();
+    let doc = parser.parseFromString(xml, 'text/xml');
+    let items = [...doc.querySelectorAll('item')];
+    if (!items.length) {
+      doc = parser.parseFromString(xml, 'text/html');
+      items = [...doc.querySelectorAll('item')];
+    }
+    if (!items.length) throw new Error('Nenhum artigo encontrado no RSS');
+    items.sort((a,b) => new Date(b.querySelector('pubDate')?.textContent||0) - new Date(a.querySelector('pubDate')?.textContent||0));
+    newsItems = items.slice(0,12).map(item => {
+      const get = tag => item.querySelector(tag)?.textContent?.trim() || '';
+      const cats = [...item.querySelectorAll('category')].map(c => c.textContent.trim());
+      return { title: get('title'), titlePT: null, link: get('link')||get('guid'), pubDate: get('pubDate'), thumbnail: '', categories: cats, description: get('description').replace(/<[^>]+>/g,'').slice(0,160), descriptionPT: null };
+    });
     sessionStorage.setItem('kdrama_news', JSON.stringify({ items: newsItems, ts: Date.now() }));
     renderNoticias();
     if (btnTrad) btnTrad.style.display = 'inline-flex';
