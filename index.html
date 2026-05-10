@@ -5001,8 +5001,23 @@ function radioSetVol(val) {
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
-// Carregar playlist da rádio automaticamente
-radioCarregarPlaylist();
+// Carregar playlist e tocar na primeira interação do usuário
+radioCarregarPlaylist().then(() => {
+  // Tenta autoplay direto
+  const audio = document.getElementById('radio-audio');
+  if (radioPlaylist.length) {
+    radioPlay();
+  }
+});
+// Fallback: se o browser bloquear, toca no primeiro clique
+let radioAutoplayPendente = true;
+document.addEventListener('click', function radioAutoplay() {
+  if (radioAutoplayPendente && radioPlaylist.length && !radioPlaying) {
+    radioPlay();
+  }
+  radioAutoplayPendente = false;
+  document.removeEventListener('click', radioAutoplay);
+}, { once: true });
 setInterval(() => carregarNoticias(true), 60 * 60 * 1000);
 if (!isOwner()) {
   document.querySelectorAll('.edit-toggle').forEach(el => el.style.display='none');
