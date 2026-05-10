@@ -4909,42 +4909,24 @@ const ARCHIVE_ID = 'kdrama-osts';
 const ARCHIVE_BASE = `https://archive.org/download/${ARCHIVE_ID}/`;
 let radioPlaylist = [];
 let radioIdx = 0;
+let radioPlaying = false;
 let radioLoaded = false;
 
 async function radioCarregarPlaylist() {
   if (radioLoaded) return;
   try {
-    // Usar proxy pra buscar metadata (evita CORS)
-    const proxyUrl = 'https://kdrama-proxy.vercel.app/api/proxy?url=' + encodeURIComponent(`https://archive.org/metadata/${ARCHIVE_ID}`);
-    const res = await fetch(proxyUrl);
+    const res = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
     const data = await res.json();
-    const mp3s = (data.files || []).filter(f => f.name && f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
-    if (!mp3s.length) throw new Error('sem mp3s');
+    const mp3s = (data.files || []).filter(f => f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
+    if (!mp3s.length) return;
     radioPlaylist = mp3s.map(f => ({
       url: ARCHIVE_BASE + encodeURIComponent(f.name),
-      name: f.name.replace(/\.mp3$/i, '').replace(/_/g, ' ')
+      name: f.name.replace(/\.mp3$/i, '')
     })).sort(() => Math.random() - 0.5);
     radioLoaded = true;
-    document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || 'K-Drama OST Radio';
-  } catch(e) {
-    // Fallback: usar fetch direto sem proxy
-    try {
-      const res2 = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
-      const data2 = await res2.json();
-      const mp3s2 = (data2.files || []).filter(f => f.name && f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
-      if (!mp3s2.length) return;
-      radioPlaylist = mp3s2.map(f => ({
-        url: ARCHIVE_BASE + encodeURIComponent(f.name),
-        name: f.name.replace(/\.mp3$/i, '').replace(/_/g, ' ')
-      })).sort(() => Math.random() - 0.5);
-      radioLoaded = true;
-      document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || 'K-Drama OST Radio';
-    } catch(e2) { console.warn('Radio load error:', e2); }
-  }
+    document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || '—';
+  } catch(e) { console.warn('Radio load error:', e); }
 }
-let radioPlaying = false;
-
-
 
 function radioPlay() {
   if (!radioPlaylist.length) return;
@@ -5588,10 +5570,10 @@ function cardContextMenu(e, page, id) {
     <div class="radio-sep"></div>
     <button class="radio-play-btn" id="radio-play-btn" onclick="radioToggle()">▶</button>
     <div class="radio-track-info">
-      <div class="radio-track-name" id="radio-track">K-Drama OST Radio</div>
+      <div class="radio-track-name" id="radio-track">Carregando OSTs…</div>
       <div class="radio-track-status">
         <span class="radio-live-dot" id="radio-dot"></span>
-        <span id="radio-status-txt">Clique para ouvir</span>
+        <span id="radio-status-txt">K-Drama OST Radio</span>
       </div>
     </div>
     <button class="radio-next-btn" onclick="radioNext()" title="Próxima">⏭</button>
