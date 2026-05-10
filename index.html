@@ -848,6 +848,43 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .radio-vol{width:70px;accent-color:var(--gold)}
 @media(max-width:480px){.radio-vol-wrap{display:none}.radio-label{display:none}}
 
+
+/* ── PÁGINA RÁDIO ─────────────────────────────────────────── */
+#page-radio{background:var(--bg);min-height:100vh}
+.radio-page-wrap{max-width:1000px;margin:0 auto;padding:40px clamp(16px,4vw,48px) 100px}
+.radio-page-header{text-align:center;margin-bottom:40px}
+.radio-page-kr{font-family:'Noto Serif KR',serif;font-size:.8rem;color:var(--gold);letter-spacing:.3em;opacity:.6;margin-bottom:8px}
+.radio-page-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;color:var(--text);margin-bottom:4px}
+.radio-page-sub{font-size:.85rem;color:var(--text2)}
+
+/* Visualizador */
+.radio-visualizer{width:100%;height:180px;background:#000;border-radius:var(--card-r);border:1px solid var(--gold-dim);margin-bottom:32px;overflow:hidden;position:relative}
+.radio-visualizer canvas{width:100%;height:100%;display:block}
+.radio-viz-track{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:.82rem;color:rgba(255,255,255,.7);font-family:'DM Sans',sans-serif;pointer-events:none}
+
+/* Controles */
+.radio-page-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:32px}
+.radio-page-btn{width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.radio-page-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
+.radio-page-btn.play{width:56px;height:56px;background:var(--gold);border-color:var(--gold);color:#0a0a0c;font-size:1.3rem}
+.radio-page-btn.play:hover{transform:scale(1.05)}
+.radio-page-shuffle{padding:6px 14px;border-radius:20px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:.78rem;cursor:pointer;transition:var(--transition)}
+.radio-page-shuffle.active{background:var(--gold-glow);border-color:var(--gold-dim);color:var(--gold)}
+
+/* Lista */
+.radio-tracklist{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden}
+.radio-tracklist-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.radio-tracklist-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text)}
+.radio-tracklist-count{font-size:.75rem;color:var(--text3)}
+.radio-track-row{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.03)}
+.radio-track-row:hover{background:var(--surface2)}
+.radio-track-row.playing{background:var(--gold-glow)}
+.radio-track-row.playing .radio-tr-name{color:var(--gold)}
+.radio-tr-num{font-size:.72rem;color:var(--text3);min-width:24px;text-align:center;flex-shrink:0}
+.radio-track-row.playing .radio-tr-num{color:var(--gold)}
+.radio-tr-name{flex:1;font-size:.85rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.radio-tr-dur{font-size:.72rem;color:var(--text3);flex-shrink:0}
+
 </style>
 </head>
 <body>
@@ -1114,6 +1151,35 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           </div>
 
         </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- PÁGINA RÁDIO -->
+  <div class="page" id="page-radio">
+    <div class="radio-page-wrap">
+      <div class="radio-page-header">
+        <div class="radio-page-kr">한국 드라마 · OST</div>
+        <h1 class="radio-page-title">Rádio Kdrama</h1>
+        <p class="radio-page-sub" id="radio-page-sub">Carregando playlist…</p>
+      </div>
+      <div class="radio-visualizer">
+        <canvas id="radio-canvas"></canvas>
+        <div class="radio-viz-track" id="radio-viz-track"></div>
+      </div>
+      <div class="radio-page-controls">
+        <button class="radio-page-btn" onclick="radioPrev()" title="Anterior">⏮</button>
+        <button class="radio-page-btn play" id="radio-page-play" onclick="radioToggle()">▶</button>
+        <button class="radio-page-btn" onclick="radioNext()" title="Próxima">⏭</button>
+        <button class="radio-page-shuffle" id="radio-shuffle-btn" onclick="radioShuffle()">⇀ Embaralhar</button>
+      </div>
+      <div class="radio-tracklist">
+        <div class="radio-tracklist-header">
+          <span class="radio-tracklist-title">🎵 Playlist</span>
+          <span class="radio-tracklist-count" id="radio-tracklist-count"></span>
+        </div>
+        <div id="radio-tracklist-body"></div>
       </div>
     </div>
   </div>
@@ -1515,7 +1581,8 @@ function navigate(page, id) {
     inicio:'inicio', home:'doramas', doramas:'doramas',
     dorama:'doramas', atores:'atores', ator:'atores',
     blog:'blog', post:'blog', config:'config',
-    'ost-detail':'doramas'
+    'ost-detail':'doramas',
+    'radio':'radio'
   };
   const navTarget = navMap[page] || navMap[pageAlias] || page;
   const navEl = document.querySelector(`.nav-links a[data-page="${navTarget}"]`);
@@ -1531,6 +1598,7 @@ function navigate(page, id) {
   if (pageAlias === 'dorama' && id)             renderDorama(id);
   if (pageAlias === 'ator' && id)               renderAtor(id);
   if (pageAlias === 'blog')                     renderBlog();
+  if (pageAlias === 'radio')                    renderRadioPage();
   if (pageAlias === 'ost-detail' && id)         renderOstPage(id);
   if (pageAlias === 'post' && id)               renderPost(id);
   if (pageAlias === 'config') {
@@ -4941,6 +5009,17 @@ function radioPlay() {
   document.getElementById('radio-track').textContent = track.name;
   document.getElementById('radio-dot').style.display = 'block';
   document.getElementById('radio-status-txt').textContent = 'Ao vivo';
+  // Atualizar página rádio se estiver aberta
+  const pgRadio = document.getElementById('page-radio');
+  if (pgRadio?.classList.contains('active')) {
+    radioRenderTracklist();
+    const viz = document.getElementById('radio-viz-track');
+    if (viz) viz.textContent = radioPlaylist[radioIdx]?.name || '';
+    const btn = document.getElementById('radio-page-play');
+    if (btn) btn.textContent = '⏸';
+  }
+  // Atualizar botão no rodapé
+  document.getElementById('radio-play-btn').textContent = '⏸';
 }
 
 function radioStop() {
@@ -4966,6 +5045,152 @@ function radioNext() {
 function radioSetVol(val) {
   const audio = document.getElementById('radio-audio');
   if (audio) audio.volume = parseFloat(val);
+}
+
+
+// ── PÁGINA RÁDIO ──────────────────────────────────────────
+let radioAnimFrame = null;
+let radioAudioCtx = null;
+let radioAnalyser = null;
+let radioSource = null;
+let radioVisualizerRunning = false;
+
+function renderRadioPage() {
+  // Atualizar lista
+  radioRenderTracklist();
+  // Sincronizar botão play
+  const btn = document.getElementById('radio-page-play');
+  if (btn) btn.textContent = radioPlaying ? '⏸' : '▶';
+  // Atualizar track vizualizer
+  const viz = document.getElementById('radio-viz-track');
+  if (viz && radioPlaylist.length) {
+    viz.textContent = radioPlaylist[radioIdx]?.name || '';
+  }
+  // Iniciar visualizador
+  radioIniciarVisualizador();
+  // Carregar playlist se necessário
+  if (!radioLoaded) {
+    radioCarregarPlaylist().then(() => radioRenderTracklist());
+  }
+}
+
+function radioRenderTracklist() {
+  const body = document.getElementById('radio-tracklist-body');
+  const count = document.getElementById('radio-tracklist-count');
+  if (!body) return;
+  if (!radioPlaylist.length) {
+    body.innerHTML = '<div style="padding:20px;color:var(--text3);font-size:.85rem;text-align:center">Carregando…</div>';
+    return;
+  }
+  if (count) count.textContent = `${radioPlaylist.length} faixas`;
+  body.innerHTML = radioPlaylist.map((t, i) => `
+    <div class="radio-track-row ${i === radioIdx && radioPlaying ? 'playing' : ''}" onclick="radioTocarIdx(${i})">
+      <span class="radio-tr-num">${i === radioIdx && radioPlaying ? '♪' : (i + 1)}</span>
+      <span class="radio-tr-name">${t.name}</span>
+    </div>`).join('');
+  // Scroll pra música atual
+  const rows = body.querySelectorAll('.radio-track-row');
+  if (rows[radioIdx]) rows[radioIdx].scrollIntoView({ block: 'nearest' });
+}
+
+function radioTocarIdx(idx) {
+  radioIdx = idx;
+  radioPlay();
+  radioRenderTracklist();
+  const viz = document.getElementById('radio-viz-track');
+  if (viz) viz.textContent = radioPlaylist[idx]?.name || '';
+  const btn = document.getElementById('radio-page-play');
+  if (btn) btn.textContent = '⏸';
+}
+
+function radioPrev() {
+  radioIdx = (radioIdx - 1 + radioPlaylist.length) % radioPlaylist.length;
+  radioPlay();
+  radioRenderTracklist();
+}
+
+function radioShuffle() {
+  radioPlaylist.sort(() => Math.random() - 0.5);
+  radioIdx = 0;
+  radioRenderTracklist();
+  showToast('🔀 Embaralhado!');
+  const btn = document.getElementById('radio-shuffle-btn');
+  if (btn) { btn.classList.add('active'); setTimeout(() => btn.classList.remove('active'), 1000); }
+}
+
+// ── VISUALIZADOR ESTILO MEDIA PLAYER ──────────────────────
+function radioIniciarVisualizador() {
+  const canvas = document.getElementById('radio-canvas');
+  if (!canvas || radioVisualizerRunning) return;
+  radioVisualizerRunning = true;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth || 800;
+  canvas.height = canvas.offsetHeight || 180;
+
+  // Cores do visualizador
+  const cores = ['#c9a84c','#e8c87a','#a07030','#f0d898','#c9a84c','#6abfdd','#4a9fbf'];
+  let bars = Array.from({length: 48}, (_, i) => ({
+    h: Math.random() * 60 + 20,
+    target: Math.random() * 80 + 20,
+    speed: Math.random() * 0.08 + 0.04,
+    cor: cores[i % cores.length]
+  }));
+
+  function draw() {
+    radioAnimFrame = requestAnimationFrame(draw);
+    const W = canvas.width, H = canvas.height;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+
+    // Grade de fundo
+    ctx.strokeStyle = 'rgba(201,168,76,0.05)';
+    ctx.lineWidth = 1;
+    for (let y = 0; y < H; y += 20) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    const bw = W / bars.length;
+    bars.forEach((bar, i) => {
+      // Animar
+      if (radioPlaying) {
+        if (Math.random() < 0.1) bar.target = Math.random() * (H * 0.85) + 10;
+      } else {
+        bar.target = Math.random() * 15 + 5;
+      }
+      bar.h += (bar.target - bar.h) * bar.speed;
+
+      const x = i * bw + bw * 0.1;
+      const bwActual = bw * 0.8;
+      const y = H - bar.h;
+
+      // Gradiente por barra
+      const grad = ctx.createLinearGradient(x, y, x, H);
+      grad.addColorStop(0, bar.cor);
+      grad.addColorStop(0.6, bar.cor + '99');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(x, y, bwActual, bar.h);
+
+      // Reflexo
+      ctx.fillStyle = bar.cor + '22';
+      ctx.fillRect(x, H, bwActual, -bar.h * 0.3);
+    });
+
+    // Linha central brilhante
+    if (radioPlaying) {
+      ctx.strokeStyle = 'rgba(201,168,76,0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      bars.forEach((bar, i) => {
+        const x = i * bw + bw / 2;
+        const y = H - bar.h;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+  }
+  draw();
 }
 
 // ── INIT ──────────────────────────────────────────────────
@@ -5566,7 +5791,7 @@ function cardContextMenu(e, page, id) {
 <!-- RÁDIO K-DRAMA - RODAPÉ -->
 <div id="radio-footer">
   <div class="radio-footer-bar">
-    <span class="radio-label">K·RADIO</span>
+    <span class="radio-label" onclick="navigate('radio')" style="cursor:pointer;text-decoration:none" title="Rádio Kdrama">Rádio Kdrama</span>
     <div class="radio-sep"></div>
     <button class="radio-play-btn" id="radio-play-btn" onclick="radioToggle()">▶</button>
     <div class="radio-track-info">
