@@ -4128,13 +4128,18 @@ async function carregarNoticias(forcar = false) {
 
   try {
     let xml = null;
+    // Fetch com timeout de 8 segundos
+    const fetchTimeout = (url, ms=8000) => {
+      const ctrl = new AbortController();
+      const id = setTimeout(() => ctrl.abort(), ms);
+      return fetch(url, {signal: ctrl.signal}).finally(() => clearTimeout(id));
+    };
     for (const proxyUrl of RSS_PROXIES) {
       try {
-        const res = await fetch(proxyUrl);
+        const res = await fetchTimeout(proxyUrl);
         if (!res.ok) continue;
         const ct = res.headers.get('content-type') || '';
         let txt = await res.text();
-        // allorigins /get retorna JSON com contents
         if (ct.includes('json') || txt.trim().startsWith('{')) {
           try { const w = JSON.parse(txt); txt = w.contents || w.data || txt; } catch(_) {}
         }
@@ -4143,7 +4148,7 @@ async function carregarNoticias(forcar = false) {
         }
       } catch(e) { continue; }
     }
-    if (!xml) throw new Error('Não foi possível carregar as notícias');
+    if (!xml) throw new Error('Não foi possível carregar as notícias — verifique sua conexão');
     const parser = new DOMParser();
     let doc = parser.parseFromString(xml, 'text/xml');
     let items = [...doc.querySelectorAll('item')];
@@ -4598,11 +4603,13 @@ function filterBlog() {
         ${f['Kicker'] ? `<div style="font-size:.7rem;color:var(--gold);letter-spacing:.15em;opacity:.7">${f['Kicker']}</div>` : ''}
         <div class="blog-card-title">${f['Título'] || 'Sem título'}</div>
         ${excerpt ? `<div class="blog-card-excerpt">${excerpt}</div>` : ''}
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px">
-          <div style="display:flex;gap:6px;flex-wrap:wrap">${tags.slice(0, 4).map(t => `<span class="blog-card-tag" style="cursor:pointer" onclick="event.stopPropagation();setSidebarTag('${t}')">${t}</span>`).join('')}</div>
-          ${f['Nota'] ? `<div class="blog-card-nota">${parseFloat(f['Nota']).toFixed(1)}<span style="font-size:.8rem;color:var(--text3)">/10</span></div>` : ''}
+        <div style="margin-top:auto;padding-top:8px;display:flex;flex-direction:column;gap:6px">
+          ${f['Experiência'] ? expBadge(f['Experiência']) : ''}
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">${tags.slice(0, 4).map(t => `<span class="blog-card-tag" style="cursor:pointer" onclick="event.stopPropagation();setSidebarTag('${t}')">${t}</span>`).join('')}</div>
+            ${f['Nota'] ? `<div class="blog-card-nota">${parseFloat(f['Nota']).toFixed(1)}<span style="font-size:.8rem;color:var(--text3)">/10</span></div>` : ''}
+          </div>
         </div>
-        ${f['Experiência'] ? `<div style="margin-top:4px">${expBadge(f['Experiência'])}</div>` : ''}
       </div>
     </div>`;
   }).join('');
