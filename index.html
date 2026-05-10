@@ -4905,40 +4905,22 @@ function renderAniversarios() {
 
 
 // ── RÁDIO K-DRAMA ─────────────────────────────────────────
-const ARCHIVE_ID = 'kdrama-osts';
-const ARCHIVE_BASE = `https://archive.org/download/${ARCHIVE_ID}/`;
-let radioPlaylist = [];
-let radioIdx = 0;
+const RADIO_STREAM_URL = 'http://s38.myradiostream.com:17116/';
 let radioPlaying = false;
-let radioLoaded = false;
 
-async function radioCarregarPlaylist() {
-  if (radioLoaded) return;
-  try {
-    const res = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
-    const data = await res.json();
-    const mp3s = (data.files || []).filter(f => f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
-    if (!mp3s.length) return;
-    radioPlaylist = mp3s.map(f => ({
-      url: ARCHIVE_BASE + encodeURIComponent(f.name),
-      name: f.name.replace(/\.mp3$/i, '')
-    })).sort(() => Math.random() - 0.5);
-    radioLoaded = true;
-    document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || '—';
-  } catch(e) { console.warn('Radio load error:', e); }
+function radioCarregarPlaylist() {
+  // Stream direto — não precisa carregar playlist
+  document.getElementById('radio-track').textContent = 'K-Drama OST Radio';
+  return Promise.resolve();
 }
 
 function radioPlay() {
-  if (!radioPlaylist.length) return;
   const audio = document.getElementById('radio-audio');
-  const track = radioPlaylist[radioIdx];
-  audio.src = track.url;
+  audio.src = RADIO_STREAM_URL;
   audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
   audio.play().catch(() => {});
-  audio.onended = () => radioNext();
   radioPlaying = true;
   document.getElementById('radio-play-btn').textContent = '⏸';
-  document.getElementById('radio-track').textContent = track.name;
   document.getElementById('radio-dot').style.display = 'block';
   document.getElementById('radio-status-txt').textContent = 'Ao vivo';
 }
@@ -4955,12 +4937,12 @@ function radioStop() {
 
 function radioToggle() {
   if (radioPlaying) radioStop();
-  else { radioCarregarPlaylist().then(() => radioPlay()); }
+  else radioPlay();
 }
 
 function radioNext() {
-  radioIdx = (radioIdx + 1) % radioPlaylist.length;
-  radioPlay();
+  // Stream ao vivo — próxima não se aplica
+  showToast('É uma rádio ao vivo! 🎵');
 }
 
 function radioSetVol(val) {
@@ -5576,7 +5558,7 @@ function cardContextMenu(e, page, id) {
         <span id="radio-status-txt">K-Drama OST Radio</span>
       </div>
     </div>
-    <button class="radio-next-btn" onclick="radioNext()" title="Próxima">⏭</button>
+
     <div class="radio-vol-wrap">
       <span style="font-size:.75rem;color:var(--text3)">🔊</span>
       <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
