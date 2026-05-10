@@ -31,7 +31,7 @@ button{font-family:inherit;cursor:pointer;border:none}
 ::-webkit-scrollbar-thumb{background:var(--gold-dim);border-radius:4px}
 
 /* NAV */
-#nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;flex-direction:column;background:linear-gradient(to bottom,rgba(10,10,12,.98),rgba(10,10,12,.85));backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+#nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,48px);height:64px;background:linear-gradient(to bottom,rgba(10,10,12,.98),rgba(10,10,12,.7));backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
 .nav-logo{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--gold);letter-spacing:.06em;white-space:nowrap;cursor:pointer}
 .nav-logo span{color:var(--text2);font-style:italic;font-size:.85em}
 .nav-links{display:flex;gap:8px;align-items:center}
@@ -818,68 +818,33 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 
 
-/* ── RÁDIO K-DRAMA ───────────────────────────────────────── */
-#radio-player{position:fixed;top:0;left:0;right:0;z-index:500;background:linear-gradient(90deg,var(--bg2),#1a1a2e);border-bottom:1px solid var(--gold-dim);transform:translateY(-100%);transition:transform .4s cubic-bezier(.34,1.2,.64,1);box-shadow:0 4px 24px rgba(0,0,0,.6)}
-#radio-player.open{transform:translateY(0)}
-.radio-bar{display:flex;align-items:center;gap:12px;padding:8px 20px;height:52px}
-.radio-logo{font-family:'Playfair Display',serif;font-size:.7rem;font-weight:700;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;opacity:.8;flex-shrink:0}
-.radio-logo span{color:var(--text3);font-size:.6rem;display:block;letter-spacing:.05em}
-.radio-sep{width:1px;height:28px;background:var(--border);flex-shrink:0}
-.radio-play-btn{width:32px;height:32px;border-radius:50%;background:var(--gold);border:none;color:#0a0a0c;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s}
-.radio-play-btn:hover{transform:scale(1.1)}
-.radio-info{flex:1;min-width:0}
-.radio-track{font-size:.82rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.radio-status{font-size:.68rem;color:var(--gold);display:flex;align-items:center;gap:6px}
-.radio-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 1.5s ease-in-out infinite;flex-shrink:0}
-.radio-ctrl{background:none;border:none;color:var(--text3);font-size:1rem;cursor:pointer;padding:4px 6px;border-radius:6px;transition:var(--transition);flex-shrink:0}
-.radio-ctrl:hover{color:var(--gold)}
-.radio-vol{width:70px;accent-color:var(--gold)}
-@media(max-width:480px){.radio-vol{display:none}.radio-logo span{display:none}}
-
-
-.nav-top{display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,48px);height:58px}
-.nav-radio-bar{display:flex;align-items:center;gap:10px;padding:6px clamp(16px,4vw,48px);height:38px;border-top:1px solid rgba(255,255,255,.06);background:rgba(201,168,76,.04)}
-.nav-radio-play{width:24px;height:24px;border-radius:50%;background:var(--gold);border:none;color:#0a0a0c;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s}
-.nav-radio-play:hover{transform:scale(1.1)}
-.nav-radio-info{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
-.nav-radio-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 1.5s ease-in-out infinite;flex-shrink:0;display:none}
-.nav-radio-track{font-size:.72rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nav-radio-label{font-size:.65rem;color:var(--gold);font-weight:700;letter-spacing:.08em;flex-shrink:0;opacity:.7}
-.nav-radio-next{background:none;border:none;color:var(--text3);font-size:.8rem;cursor:pointer;padding:2px 4px;transition:color .2s;flex-shrink:0}
-.nav-radio-next:hover{color:var(--gold)}
-.nav-radio-vol{width:60px;accent-color:var(--gold);flex-shrink:0}
-@media(max-width:480px){.nav-radio-vol{display:none}}
-@media(max-width:600px){.nav-radio-bar{display:none}}
+/* Aniversários do dia */
+.aniv-section{padding:16px clamp(16px,4vw,48px) 0;max-width:1600px;margin:0 auto}
+.aniv-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--gold-dim);border-radius:12px;padding:12px 18px}
+.aniv-title{font-size:.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.aniv-list{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.aniv-item{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:var(--bg);border:1px solid var(--border);cursor:pointer;transition:var(--transition)}
+.aniv-item:hover{border-color:var(--gold-dim);background:var(--gold-glow)}
+.aniv-foto{width:22px;height:22px;border-radius:50%;object-fit:cover;background:var(--surface2);flex-shrink:0}
+.aniv-nome{font-size:.75rem;color:var(--text);font-weight:500}
+.aniv-idade{font-size:.68rem;color:var(--text3)}
+.aniv-vazio{font-size:.78rem;color:var(--text3);font-style:italic}
 
 </style>
 </head>
 <body>
 
 <nav id="nav">
-  <div class="nav-top">
-    <div class="nav-logo" onclick="navigate('inicio')" title="Início">K<span>drama</span> 韓</div>
-    <div class="nav-links" id="nav-menu">
-      <a data-page="inicio" onclick="navigate('inicio')">Início</a>
-      <a data-page="doramas" onclick="navigate('doramas')">Doramas</a>
-      <a data-page="atores" onclick="navigate('atores')">Atores</a>
-      <a data-page="blog" onclick="navigate('blog')">Blog</a>
-      <a data-page="config" onclick="navigate('config')" id="nav-config">Configurações</a>
-      <button id="theme-btn" title="Alternar tema">☀</button>
-    </div>
-    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-logo" onclick="navigate('inicio')" title="Início">K<span>drama</span> 韓</div>
+  <div class="nav-links" id="nav-menu">
+    <a data-page="inicio" onclick="navigate('inicio')">Início</a>
+    <a data-page="doramas" onclick="navigate('doramas')">Doramas</a>
+    <a data-page="atores" onclick="navigate('atores')">Atores</a>
+    <a data-page="blog" onclick="navigate('blog')">Blog</a>
+    <a data-page="config" onclick="navigate('config')" id="nav-config">Configurações</a>
+    <button id="theme-btn" title="Alternar tema">☀</button>
   </div>
-  <!-- Barra de rádio integrada -->
-  <div class="nav-radio-bar">
-    <span class="nav-radio-label">K·RADIO</span>
-    <button class="nav-radio-play" id="radio-play-btn" onclick="radioToggle()">▶</button>
-    <div class="nav-radio-info">
-      <span class="nav-radio-dot" id="radio-dot"></span>
-      <span class="nav-radio-track" id="radio-track">Clique em play para ouvir OSTs</span>
-    </div>
-    <button class="nav-radio-next" onclick="radioNext()" title="Próxima">⏭</button>
-    <input type="range" class="nav-radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
-    <audio id="radio-audio" preload="none"></audio>
-  </div>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
 </nav>
 
 <div id="app">
@@ -1047,6 +1012,13 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
   <!-- ATORES -->
   <div class="page" id="page-atores">
+    <!-- Aniversários do dia -->
+    <div class="aniv-section" id="aniv-section" style="display:none">
+      <div class="aniv-bar">
+        <div class="aniv-title">🎂 Aniversários de hoje</div>
+        <div class="aniv-list" id="aniv-list"></div>
+      </div>
+    </div>
     <div class="actors-header">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px">
         <div>
@@ -1484,7 +1456,6 @@ const TABLES = {
   blog:'tbl9qOAfh4w8SHEFt',
   comentarios:'tblCSiNYFlJau2All',
   ost:'tblEpRL55kuQAdc8x',
-  banners:'tblvOPJT6wD2O1ACz',
   series:'tblFawuYItXnHnC2z',
   atores:'tbllXIzMRWnN4CuPk',
   elenco:'tblUCtO9f0tNeiTZu',
@@ -1931,16 +1902,8 @@ async function renderDorama(id){
       <div class="tmdb-results" id="tmdb-results"></div>
     </div>`;
 
-    // Tentar carregar banner do Airtable primeiro, depois localStorage
-    let bannerPos = localStorage.getItem(`kdrama_bannerpos_${id}`) || '50% 30%';
-    let savedBannerUrl = localStorage.getItem(`kdrama_bannerurl_${id}`);
-    try {
-      const bannerData = await bannerCarregarAirtable(id, 'dorama');
-      if (bannerData) {
-        if (bannerData.pos) { bannerPos = bannerData.pos; localStorage.setItem(`kdrama_bannerpos_${id}`, bannerData.pos); }
-        if (bannerData.url) { savedBannerUrl = bannerData.url; localStorage.setItem(`kdrama_bannerurl_${id}`, bannerData.url); }
-      }
-    } catch(_) {}
+    const bannerPos = localStorage.getItem(`kdrama_bannerpos_${id}`) || '50% 30%';
+    const savedBannerUrl = localStorage.getItem(`kdrama_bannerurl_${id}`);
     const bannerSrc = savedBannerUrl || photo;
 
     content.innerHTML=`
@@ -2125,10 +2088,6 @@ function saveBannerPos(){
   const pos=`${x}% ${y}%`;
   const key=`kdrama_bannerpos_${currentRecordId}`;
   localStorage.setItem(key,pos);
-  // Salvar no Airtable também
-  const url = localStorage.getItem(`kdrama_bannerurl_${currentRecordId}`) || '';
-  const tipo = currentSerie ? 'dorama' : 'ator';
-  bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
   showToast('Posição salva ✓');
 }
 
@@ -2140,11 +2099,7 @@ async function changeBannerUrl(){
   if(img) img.src=url;
   if(poster) poster.src=url;
   localStorage.setItem(`kdrama_bannerurl_${currentRecordId}`,url);
-  // Salvar no Airtable também
-  const pos = localStorage.getItem(`kdrama_bannerpos_${currentRecordId}`) || '50% 30%';
-  const tipo = currentSerie ? 'dorama' : 'ator';
-  bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
-  showToast('Imagem salva ✓');
+  showToast('Imagem aplicada e salva no navegador ✓');
 }
 
 // ── NEW DRAMA MODAL ───────────────────────────────────────
@@ -2476,6 +2431,7 @@ document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===d
 
 // ── ATORES ────────────────────────────────────────────────
 async function renderAtores(){
+  renderAniversarios();
   const grid=document.getElementById('actors-grid');
   if(!apiKey){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔑</div><p>Configure a API Key primeiro.</p></div>`;return;}
   if(!allAtores.length){grid.innerHTML=skeletons(12,'3/4');try{await loadAllData();}catch(e){}}
@@ -4130,9 +4086,9 @@ function atualizarStatsHome() {
 // Google News RSS — sem bloqueio, já em português
 const RSS_URL = 'https://news.google.com/rss/search?q=k-drama+OR+dorama+coreano+OR+kdrama&hl=pt-BR&gl=BR&ceid=BR:pt-419';
 const RSS_PROXIES = [
+  `https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`,
   `https://corsproxy.io/?url=${encodeURIComponent(RSS_URL)}`,
-  `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`,
-  `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(RSS_URL)}`,
+  `https://api.codetabs.com/v1/proxy?quest=${RSS_URL}`,
 ];
 let newsItems = [];
 
@@ -4176,7 +4132,10 @@ async function carregarNoticias(forcar = false) {
           const w = await res.json();
           xml = w.contents || w.data || null;
         } else {
-          xml = await res.text();
+          const txt = await res.text();
+          // Tentar parse como JSON primeiro (allorigins às vezes retorna JSON sem content-type)
+          try { const w = JSON.parse(txt); xml = w.contents || w.data || txt; }
+          catch(_) { xml = txt; }
         }
         if (xml && xml.length > 100) break;
       } catch(e) { continue; }
@@ -4900,124 +4859,48 @@ function ostPageTocar(idx) {
 
 
 
-// ── BANNER AIRTABLE SYNC ──────────────────────────────────
-async function bannerSalvarAirtable(recordId, tipo, dados) {
-  if (!TABLES.banners || !apiKey) return;
-  try {
-    // Buscar se já existe
-    const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLES.banners}?filterByFormula=AND({Registro ID}='${recordId}',{Tipo}='${tipo}')&maxRecords=1`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const data = await res.json();
-    const fields = { 'Registro ID': recordId, 'Tipo': tipo, 'Dados': JSON.stringify(dados) };
-    if (data.records?.length) {
-      await patchRecord(TABLES.banners, data.records[0].id, fields);
-    } else {
-      await createRecord(TABLES.banners, fields);
-    }
-  } catch(e) { console.warn('Banner sync falhou:', e.message); }
-}
+// ── ANIVERSÁRIOS DO DIA ───────────────────────────────────
+function renderAniversarios() {
+  const section = document.getElementById('aniv-section');
+  const list = document.getElementById('aniv-list');
+  if (!section || !list || !allAtores.length) return;
 
-async function bannerCarregarAirtable(recordId, tipo) {
-  if (!TABLES.banners || !apiKey) return null;
-  try {
-    const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLES.banners}?filterByFormula=AND({Registro ID}='${recordId}',{Tipo}='${tipo}')&maxRecords=1`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const data = await res.json();
-    if (data.records?.length) {
-      return JSON.parse(data.records[0].fields['Dados'] || '{}');
-    }
-  } catch(_) {}
-  return null;
-}
+  const hoje = new Date();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoje.getDate()).padStart(2, '0');
+  const mdHoje = `${mes}-${dia}`; // formato MM-DD
 
+  const aniversariantes = allAtores.filter(a => {
+    const nasc = a.fields['Data de Nascimento'] || '';
+    if (!nasc) return false;
+    // nasc pode ser YYYY-MM-DD
+    const partes = nasc.split('-');
+    if (partes.length < 3) return false;
+    return `${partes[1]}-${partes[2]}` === mdHoje;
+  });
 
-// ── RÁDIO K-DRAMA ─────────────────────────────────────────
-const ARCHIVE_ID = 'kdrama-ost-radio';
-const ARCHIVE_BASE = `https://archive.org/download/${ARCHIVE_ID}/`;
-let radioPlaylist = [];
-let radioIdx = 0;
-let radioPlaying = false;
-let radioLoaded = false;
+  if (!aniversariantes.length) {
+    section.style.display = 'none';
+    return;
+  }
 
-async function radioCarregarPlaylist() {
-  if (radioLoaded) return;
-  try {
-    const res = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
-    const data = await res.json();
-    const mp3s = (data.files || []).filter(f => f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
-    if (!mp3s.length) return;
-    // Embaralhar
-    radioPlaylist = mp3s.map(f => ({
-      url: ARCHIVE_BASE + encodeURIComponent(f.name),
-      name: f.name.replace(/\.mp3$/i, '').replace(/%20/g, ' ')
-    })).sort(() => Math.random() - 0.5);
-    radioLoaded = true;
-    radioIdx = 0;
-    document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || '—';
-  } catch(e) { console.warn('Radio load error:', e); }
-}
-
-
-
-function radioPlay() {
-  if (!radioPlaylist.length) return;
-  const audio = document.getElementById('radio-audio');
-  const track = radioPlaylist[radioIdx];
-  audio.src = track.url;
-  audio.volume = parseFloat(document.getElementById('radio-vol').value);
-  audio.play().catch(() => {});
-  audio.onended = () => radioNext();
-  radioPlaying = true;
-  document.getElementById('radio-play-btn').textContent = '⏸';
-  document.getElementById('radio-track').textContent = track.name;
-  document.getElementById('radio-dot').style.display = 'block';
-  document.getElementById('radio-status-txt').textContent = 'Ao vivo';
-}
-
-function radioStop() {
-  const audio = document.getElementById('radio-audio');
-  audio.pause();
-  audio.src = '';
-  radioPlaying = false;
-  document.getElementById('radio-play-btn').textContent = '▶';
-  document.getElementById('radio-dot').style.display = 'none';
-  document.getElementById('radio-status-txt').textContent = 'K-Drama OST Radio';
-}
-
-function radioToggle() {
-  if (radioPlaying) radioStop();
-  else radioPlay();
-}
-
-function radioNext() {
-  radioIdx = (radioIdx + 1) % radioPlaylist.length;
-  radioPlay();
-}
-
-function radioSetVol(val) {
-  const audio = document.getElementById('radio-audio');
-  if (audio) audio.volume = parseFloat(val);
+  section.style.display = 'block';
+  list.innerHTML = aniversariantes.map(a => {
+    const f = a.fields;
+    const foto = f['Foto']?.[0]?.url || '';
+    const nome = f['Nome'] || '';
+    const nasc = f['Data de Nascimento'] || '';
+    const idade = nasc ? (hoje.getFullYear() - parseInt(nasc.split('-')[0])) + ' anos' : '';
+    return `<div class="aniv-item" onclick="navigate('ator','${a.id}')">
+      ${foto ? `<img class="aniv-foto" src="${foto}" loading="lazy">` : `<div class="aniv-foto" style="background:var(--surface2)"></div>`}
+      <span class="aniv-nome">${nome}</span>
+      ${idade ? `<span class="aniv-idade">${idade}</span>` : ''}
+    </div>`;
+  }).join('');
 }
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
-// Carregar playlist e tocar na primeira interação do usuário
-radioCarregarPlaylist().then(() => {
-  // Tenta autoplay direto
-  const audio = document.getElementById('radio-audio');
-  if (radioPlaylist.length) {
-    radioPlay();
-  }
-});
-// Fallback: se o browser bloquear, toca no primeiro clique
-let radioAutoplayPendente = true;
-document.addEventListener('click', function radioAutoplay() {
-  if (radioAutoplayPendente && radioPlaylist.length && !radioPlaying) {
-    radioPlay();
-  }
-  radioAutoplayPendente = false;
-  document.removeEventListener('click', radioAutoplay);
-}, { once: true });
 setInterval(() => carregarNoticias(true), 60 * 60 * 1000);
 if (!isOwner()) {
   document.querySelectorAll('.edit-toggle').forEach(el => el.style.display='none');
@@ -5608,9 +5491,6 @@ function cardContextMenu(e, page, id) {
       style="border:none;border-radius:12px;display:block"></iframe>
   </div>
 </div>
-
-
-
 
 </body>
 
