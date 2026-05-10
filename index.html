@@ -4914,25 +4914,37 @@ let radioLoaded = false;
 async function radioCarregarPlaylist() {
   if (radioLoaded) return;
   try {
-    const res = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
+    // Usar proxy pra buscar metadata (evita CORS)
+    const proxyUrl = 'https://kdrama-proxy.vercel.app/api/proxy?url=' + encodeURIComponent(`https://archive.org/metadata/${ARCHIVE_ID}`);
+    const res = await fetch(proxyUrl);
     const data = await res.json();
-    const mp3s = (data.files || []).filter(f => f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
-    if (!mp3s.length) return;
+    const mp3s = (data.files || []).filter(f => f.name && f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
+    if (!mp3s.length) throw new Error('sem mp3s');
     radioPlaylist = mp3s.map(f => ({
       url: ARCHIVE_BASE + encodeURIComponent(f.name),
       name: f.name.replace(/\.mp3$/i, '').replace(/_/g, ' ')
     })).sort(() => Math.random() - 0.5);
     radioLoaded = true;
     document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || 'K-Drama OST Radio';
-  } catch(e) { console.warn('Radio load error:', e); }
+  } catch(e) {
+    // Fallback: usar fetch direto sem proxy
+    try {
+      const res2 = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
+      const data2 = await res2.json();
+      const mp3s2 = (data2.files || []).filter(f => f.name && f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
+      if (!mp3s2.length) return;
+      radioPlaylist = mp3s2.map(f => ({
+        url: ARCHIVE_BASE + encodeURIComponent(f.name),
+        name: f.name.replace(/\.mp3$/i, '').replace(/_/g, ' ')
+      })).sort(() => Math.random() - 0.5);
+      radioLoaded = true;
+      document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || 'K-Drama OST Radio';
+    } catch(e2) { console.warn('Radio load error:', e2); }
+  }
 }
 let radioPlaying = false;
 
-function radioCarregarPlaylist() {
-  // Stream direto — não precisa carregar playlist
-  document.getElementById('radio-track').textContent = 'K-Drama OST Radio — Ao vivo 🎵';
-  return Promise.resolve();
-}
+
 
 function radioPlay() {
   if (!radioPlaylist.length) return;
