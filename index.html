@@ -1517,7 +1517,7 @@ async function createRecord(tableId,fields){
   return res.json();
 }
 
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutos
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas
 
 async function loadAllData(){
   if(!apiKey) return;
@@ -1532,7 +1532,20 @@ async function loadAllData(){
         allElenco=data.elenco; allPlataformas=data.plataformas;
         populatePlatformFilter();
         renderStats();
-        showToast('Carregado do cache ⚡');
+        renderHome();
+        // Atualiza em segundo plano silenciosamente
+        setTimeout(async () => {
+          try {
+            const [s,a,e,p] = await Promise.all([
+              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro']}),
+              fetchTable(TABLES.atores, {fields:['Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco','Biografia','Instagram','Site','Url Hancinema']}),
+              fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']}),
+              fetchTable(TABLES.plataformas, {fields:['Nome','Logo','Séries']})
+            ]);
+            allSeries=s; allAtores=a; allElenco=e; allPlataformas=p;
+            localStorage.setItem('kdrama_cache', JSON.stringify({data:{series:s,atores:a,elenco:e,plataformas:p},ts:Date.now()}));
+          } catch(_){}
+        }, 3000);
         return;
       }
     }
@@ -4682,37 +4695,6 @@ function ostToggleList() {
   if(ostListOpen) ostRenderList();
 }
 
-
-// ── CACHE SYSTEM ──────────────────────────────────────────
-const CACHE_TTL = 2 * 60 * 60 * 1000; // 2 horas
-
-function cacheSet(key, data) {
-  try {
-    localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
-  } catch(e) { console.warn('Cache write failed:', e); }
-}
-
-function cacheGet(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts > CACHE_TTL) return null;
-    return data;
-  } catch(e) { return null; }
-}
-
-async function fetchTableCached(key, tableId, options) {
-  const cached = cacheGet(key);
-  if (cached) {
-    // Atualiza em segundo plano
-    fetchTable(tableId, options).then(fresh => cacheSet(key, fresh)).catch(()=>{});
-    return cached;
-  }
-  const data = await fetchTable(tableId, options);
-  cacheSet(key, data);
-  return data;
-}
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
