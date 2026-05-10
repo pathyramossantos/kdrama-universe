@@ -4127,59 +4127,23 @@ async function carregarNoticias(forcar = false) {
     </div>`).join('');
 
   try {
-    // Tenta cada proxy até um funcionar
-    let xml = null;
-    for (const proxy of RSS_PROXIES) {
-      try {
-        const res = await fetch(proxy.url);
-        if (!res.ok) continue;
-        if (proxy.json) {
-          const w = await res.json();
-          xml = w.contents || w.data || null;
-        } else {
-          xml = await res.text();
-          // Se vier JSON mesmo sendo raw, tenta parsear
-          if (xml && xml.trim().startsWith('{')) {
-            try { const w = JSON.parse(xml); xml = w.contents || w.data || xml; } catch(_) {}
-          }
-        }
-        if (xml && xml.length > 200 && (xml.includes('<item') || xml.includes('<rss'))) break;
-        xml = null; // não era XML válido, tenta próximo
-      } catch(e) { continue; }
-    }
-    if (!xml) throw new Error('Não foi possível carregar o RSS — tente novamente em instantes');
-    // Parsear XML do RSS
-    const parser = new DOMParser();
-    // Tentar como XML primeiro, fallback pra HTML
-    let doc = parser.parseFromString(xml, 'text/xml');
-    let items = [...doc.querySelectorAll('item')];
-    if (!items.length) {
-      doc = parser.parseFromString(xml, 'text/html');
-      items = [...doc.querySelectorAll('item')];
-    }
-    // Fallback: extrair via regex se DOMParser falhar
-    if (!items.length) {
-      const itemMatches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)];
-      if (!itemMatches.length) throw new Error('Nenhum artigo encontrado no RSS');
-      newsItems = itemMatches.slice(0, 12).map(m => {
-        const block = m[1];
-        const getTag = tag => { const r = new RegExp(`<${tag}[^>]*><!\[CDATA\[([\s\S]*?)\]\]><\/${tag}>|<${tag}[^>]*>([\s\S]*?)<\/${tag}>`, 'i'); const x = block.match(r); return (x?.[1]||x?.[2]||'').trim(); };
-        const linkM = block.match(/<link>([^<]+)<\/link>/i) || block.match(/<guid[^>]*>([^<]+)<\/guid>/i);
-        const encM = block.match(/<enclosure[^>]+url="([^"]+)"/i);
-        const catM = [...block.matchAll(/<category[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/gi)].map(c=>c[1].trim());
-        const desc = getTag('description').replace(/<[^>]+>/g,'').slice(0,160);
-        return { title: getTag('title'), titlePT: null, link: linkM?.[1]||'', pubDate: getTag('pubDate'), thumbnail: encM?.[1]||'', categories: catM, description: desc, descriptionPT: null };
-      });
-    } else {
-      items.sort((a, b) => new Date(b.querySelector('pubDate')?.textContent||0) - new Date(a.querySelector('pubDate')?.textContent||0));
-    newsItems = items.slice(0, 12).map(item => {
-        const get = tag => item.querySelector(tag)?.textContent?.trim() || '';
-        const enclosure = item.querySelector('enclosure');
-        const thumb = enclosure?.getAttribute('url') || '';
-        const cats = [...item.querySelectorAll('category')].map(c => c.textContent.trim());
-        return { title: get('title'), titlePT: null, link: get('link') || get('guid'), pubDate: get('pubDate'), thumbnail: thumb, categories: cats, description: get('description').replace(/<[^>]+>/g,'').slice(0,160), descriptionPT: null };
-      });
-    }
+    // Usar rss2json.com — mais confiável que proxies diretos
+    const res = await fetch(RSS2JSON_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'RSS indisponível');
+    const items = data.items || [];
+    if (!items.length) throw new Error('Nenhuma notícia encontrada');
+    newsItems = items.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate)).slice(0,12).map(item => ({
+      title: item.title || '',
+      titlePT: null,
+      link: item.link || '',
+      pubDate: item.pubDate || '',
+      thumbnail: item.thumbnail || item.enclosure?.link || '',
+      categories: item.categories || [],
+      description: (item.description||'').replace(/<[^>]+>/g,'').slice(0,160),
+      descriptionPT: null,
+    }));
     sessionStorage.setItem('kdrama_news', JSON.stringify({ items: newsItems, ts: Date.now() }));
     renderNoticias();
     if (btnTrad) btnTrad.style.display = 'inline-flex';
