@@ -1201,8 +1201,8 @@ select.filter-select:focus{border-color:var(--gold-dim)}
   <div class="page" id="page-direcao">
     <div class="aniv-section" style="display:none" id="dir-aniv-section"></div>
     <div class="actors-header">
-      <h1 class="actors-title">Direção <span style="font-family:'Noto Serif KR',serif;font-size:.6em;opacity:.4">韓</span></h1>
-      <p class="actors-sub">Diretores e roteiristas por trás de cada história</p>
+      <h1 class="actors-title">Direção <span class="actors-title-amp">&</span> Roteiro</h1>
+      <p class="actors-sub">Os criadores por trás de cada história</p>
       <div class="search-bar-wrap" style="max-width:320px">
         <span class="search-icon">🔍</span>
         <input type="text" class="search-bar" id="dir-search" placeholder="Buscar…" oninput="filterDirecao(this.value)">
@@ -1638,6 +1638,8 @@ function navigate(page, id) {
   if (pageAlias === 'blog')                     renderBlog();
   if (pageAlias === 'ost-detail' && id)         renderOstPage(id);
   if (pageAlias === 'post' && id)               renderPost(id);
+  if (pageAlias === 'direcao')                  renderDirecao();
+  if (pageAlias === 'diretor' && id)            renderDiretor(id);
   if (pageAlias === 'config') {
     const ki = document.getElementById('api-key-input');
     const ti = document.getElementById('tmdb-key-input');
@@ -2113,7 +2115,8 @@ async function renderDorama(id){
     // store gallery for lightbox
     window._dramaGallery = gallery;
     setupEditableFields();
-    setTimeout(() => applyEditModeToDOM(), 50);
+    setTimeout(() => applyEditModeToDOM(), 100);
+    setTimeout(() => applyEditModeToDOM(), 500);
   }catch(e){
     content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Erro: ${e.message}</p></div>`;
   }
