@@ -5119,6 +5119,41 @@ let radioPlaylist = [];
 let radioIdx = 0;
 let radioPlaying = false;
 let radioLoaded = false;
+let radioAutoplayPendente = true;
+
+// ── Shuffle determinístico por data ──────────────────────
+function radioDailySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+function radioShuffleSeeded(arr, seed) {
+  const a = [...arr];
+  let s = seed;
+  for (let i = a.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    const j = Math.abs(s) % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ── Calcular posição atual na playlist ───────────────────
+function radioCalcularPosicao() {
+  if (!radioPlaylist.length) return { idx: 0, offset: 0 };
+  // Tempo total desde meia-noite em segundos
+  const agora = new Date();
+  const segundosDia = agora.getHours() * 3600 + agora.getMinutes() * 60 + agora.getSeconds();
+  let acumulado = 0;
+  for (let i = 0; i < radioPlaylist.length; i++) {
+    const dur = radioPlaylist[i].duration || 180; // fallback 3min
+    if (acumulado + dur > segundosDia % radioPlaylist.reduce((s, t) => s + (t.duration || 180), 0)) {
+      return { idx: i, offset: segundosDia % dur };
+    }
+    acumulado += dur;
+  }
+  return { idx: 0, offset: 0 };
+}
 
 async function radioCarregarPlaylist() {
   if (radioLoaded) return;
@@ -5127,12 +5162,24 @@ async function radioCarregarPlaylist() {
     const data = await res.json();
     const mp3s = (data.files || []).filter(f => f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
     if (!mp3s.length) return;
-    radioPlaylist = mp3s.map(f => ({
+
+    const seed = radioDailySeed();
+    const shuffled = radioShuffleSeeded(mp3s, seed);
+
+    radioPlaylist = shuffled.map(f => ({
       url: ARCHIVE_BASE + encodeURIComponent(f.name),
-      name: f.name.replace(/\.mp3$/i, '')
-    })).sort(() => Math.random() - 0.5);
+      name: f.name.replace(/\.mp3$/i, ''),
+      duration: parseFloat(f.length) || 180
+    }));
+
     radioLoaded = true;
-    document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || '—';
+
+    // Calcular posição atual
+    const pos = radioCalcularPosicao();
+    radioIdx = pos.idx;
+    window._radioStartOffset = pos.offset;
+
+    document.getElementById('radio-track').textContent = radioPlaylist[radioIdx]?.name || '—';
   } catch(e) { console.warn('Radio load error:', e); }
 }
 
@@ -5142,13 +5189,33 @@ function radioPlay() {
   const track = radioPlaylist[radioIdx];
   audio.src = track.url;
   audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
+
+  // Se tiver offset, começar no ponto certo
+  if (window._radioStartOffset && window._radioStartOffset > 0) {
+    audio.addEventListener('loadedmetadata', function onMeta() {
+      audio.currentTime = Math.min(window._radioStartOffset, audio.duration - 1);
+      audio.removeEventListener('loadedmetadata', onMeta);
+    });
+    window._radioStartOffset = 0;
+  }
+
   audio.play().catch(() => {});
   audio.onended = () => radioNext();
   radioPlaying = true;
+  radioAutoplayPendente = false;
   document.getElementById('radio-play-btn').textContent = '⏸';
   document.getElementById('radio-track').textContent = track.name;
   document.getElementById('radio-dot').style.display = 'block';
   document.getElementById('radio-status-txt').textContent = 'Ao vivo';
+
+  // Atualizar página rádio se aberta
+  if (document.getElementById('page-radio')?.classList.contains('active')) {
+    radioRenderTracklist();
+    const btn = document.getElementById('radio-page-play');
+    if (btn) btn.textContent = '⏸';
+    const viz = document.getElementById('radio-viz-track');
+    if (viz) viz.textContent = track.name;
+  }
 }
 
 function radioStop() {
@@ -5159,14 +5226,18 @@ function radioStop() {
   document.getElementById('radio-play-btn').textContent = '▶';
   document.getElementById('radio-dot').style.display = 'none';
   document.getElementById('radio-status-txt').textContent = 'K-Drama OST Radio';
+  const btn = document.getElementById('radio-page-play');
+  if (btn) btn.textContent = '▶';
+  radioRenderTracklist();
 }
 
 function radioToggle() {
   if (radioPlaying) radioStop();
-  else { radioCarregarPlaylist().then(() => radioPlay()); }
+  else radioCarregarPlaylist().then(() => radioPlay());
 }
 
 function radioNext() {
+  window._radioStartOffset = 0;
   radioIdx = (radioIdx + 1) % radioPlaylist.length;
   radioPlay();
 }
@@ -5342,7 +5413,21 @@ async function renderDiretor(id) {
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
+// Carregar playlist em background
 radioCarregarPlaylist();
+// Tocar no primeiro clique do usuário
+document.addEventListener('click', function radioFirstPlay(e) {
+  if (!radioAutoplayPendente) return;
+  // Não disparar se for clique no botão de pause
+  if (e.target.id === 'radio-play-btn') return;
+  radioAutoplayPendente = false;
+  if (!radioPlaying && radioPlaylist.length) {
+    radioPlay();
+  } else if (!radioPlaying) {
+    radioCarregarPlaylist().then(() => radioPlay());
+  }
+  document.removeEventListener('click', radioFirstPlay);
+}, { capture: true });
 setInterval(() => carregarNoticias(true), 60 * 60 * 1000);
 if (!isOwner()) {
   document.querySelectorAll('.edit-toggle').forEach(el => el.style.display='none');
