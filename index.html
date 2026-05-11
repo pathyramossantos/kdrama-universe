@@ -81,7 +81,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 /* GRID */
 #series-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:24px;padding:36px clamp(16px,4vw,48px);max-width:1600px;margin:0 auto}
-@media(max-width:480px){#series-grid{grid-template-columns:repeat(2,1fr);gap:12px;padding:16px}}
 
 /* CARD */
 .drama-card{position:relative;border-radius:var(--card-r);overflow:hidden;background:#000;border:1px solid var(--border);cursor:pointer;transition:transform .35s cubic-bezier(.34,1.56,.64,1),box-shadow .35s ease;animation:fadeUp .5s ease both}
@@ -303,7 +302,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .page-heading em{color:var(--gold);font-style:italic}
 .page-sub{color:var(--text2);font-size:.9rem}
 #actors-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:20px;padding:24px clamp(16px,4vw,48px);max-width:1600px;margin:0 auto}
-@media(max-width:480px){#actors-grid{grid-template-columns:repeat(2,1fr);gap:12px;padding:16px}}
 .actor-card{border-radius:var(--card-r);overflow:hidden;background:#000;border:1px solid var(--border);cursor:pointer;transition:transform .3s ease,box-shadow .3s ease}
 .actor-card:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.5),0 0 0 1px var(--gold-dim)}
 .actor-photo{width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--bg3)}
@@ -548,7 +546,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .blog-tab.active{background:var(--gold);color:#0a0a0c;border-color:var(--gold)}
 #blog-list{max-width:900px;margin:0 auto;padding:32px clamp(16px,4vw,48px);display:flex;flex-direction:column;gap:24px}
 .blog-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.2,.64,1),box-shadow .3s ease,border-color .3s;display:flex;animation:fadeUp .4s ease both}
-@media(max-width:480px){.blog-card{flex-direction:column}.blog-card-thumb{width:100%;height:160px}}
 .blog-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.5);border-color:var(--gold-dim)}
 .blog-card-thumb{width:160px;flex-shrink:0;background:var(--bg3);position:relative;overflow:hidden}
 .blog-card-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
@@ -578,7 +575,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-cover{width:100%;border-radius:var(--radius);aspect-ratio:16/7;object-fit:cover;margin-bottom:32px;border:1px solid var(--border)}
 .post-body{font-size:.95rem;line-height:1.9;color:var(--text2)}
 .post-body p{margin-bottom:1.4em}
-.post-body h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);margin:2em 0 .8em;padding-bottom:8px;border-bottom:2px solid var(--gold-dim);display:flex;align-items:center;gap:8px}.post-body h2::before{content:'';display:block;width:3px;height:1em;background:var(--gold);border-radius:2px;flex-shrink:0}
+.post-body h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);margin:2em 0 .8em;padding-bottom:8px;border-bottom:1px solid var(--border)}
 .post-body h3{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);margin:1.6em 0 .6em}
 .post-body blockquote{margin:1.5em 0;padding:16px 22px;border-left:3px solid var(--gold);background:var(--surface);border-radius:0 8px 8px 0;color:var(--text);font-style:italic}
 .post-body strong{color:var(--text);font-weight:600}
@@ -615,7 +612,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .home-nav-section{padding:0 clamp(16px,4vw,48px) 48px;max-width:1100px;margin:0 auto;background:var(--bg)}
 .home-nav-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 @media(max-width:640px){.home-nav-cards{grid-template-columns:1fr}}
-@media(max-width:480px){.home-nav-section{padding:0 12px 32px}.home-nav-card{padding:20px 16px}}
 .home-nav-card{position:relative;border-radius:var(--card-r);border:1px solid var(--border);background:var(--surface);padding:28px 24px;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.2,.64,1),box-shadow .3s,border-color .3s;overflow:hidden;display:flex;flex-direction:column;gap:12px}
 .home-nav-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s}
 .home-nav-card:hover{transform:translateY(-5px);box-shadow:0 20px 60px rgba(0,0,0,.5);border-color:var(--gold-dim)}
@@ -642,7 +638,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .home-news-section .home-section-header,.home-news-section .news-grid{position:relative;z-index:1;max-width:1100px;margin-left:auto;margin-right:auto}
 .home-news-section .home-section-header{margin-bottom:20px}
 .news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
-@media(max-width:480px){.news-grid{grid-template-columns:1fr;gap:12px}}
 .news-card{background:rgba(30,30,40,.85);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.2,.64,1),box-shadow .3s,border-color .3s;animation:fadeUp .4s ease both;display:flex;flex-direction:column;min-height:140px}
 .news-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.7);border-color:var(--gold-dim)}
 .news-card-body{padding:22px 24px;display:flex;flex-direction:column;gap:12px;flex:1;justify-content:space-between}
@@ -778,134 +773,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .bday-item-nome{font-size:.62rem;color:var(--gold);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
 .bday-item-age{font-size:.58rem;color:var(--text3);flex-shrink:0}
 @media(max-width:640px){.bday-item-nome{max-width:48px}.bday-item img{display:none}}
-
-/* ── PÁGINA OST ───────────────────────────────────────────── */
-#page-ost-detail{background:var(--bg)}
-.ost-page-wrap{max-width:1100px;margin:0 auto;padding:32px clamp(16px,4vw,48px) 80px}
-.ost-page-back{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:.82rem;font-weight:500;transition:var(--transition);cursor:pointer;margin-bottom:28px}
-.ost-page-back:hover{color:var(--gold);border-color:var(--gold-dim)}
-.ost-page-header{margin-bottom:28px}
-.ost-page-drama{font-size:.75rem;color:var(--gold);text-transform:uppercase;letter-spacing:.15em;font-weight:600;margin-bottom:6px}
-.ost-page-title{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,3vw,2.4rem);font-weight:700;color:var(--text)}
-.ost-page-layout{display:grid;grid-template-columns:300px 1fr;gap:28px;align-items:start}
-@media(max-width:768px){.ost-page-layout{grid-template-columns:1fr}}
-
-/* Playlist */
-.ost-playlist-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;position:sticky;top:80px}
-.ost-playlist-toggle{display:none;width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;cursor:pointer;text-align:left;border-bottom:1px solid var(--border)}
-@media(max-width:768px){.ost-playlist-toggle{display:flex;align-items:center;justify-content:space-between}.ost-playlist-header{display:none}.ost-playlist-tracks{display:none}.ost-playlist-tracks.open{display:block}.ost-page-layout{grid-template-columns:1fr}}
-.ost-playlist-header{padding:16px 20px;border-bottom:1px solid var(--border);font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
-.ost-playlist-header::before{content:'';display:block;width:3px;height:1em;background:var(--gold);border-radius:2px}
-.ost-playlist-tracks{max-height:480px;overflow-y:auto}
-.ost-track-item{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.04)}
-.ost-track-item:hover{background:var(--surface2)}
-.ost-track-item.active{background:var(--gold-glow);border-left:3px solid var(--gold)}
-.ost-track-num{font-size:.75rem;color:var(--text3);min-width:20px;text-align:center;flex-shrink:0}
-.ost-track-item.active .ost-track-num{color:var(--gold)}
-.ost-track-info{flex:1;min-width:0}
-.ost-track-name{font-size:.88rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ost-track-item.active .ost-track-name{color:var(--gold)}
-.ost-track-artist{font-size:.75rem;color:var(--text2)}
-
-/* Player + Letra */
-.ost-player-panel{display:flex;flex-direction:column;gap:20px}
-.ost-video-box{border-radius:var(--card-r);overflow:hidden;border:1px solid var(--border);background:#000;aspect-ratio:16/9}
-.ost-video-box iframe{width:100%;height:100%;border:none;display:block}
-.ost-video-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text3);font-size:.9rem;padding:40px}
-.ost-letra-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:28px}
-.ost-letra-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
-.ost-letra-title::before{content:'';display:block;width:3px;height:1em;background:var(--gold);border-radius:2px}
-.ost-letra-content{font-size:.9rem;line-height:2;color:var(--text2);white-space:pre-wrap}
-.ost-letra-empty{color:var(--text3);font-style:italic;font-size:.85rem}
-
-
-
-/* Aniversários do dia */
-.aniv-section{padding:16px clamp(16px,4vw,48px) 0;max-width:1600px;margin:0 auto}
-.aniv-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--gold-dim);border-radius:12px;padding:12px 18px}
-.aniv-title{font-size:.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0}
-.aniv-list{display:flex;gap:8px;flex-wrap:wrap;flex:1}
-.aniv-item{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:var(--bg);border:1px solid var(--border);cursor:pointer;transition:var(--transition)}
-.aniv-item:hover{border-color:var(--gold-dim);background:var(--gold-glow)}
-.aniv-foto{width:22px;height:22px;border-radius:50%;object-fit:cover;background:var(--surface2);flex-shrink:0}
-.aniv-nome{font-size:.75rem;color:var(--text);font-weight:500}
-.aniv-idade{font-size:.68rem;color:var(--text3)}
-.aniv-vazio{font-size:.78rem;color:var(--text3);font-style:italic}
-
-
-/* ── RÁDIO RODAPÉ ─────────────────────────────────────────── */
-#radio-footer{position:fixed;bottom:0;left:0;right:0;z-index:400;background:linear-gradient(90deg,rgba(10,10,12,.98),rgba(26,26,46,.98));backdrop-filter:blur(20px);border-top:1px solid var(--gold-dim);box-shadow:0 -4px 24px rgba(0,0,0,.5)}
-.radio-footer-bar{display:flex;align-items:center;gap:12px;padding:8px clamp(16px,4vw,48px);height:52px}
-.radio-label{font-family:'Playfair Display',serif;font-size:.68rem;font-weight:700;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;flex-shrink:0;opacity:.8}
-.radio-sep{width:1px;height:24px;background:var(--border);flex-shrink:0}
-.radio-play-btn{width:30px;height:30px;border-radius:50%;background:var(--gold);border:none;color:#0a0a0c;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s}
-.radio-play-btn:hover{transform:scale(1.1)}
-.radio-track-info{flex:1;min-width:0}
-.radio-track-name{font-size:.8rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.radio-track-status{font-size:.65rem;color:var(--gold);display:flex;align-items:center;gap:5px}
-.radio-live-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 1.5s ease-in-out infinite;display:none}
-.radio-next-btn{background:none;border:none;color:var(--text3);font-size:.95rem;cursor:pointer;padding:4px 6px;transition:color .2s;flex-shrink:0}
-.radio-next-btn:hover{color:var(--gold)}
-.radio-vol-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.radio-vol{width:70px;accent-color:var(--gold)}
-@media(max-width:480px){.radio-vol-wrap{display:none}.radio-label{display:none}}
-
-
-.post-cover-wrap{position:relative;width:100%;margin-bottom:32px}
-.post-cover-wrap:hover .post-cover-controls{opacity:1}
-.post-cover-controls{position:absolute;bottom:10px;right:10px;display:flex;gap:6px;opacity:0;transition:opacity .2s}
-.post-cover-ctrl{background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:.7rem;padding:4px 8px;border-radius:6px;cursor:pointer;backdrop-filter:blur(4px);transition:background .2s}
-.post-cover-ctrl:hover{background:rgba(201,168,76,.6)}
-.post-cover-ctrl.active{background:rgba(201,168,76,.8);border-color:var(--gold)}
-.post-cover-pos-panel{position:absolute;bottom:10px;left:10px;right:10px;background:rgba(0,0,0,.85);border:1px solid var(--gold-dim);border-radius:10px;padding:14px 16px;display:none;backdrop-filter:blur(8px)}
-.post-cover-pos-panel.open{display:block}
-.post-cover-slider-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.post-cover-slider-label{font-size:.68rem;color:rgba(255,255,255,.5);width:12px;text-align:center}
-.post-cover-slider{flex:1;accent-color:var(--gold);cursor:pointer}
-.post-cover-slider-val{font-size:.68rem;color:var(--gold);min-width:30px;text-align:right}
-
-
-.post-body .txt-small{font-size:.78rem;color:var(--text3)}
-.post-body .txt-large{font-size:1.15rem;font-weight:500;color:var(--text)}
-
-
-/* ── PÁGINA LETRAS ─────────────────────────────────────────── */
-#page-letras{background:var(--bg)}
-.letras-wrap{max-width:900px;margin:0 auto;padding:40px clamp(16px,4vw,48px) 100px}
-.letras-header{margin-bottom:32px}
-.letras-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--text);margin-bottom:4px}
-.letras-sub{font-size:.85rem;color:var(--text2)}
-.letras-input-wrap{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:20px}
-.letras-field{display:flex;flex-direction:column;gap:6px}
-.letras-label{font-size:.75rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.08em}
-.letras-textarea{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;padding:14px;outline:none;resize:vertical;min-height:200px;transition:border-color .2s;line-height:1.8}
-.letras-textarea:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px var(--gold-glow)}
-.letras-btn-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}
-.letras-result{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:24px}
-.letras-result-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.letras-result-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text)}
-.letras-result-body{padding:20px}
-.letras-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-@media(max-width:640px){.letras-cols{grid-template-columns:1fr}}
-.letras-col-title{font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
-.letras-col-text{font-size:.85rem;line-height:2;color:var(--text2);white-space:pre-wrap}
-.letras-output{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'DM Sans',monospace;font-size:.78rem;color:var(--text2);white-space:pre-wrap;line-height:1.8;margin-top:16px;max-height:300px;overflow-y:auto}
-.letras-loading{display:flex;align-items:center;gap:10px;color:var(--text3);font-size:.85rem;padding:20px}
-
-
-/* Letra OST em colunas */
-.ost-letra-section{margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:24px}
-.ost-letra-section-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
-.ost-letra-section-title::before{content:'';display:block;width:3px;height:1em;background:var(--gold);border-radius:2px}
-.ost-letra-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-@media(max-width:640px){.ost-letra-cols{grid-template-columns:1fr}}
-.ost-letra-col-title{font-size:.68rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
-.ost-letra-col-text{font-size:.82rem;line-height:2.1;color:var(--text2);white-space:pre-wrap}
-
-
-.ost-letra-col-text .letra-titulo{font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;display:block;margin-bottom:4px;margin-top:16px}
-.ost-letra-col-text .letra-titulo:first-child{margin-top:0}
-
 </style>
 </head>
 <body>
@@ -978,6 +845,32 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     </div>
 
     <!-- Notícias -->
+    <!-- CALENDÁRIO DE ANIVERSÁRIOS -->
+    <div class="bday-section">
+      <div class="home-section-header" style="margin-bottom:16px">
+        <div class="home-section-title">🎂 Aniversários</div>
+      </div>
+      <div class="bday-cal">
+        <div class="bday-cal-head">
+          <div class="bday-cal-title">
+            <span>🎂</span>
+            <span id="bday-mes-label">—</span>
+          </div>
+          <div class="bday-cal-nav">
+            <button class="bday-nav-btn" onclick="bdayNavegar(-1)">‹</button>
+            <span class="bday-nav-month" id="bday-nav-label"></span>
+            <button class="bday-nav-btn" onclick="bdayNavegar(1)">›</button>
+          </div>
+        </div>
+        <div class="bday-grid" id="bday-grid">
+          <div class="bday-dow">Dom</div><div class="bday-dow">Seg</div>
+          <div class="bday-dow">Ter</div><div class="bday-dow">Qua</div>
+          <div class="bday-dow">Qui</div><div class="bday-dow">Sex</div>
+          <div class="bday-dow">Sáb</div>
+        </div>
+      </div>
+    </div>
+
     <div class="home-news-section">
       <div class="news-section-bg"></div>
       <div class="home-section-header">
@@ -1062,13 +955,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
   <!-- ATORES -->
   <div class="page" id="page-atores">
-    <!-- Aniversários do dia -->
-    <div class="aniv-section" id="aniv-section" style="display:none">
-      <div class="aniv-bar">
-        <div class="aniv-title">🎂 Aniversários de hoje</div>
-        <div class="aniv-list" id="aniv-list"></div>
-      </div>
-    </div>
     <div class="actors-header">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px">
         <div>
@@ -1130,13 +1016,13 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <div id="blog-list"></div>
       </div>
       <aside class="blog-sidebar" id="blog-sidebar">
-        <div class="sidebar-card" id="sidebar-ranking-card">
-          <div class="sidebar-card-title">✨ Experiências</div>
-          <div id="sidebar-ranking"></div>
-        </div>
         <div class="sidebar-card" id="sidebar-tags-card">
           <div class="sidebar-card-title">🏷️ Tags</div>
           <div id="sidebar-tags"></div>
+        </div>
+        <div class="sidebar-card" id="sidebar-ranking-card">
+          <div class="sidebar-card-title">✨ Experiências</div>
+          <div id="sidebar-ranking"></div>
         </div>
       </aside>
     </div>
@@ -1147,51 +1033,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     <div class="post-wrap">
       <button class="post-back" onclick="navigate('blog')">← Voltar ao Blog</button>
       <div id="post-content"></div>
-    </div>
-  </div>
-
-  <!-- OST DETAIL (oculta, só via botão do dorama) -->
-  <div class="page" id="page-ost-detail">
-    <div class="ost-page-wrap">
-      <button class="ost-page-back" id="ost-back-btn" onclick="navigate('dorama', ostCurrentSerieId)">← Voltar ao Dorama</button>
-      <div class="ost-page-header">
-        <div class="ost-page-drama" id="ost-page-drama-name"></div>
-        <div class="ost-page-title">🎵 Trilha Sonora</div>
-      </div>
-      <div class="ost-page-layout">
-        <div class="ost-playlist-panel">
-          <button class="ost-playlist-toggle" onclick="ostTogglePlaylist()">
-            <span>🎵 Playlist</span>
-            <span id="ost-toggle-arrow">▼</span>
-          </button>
-          <div class="ost-playlist-header">Playlist</div>
-          <div class="ost-playlist-tracks" id="ost-page-tracks"></div>
-        </div>
-        <div class="ost-player-panel">
-          <div class="ost-video-box" id="ost-page-video">
-            <div class="ost-video-placeholder">
-              <span style="font-size:2rem">🎵</span>
-              <span>Selecione uma faixa para ouvir</span>
-            </div>
-          </div>
-          <div id="ost-letra-section" style="display:none" class="ost-letra-section">
-            <div class="ost-letra-cols" id="ost-letra-cols">
-              <div id="ost-col-hangul-wrap">
-                <div class="ost-letra-section-title" id="ost-letra-section-title">🎵 Letra</div>
-                <div class="ost-letra-col-text" id="ost-col-hangul"></div>
-              </div>
-              <div id="ost-col-rom-wrap" style="display:none">
-                <div class="ost-letra-col-title" id="ost-letra-col-titulo-musica">Letra</div>
-                <div class="ost-letra-col-text" id="ost-col-rom"></div>
-              </div>
-              <div id="ost-col-trad-wrap" style="display:none">
-                <div class="ost-letra-col-title">Tradução PT</div>
-                <div class="ost-letra-col-text" id="ost-col-trad"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -1591,8 +1432,7 @@ function navigate(page, id) {
   const navMap = {
     inicio:'inicio', home:'doramas', doramas:'doramas',
     dorama:'doramas', atores:'atores', ator:'atores',
-    blog:'blog', post:'blog', config:'config',
-    'ost-detail':'doramas'
+    blog:'blog', post:'blog', config:'config'
   };
   const navTarget = navMap[page] || navMap[pageAlias] || page;
   const navEl = document.querySelector(`.nav-links a[data-page="${navTarget}"]`);
@@ -1608,7 +1448,6 @@ function navigate(page, id) {
   if (pageAlias === 'dorama' && id)             renderDorama(id);
   if (pageAlias === 'ator' && id)               renderAtor(id);
   if (pageAlias === 'blog')                     renderBlog();
-  if (pageAlias === 'ost-detail' && id)         renderOstPage(id);
   if (pageAlias === 'post' && id)               renderPost(id);
   if (pageAlias === 'config') {
     const ki = document.getElementById('api-key-input');
@@ -1673,7 +1512,7 @@ async function createRecord(tableId,fields){
   return res.json();
 }
 
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutos
 
 async function loadAllData(){
   if(!apiKey) return;
@@ -1688,20 +1527,7 @@ async function loadAllData(){
         allElenco=data.elenco; allPlataformas=data.plataformas;
         populatePlatformFilter();
         renderStats();
-        renderHome();
-        // Atualiza em segundo plano silenciosamente
-        setTimeout(async () => {
-          try {
-            const [s,a,e,p] = await Promise.all([
-              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro']}),
-              fetchTable(TABLES.atores, {fields:['Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco','Biografia','Instagram','Site','Url Hancinema']}),
-              fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']}),
-              fetchTable(TABLES.plataformas, {fields:['Nome','Logo','Séries']})
-            ]);
-            allSeries=s; allAtores=a; allElenco=e; allPlataformas=p;
-            localStorage.setItem('kdrama_cache', JSON.stringify({data:{series:s,atores:a,elenco:e,plataformas:p},ts:Date.now()}));
-          } catch(_){}
-        }, 3000);
+        showToast('Carregado do cache ⚡');
         return;
       }
     }
@@ -1971,17 +1797,10 @@ async function renderDorama(id){
       <div class="tmdb-results" id="tmdb-results"></div>
     </div>`;
 
-    const _bposAT = f['Banner Position'];
-const _burlAT = f['Banner URL'];
-const _bposAT = f['Banner Position'];
-const _burlAT = f['Banner URL'];
-const bannerPos = _bposAT || localStorage.getItem(`kdramabannerpos${id}`) || '50 30';
-const savedBannerUrl = _burlAT || localStorage.getItem(`kdramabannerurl${id}`);
-if (_bposAT) localStorage.setItem(`kdramabannerpos${id}`, _bposAT);
-if (_burlAT) localStorage.setItem(`kdramabannerurl${id}`, _burlAT);
-const savedBannerUrl = _burlAT || localStorage.getItem(`kdramabannerurl${id}`);
-if (_bposAT) localStorage.setItem(`kdramabannerpos${id}`, _bposAT);
-if (_burlAT) localStorage.setItem(`kdramabannerurl${id}`, _burlAT);
+    const bannerPos = f['Banner Position'] || localStorage.getItem(`kdrama_bannerpos_${id}`) || '50% 30%';
+    const savedBannerUrl = f['Banner URL'] || localStorage.getItem(`kdrama_bannerurl_${id}`);
+    if (f['Banner Position']) localStorage.setItem(`kdrama_bannerpos_${id}`, f['Banner Position']);
+    if (f['Banner URL']) localStorage.setItem(`kdrama_bannerurl_${id}`, f['Banner URL']);
     const bannerSrc = savedBannerUrl || photo;
 
     content.innerHTML=`
@@ -2040,7 +1859,7 @@ if (_burlAT) localStorage.setItem(`kdramabannerurl${id}`, _burlAT);
           <button class="btn-gold btn-sm" onclick="navigate('post','${resenhaPost}')" style="margin-bottom:24px;display:inline-flex;align-items:center;gap:8px">
             ✍️ Ver Resenha
           </button>` : ''}
-        ${currentSerie?`<button class="btn-outline btn-sm" onclick="navigate('ost-detail','${currentSerie.id}')" style="margin-bottom:16px;display:inline-flex;align-items:center;gap:6px">🎵 OST</button>`:``}
+        ${currentSerie?`<button class="btn-outline btn-sm" onclick="carregarOST(currentSerie.id,currentSerie.fields['Nome']||'')" style="margin-bottom:16px;display:inline-flex;align-items:center;gap:6px">🎵 OST</button>`:``}
         ${f['Sinopse']?`<div class="section-title">Sinopse</div><p class="detail-sinopse editable" contenteditable="false" data-field="Sinopse">${f['Sinopse']}</p>`:''}
 
         ${gallery.length?`
@@ -2166,10 +1985,14 @@ function saveBannerPos(){
   const pos=`${x}% ${y}%`;
   const key=`kdrama_bannerpos_${currentRecordId}`;
   localStorage.setItem(key,pos);
-  // Salvar no Airtable
-  const url = localStorage.getItem(`kdrama_bannerurl_${currentRecordId}`) || '';
-  const tipo = currentSerie ? 'dorama' : 'ator';
-  bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
+  // Salvar no Airtable para todos verem
+  if(isOwner() && currentRecordId){
+    const urlAtual = localStorage.getItem(`kdrama_bannerurl_${currentRecordId}`) || null;
+    const tbl = currentSerie ? TABLES.series : TABLES.atores;
+    const fields = {'Banner Position': pos};
+    if(urlAtual) fields['Banner URL'] = urlAtual;
+    patchRecord(tbl, currentRecordId, fields).catch(()=>{});
+  }
   showToast('Posição salva ✓');
 }
 
@@ -2181,11 +2004,13 @@ async function changeBannerUrl(){
   if(img) img.src=url;
   if(poster) poster.src=url;
   localStorage.setItem(`kdrama_bannerurl_${currentRecordId}`,url);
-  // Salvar no Airtable
-  const pos = localStorage.getItem(`kdrama_bannerpos_${currentRecordId}`) || '50% 30%';
-  const tipo = currentSerie ? 'dorama' : 'ator';
-  bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
-  showToast('Imagem salva ✓');
+  // Salvar no Airtable para todos verem
+  if(isOwner() && currentRecordId){
+    const posAtual = localStorage.getItem(`kdrama_bannerpos_${currentRecordId}`) || '50% 30%';
+    const tbl = currentSerie ? TABLES.series : TABLES.atores;
+    patchRecord(tbl, currentRecordId, {'Banner URL': url, 'Banner Position': posAtual}).catch(()=>{});
+  }
+  showToast('Imagem aplicada e salva no navegador ✓');
 }
 
 // ── NEW DRAMA MODAL ───────────────────────────────────────
@@ -2517,7 +2342,6 @@ document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===d
 
 // ── ATORES ────────────────────────────────────────────────
 async function renderAtores(){
-  renderAniversarios();
   const grid=document.getElementById('actors-grid');
   if(!apiKey){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔑</div><p>Configure a API Key primeiro.</p></div>`;return;}
   if(!allAtores.length){grid.innerHTML=skeletons(12,'3/4');try{await loadAllData();}catch(e){}}
@@ -2704,8 +2528,8 @@ async function renderAtor(id){
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
           ${f['Instagram']?`<a href="${f['Instagram']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg> @${(f['Instagram'].replace(/\/$/,'').split('/').pop()||'Instagram')}</a>`:''}
-          ${f['Site']?`<a href="${f['Site']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Site Oficial</a>`:''} 
-          ${f['Url Hancinema']?`<a href="${f['Url Hancinema']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none">📷 Fotos</a>`:''}
+          ${f['Site']?`<a href="${f['Site']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Site Oficial</a>`:''}
+          ${f['Url Hancinema']?`<a href="${f['Url Hancinema']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Fotos</a>`:''}
         </div>
       </div>
     </div>
@@ -3843,36 +3667,16 @@ async function renderPost(id) {
       <h1 class="post-h1">${f['Título'] || 'Sem título'}</h1>
       <div class="post-meta">
         ${date ? `<span class="post-meta-date">${date}</span>` : ''}
-        ${f['Dorama'] ? `<span style="color:var(--text3);font-size:.78rem">· <span style="color:var(--gold);cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold-dim)" onclick="navegarParaDorama('${f['Dorama']}','${f['Dorama ID']||''}')">${f['Dorama']}</span></span>` : ''}
+        ${f['Dorama'] ? `<span style="color:var(--text3);font-size:.78rem">· <span style="color:var(--gold);cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold-dim)" onclick="navegarParaDorama('${f['Dorama']}')">${f['Dorama']}</span></span>` : ''}
         ${f['Nota'] ? `<span style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end"><span class="post-nota-big">${parseFloat(f['Nota']).toFixed(1)}</span><span class="post-nota-label">nota / 10</span></span>` : ''}
         ${expBadge(f['Experiência'])}
         <button class="btn-outline btn-sm" onclick="openBlogForm('${id}')" style="margin-left:8px">✏️ Editar</button>
       </div>
-      ${capaUrl ? `
-      <div class="post-cover-wrap" id="post-cover-wrap-${id}">
-        <img class="post-cover" id="post-cover-img-${id}" src="${capaUrl}" style="object-position:center center">
-        <div class="post-cover-controls">
-          <button class="post-cover-ctrl" onclick="togglePostCoverPanel('${id}')">⊹ Ajustar posição</button>
-        </div>
-        <div class="post-cover-pos-panel" id="post-cover-panel-${id}">
-          <div style="font-size:.68rem;color:rgba(255,255,255,.5);margin-bottom:10px;text-align:center">Ajustar posição da imagem</div>
-          <div class="post-cover-slider-row">
-            <span class="post-cover-slider-label">↕</span>
-            <input type="range" class="post-cover-slider" id="post-cover-y-${id}" min="0" max="100" value="50" oninput="setPostCoverPosSlider('${id}')">
-            <span class="post-cover-slider-val" id="post-cover-y-val-${id}">50%</span>
-          </div>
-          <div class="post-cover-slider-row">
-            <span class="post-cover-slider-label">↔</span>
-            <input type="range" class="post-cover-slider" id="post-cover-x-${id}" min="0" max="100" value="50" oninput="setPostCoverPosSlider('${id}')">
-            <span class="post-cover-slider-val" id="post-cover-x-val-${id}">50%</span>
-          </div>
-        </div>
-      </div>` : ''}
+      ${capaUrl ? `<img class="post-cover" src="${capaUrl}">` : ''}
       <div class="post-body">${renderPostBody(f['Conteúdo'] || '')}</div>
       ${tags.length ? `<div class="post-tags">${tags.map(t => `<span class="post-tag" style="cursor:pointer" onclick="navigate('blog');setTimeout(()=>{_blogTagFilter='${t}';filterBlog()},400)">${t}</span>`).join('')}</div>` : ''}
       <div id="post-comments-placeholder"></div>`;
 
-    restorePostCoverPos(id);
     // Carregar comentários depois do HTML estar pronto
     const titulo = f['Título'] || '';
     carregarComentarios(titulo).then(comentarios => {
@@ -3893,13 +3697,9 @@ function renderPostBody(text) {
 }
 
 function renderMd(text) {
-  // Normalizar quebras — ## funciona com \n simples também
-  text = text.replace(/([^\n])\n(#{1,3} )/g, '$1\n\n$2').replace(/([^\n])\n(> )/g, '$1\n\n$2');
   return text.split('\n\n').map(block => {
     const t = block.trim();
     if (!t) return '';
-    // Suporte a # H1, ## H2, ### H3
-    if (t.startsWith('# ') && !t.startsWith('## ')) return `<h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--text);margin:1.5em 0 .5em">${t.slice(2)}</h1>`;
     if (t.startsWith('## ')) return `<h2>${t.slice(3)}</h2>`;
     if (t.startsWith('### ')) return `<h3>${t.slice(4)}</h3>`;
     if (t.startsWith('> ')) return `<blockquote>${t.slice(2)}</blockquote>`;
@@ -4027,10 +3827,9 @@ async function bfPopularSelectDoramas() {
     const nome = s.fields['Nome'] || '';
     if (!nome) return;
     const opt = document.createElement('option');
-    opt.value = s.id; // salva o ID do Airtable
-    opt.dataset.nome = nome;
+    opt.value = nome;
     opt.textContent = nome;
-    if (s.id === atual || nome === atual) opt.selected = true;
+    if (nome === atual) opt.selected = true;
     sel.appendChild(opt);
   });
 }
@@ -4083,12 +3882,6 @@ function bfInsert(txt) {
   ta.selectionStart = ta.selectionEnd = s + txt.length;
   ta.focus();
 }
-function bfWrapFonte(size) {
-  const tag = size === 'small' ? '[small]' : '[large]';
-  const endTag = size === 'small' ? '[/small]' : '[/large]';
-  bfWrap(tag, endTag);
-}
-
 function bfWrap(before, after) {
   const ta = document.getElementById('bf-conteudo');
   const s = ta.selectionStart, e = ta.selectionEnd;
@@ -4144,11 +3937,7 @@ async function bfSalvar() {
     if (!isNaN(notaCalc)) fields['Nota'] = notaCalc;
     const tags = document.getElementById('bf-tags').value.trim(); if (tags) fields['Tags'] = tags;
     const conteudo = document.getElementById('bf-conteudo').value.trim(); if (conteudo) fields['Conteúdo'] = conteudo;
-    const sel = document.getElementById('bf-dorama-nome');
-    const dorId = sel?.value || '';
-    const dorNome = sel?.options[sel.selectedIndex]?.dataset.nome || sel?.options[sel.selectedIndex]?.text || '';
-    if (dorNome) fields['Dorama'] = dorNome;
-    if (dorId && dorId !== dorNome) fields['Dorama ID'] = dorId;
+    const dor = document.getElementById('bf-dorama-nome').value.trim(); if (dor) fields['Dorama'] = dor;
     const capa = document.getElementById('bf-capa').value.trim(); if (capa) fields['Capa'] = capa;
     bar.style.width = '70%';
     let record;
@@ -4207,9 +3996,9 @@ function atualizarStatsHome() {
 // Google News RSS — sem bloqueio, já em português
 const RSS_URL = 'https://news.google.com/rss/search?q=k-drama+OR+dorama+coreano+OR+kdrama&hl=pt-BR&gl=BR&ceid=BR:pt-419';
 const RSS_PROXIES = [
-  `https://kdrama-proxy.vercel.app/api/proxy?url=${encodeURIComponent(RSS_URL)}`,
-  `https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`,
   `https://corsproxy.io/?url=${encodeURIComponent(RSS_URL)}`,
+  `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`,
+  `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(RSS_URL)}`,
 ];
 let newsItems = [];
 
@@ -4242,44 +4031,55 @@ async function carregarNoticias(forcar = false) {
     </div>`).join('');
 
   try {
+    // Tenta cada proxy até um funcionar
     let xml = null;
-    // Fetch com timeout de 8 segundos
-    const fetchTimeout = (url, ms=8000) => {
-      const ctrl = new AbortController();
-      const id = setTimeout(() => ctrl.abort(), ms);
-      return fetch(url, {signal: ctrl.signal}).finally(() => clearTimeout(id));
-    };
     for (const proxyUrl of RSS_PROXIES) {
       try {
-        const url = typeof proxyUrl === 'object' ? proxyUrl.url : proxyUrl;
-        const res = await fetchTimeout(url);
+        const res = await fetch(proxyUrl);
         if (!res.ok) continue;
         const ct = res.headers.get('content-type') || '';
-        let txt = await res.text();
-        // allorigins /get retorna JSON com contents
-        if (ct.includes('json') || txt.trim().startsWith('{')) {
-          try { const w = JSON.parse(txt); txt = w.contents || w.data || txt; } catch(_) {}
+        if (ct.includes('json')) {
+          const w = await res.json();
+          xml = w.contents || w.data || null;
+        } else {
+          xml = await res.text();
         }
-        if (txt && txt.length > 200 && (txt.includes('<item') || txt.includes('<rss'))) {
-          xml = txt; break;
-        }
+        if (xml && xml.length > 100) break;
       } catch(e) { continue; }
     }
-    if (!xml) throw new Error('Não foi possível carregar as notícias — verifique sua conexão');
+    if (!xml) throw new Error('Não foi possível carregar o RSS — tente novamente em instantes');
+    // Parsear XML do RSS
     const parser = new DOMParser();
+    // Tentar como XML primeiro, fallback pra HTML
     let doc = parser.parseFromString(xml, 'text/xml');
     let items = [...doc.querySelectorAll('item')];
     if (!items.length) {
       doc = parser.parseFromString(xml, 'text/html');
       items = [...doc.querySelectorAll('item')];
     }
-    if (!items.length) throw new Error('Nenhum artigo encontrado no RSS');
-    items.sort((a,b) => new Date(b.querySelector('pubDate')?.textContent||0) - new Date(a.querySelector('pubDate')?.textContent||0));
-    newsItems = items.slice(0,12).map(item => {
-      const get = tag => item.querySelector(tag)?.textContent?.trim() || '';
-      const cats = [...item.querySelectorAll('category')].map(c => c.textContent.trim());
-      return { title: get('title'), titlePT: null, link: get('link')||get('guid'), pubDate: get('pubDate'), thumbnail: '', categories: cats, description: get('description').replace(/<[^>]+>/g,'').slice(0,160), descriptionPT: null };
-    });
+    // Fallback: extrair via regex se DOMParser falhar
+    if (!items.length) {
+      const itemMatches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)];
+      if (!itemMatches.length) throw new Error('Nenhum artigo encontrado no RSS');
+      newsItems = itemMatches.slice(0, 12).map(m => {
+        const block = m[1];
+        const getTag = tag => { const r = new RegExp(`<${tag}[^>]*><!\[CDATA\[([\s\S]*?)\]\]><\/${tag}>|<${tag}[^>]*>([\s\S]*?)<\/${tag}>`, 'i'); const x = block.match(r); return (x?.[1]||x?.[2]||'').trim(); };
+        const linkM = block.match(/<link>([^<]+)<\/link>/i) || block.match(/<guid[^>]*>([^<]+)<\/guid>/i);
+        const encM = block.match(/<enclosure[^>]+url="([^"]+)"/i);
+        const catM = [...block.matchAll(/<category[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/gi)].map(c=>c[1].trim());
+        const desc = getTag('description').replace(/<[^>]+>/g,'').slice(0,160);
+        return { title: getTag('title'), titlePT: null, link: linkM?.[1]||'', pubDate: getTag('pubDate'), thumbnail: encM?.[1]||'', categories: catM, description: desc, descriptionPT: null };
+      });
+    } else {
+      items.sort((a, b) => new Date(b.querySelector('pubDate')?.textContent||0) - new Date(a.querySelector('pubDate')?.textContent||0));
+    newsItems = items.slice(0, 12).map(item => {
+        const get = tag => item.querySelector(tag)?.textContent?.trim() || '';
+        const enclosure = item.querySelector('enclosure');
+        const thumb = enclosure?.getAttribute('url') || '';
+        const cats = [...item.querySelectorAll('category')].map(c => c.textContent.trim());
+        return { title: get('title'), titlePT: null, link: get('link') || get('guid'), pubDate: get('pubDate'), thumbnail: thumb, categories: cats, description: get('description').replace(/<[^>]+>/g,'').slice(0,160), descriptionPT: null };
+      });
+    }
     sessionStorage.setItem('kdrama_news', JSON.stringify({ items: newsItems, ts: Date.now() }));
     renderNoticias();
     if (btnTrad) btnTrad.style.display = 'inline-flex';
@@ -4720,11 +4520,11 @@ function filterBlog() {
         ${f['Kicker'] ? `<div style="font-size:.7rem;color:var(--gold);letter-spacing:.15em;opacity:.7">${f['Kicker']}</div>` : ''}
         <div class="blog-card-title">${f['Título'] || 'Sem título'}</div>
         ${excerpt ? `<div class="blog-card-excerpt">${excerpt}</div>` : ''}
-        <div style="margin-top:auto;padding-top:8px;display:flex;flex-direction:column;gap:6px">
-          ${f['Experiência'] ? expBadge(f['Experiência']) : ''}
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <div style="display:flex;gap:6px;flex-wrap:wrap">${tags.slice(0, 4).map(t => `<span class="blog-card-tag" style="cursor:pointer" onclick="event.stopPropagation();setSidebarTag('${t}')">${t}</span>`).join('')}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${tags.slice(0, 4).map(t => `<span class="blog-card-tag">${t}</span>`).join('')}</div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
             ${f['Nota'] ? `<div class="blog-card-nota">${parseFloat(f['Nota']).toFixed(1)}<span style="font-size:.8rem;color:var(--text3)">/10</span></div>` : ''}
+            ${expBadge(f['Experiência'])}
           </div>
         </div>
       </div>
@@ -4771,23 +4571,10 @@ function renderBlogSidebar() {
 // setSidebarTag movida para cima (fix duplicata)
 
 // ── NAVEGAR PARA DORAMA POR NOME ──────────────────────────
-async function navegarParaDorama(nome, id) {
-  // Se allSeries ainda não carregou, tenta carregar primeiro
-  if (!allSeries.length && apiKey) {
-    try {
-      const recs = await fetchTable(TABLES.series, { fields: ['Nome'] });
-      allSeries = recs;
-    } catch(_) {}
-  }
-  // Buscar por ID primeiro (mais preciso), depois por nome
-  let serie = id ? allSeries.find(s => s.id === id) : null;
-  if (!serie) {
-    // Busca flexível — ignora acentos, maiúsculas e espaços extras
-    const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
-    serie = allSeries.find(s => norm(s.fields['Nome']||'') === norm(nome));
-  }
+function navegarParaDorama(nome) {
+  const serie = allSeries.find(s => (s.fields['Nome'] || '').toLowerCase() === nome.toLowerCase());
   if (serie) navigate('dorama', serie.id);
-  else showToast(`Dorama "${nome}" não encontrado na sua lista`);
+  else showToast('Dorama não encontrado na sua lista');
 }
 
 
@@ -4804,6 +4591,8 @@ async function carregarOST(serieId, serieNome) {
     const allRecs = await fetchTable(TABLES.ost, {
       fields:['Nome da Faixa','Artista','URL do Youtube','Ordem','Dorama']
     });
+    console.log('serieId:', serieId);
+    console.log('allRecs:', allRecs.length, allRecs.map(r=>r.fields['Dorama']));
     const recs = allRecs.filter(r => (r.fields['Dorama']||[]).includes(serieId));
     if(!recs.length) { 
       // Tentar com o nome do dorama como fallback
@@ -4904,289 +4693,8 @@ function ostToggleList() {
   if(ostListOpen) ostRenderList();
 }
 
-
-
-// ── PÁGINA OST DEDICADA ───────────────────────────────────
-let ostCurrentSerieId = null;
-let ostPagePlaylist = [];
-let ostPageIdx = 0;
-
-async function renderOstPage(serieId) {
-  ostCurrentSerieId = serieId;
-  // Pegar nome do dorama
-  const serie = allSeries.find(s => s.id === serieId);
-  const serieNome = serie?.fields['Nome'] || '';
-  document.getElementById('ost-page-drama-name').textContent = serieNome;
-
-  // Reset visual
-  document.getElementById('ost-page-tracks').innerHTML = `<div style="padding:20px;color:var(--text3);font-size:.85rem">Carregando…</div>`;
-  document.getElementById('ost-page-video').innerHTML = `<div class="ost-video-placeholder"><span style="font-size:2rem">🎵</span><span>Selecione uma faixa para ouvir</span></div>`;
-
-  if (!TABLES.ost) { showToast('Tabela OST não configurada'); return; }
-
-  try {
-    const allRecs = await fetchTable(TABLES.ost, {
-      fields: ['Nome da Faixa', 'Artista', 'URL do Youtube', 'Ordem', 'Dorama', 'Letra']
-    });
-    const recs = allRecs.filter(r => (r.fields['Dorama'] || []).includes(serieId));
-    if (!recs.length) {
-      document.getElementById('ost-page-tracks').innerHTML = `<div style="padding:20px;color:var(--text3);font-size:.85rem;text-align:center">Nenhuma OST cadastrada ainda</div>`;
-      return;
-    }
-    ostPagePlaylist = recs.sort((a, b) => (a.fields['Ordem'] || 99) - (b.fields['Ordem'] || 99));
-    renderOstTracks();
-  } catch(e) {
-    document.getElementById('ost-page-tracks').innerHTML = `<div style="padding:20px;color:var(--red);font-size:.85rem">Erro: ${e.message}</div>`;
-  }
-}
-
-function renderOstTracks() {
-  const el = document.getElementById('ost-page-tracks');
-  if (!el) return;
-  el.innerHTML = ostPagePlaylist.map((r, i) => {
-    const f = r.fields;
-    return `<div class="ost-track-item ${i === ostPageIdx ? 'active' : ''}" onclick="ostPageTocar(${i})">
-      <span class="ost-track-num">${i === ostPageIdx ? '♪' : (i + 1)}</span>
-      <div class="ost-track-info">
-        <div class="ost-track-name">${f['Nome da Faixa'] || 'Faixa ' + (i + 1)}</div>
-        <div class="ost-track-artist">${f['Artista'] || ''}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function ostPageTocar(idx) {
-  ostPageIdx = idx;
-  const f = ostPagePlaylist[idx].fields;
-  const url = f['URL do Youtube'] || '';
-  const vid = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1] || '';
-
-  // Player de vídeo
-  const videoBox = document.getElementById('ost-page-video');
-  if (vid) {
-    videoBox.innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen style="width:100%;height:100%;border:none;display:block"></iframe>`;
-  } else {
-    videoBox.innerHTML = `<div class="ost-video-placeholder"><span style="font-size:2rem">🎵</span><span>Vídeo não disponível</span></div>`;
-  }
-
-
-
-  // Atualizar playlist visual
-  renderOstTracks();
-
-  // Renderizar letra se tiver
-  const tituloSecao = document.getElementById('ost-letra-section-title');
-if (tituloSecao) tituloSecao.innerHTML = '🎵 ' + (f['Nome da Faixa'] || 'Letra');
-const tituloCol = document.getElementById('ost-letra-col-titulo-musica');
-if (tituloCol) tituloCol.textContent = f['Nome da Faixa'] || 'Letra';
-const letra = f['Letra'];
-const secao = document.getElementById('ost-letra-section');
-  if (secao) {
-    if (letra) {
-      secao.style.display = 'block';
-      const hasHangul = letra.includes('[hangul]');
-      if (hasHangul) {
-        // Formato com tags
-        const get = tag => { const m = letra.match(new RegExp('\[' + tag + '\]([\s\S]*?)(?=\[|$)', 'i')); return (m?.[1]||'').trim(); };
-        const col = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
-        col('ost-col-hangul', get('hangul'));
-        col('ost-col-rom', get('romanizado'));
-        col('ost-col-trad', get('traducao'));
-        // Mostrar 3 colunas
-        const hw = document.getElementById('ost-col-hangul-wrap');
-        const rw = document.getElementById('ost-col-rom-wrap');
-        const tw = document.getElementById('ost-col-trad-wrap');
-        if (hw) hw.style.display = '';
-        if (rw) rw.style.display = '';
-        if (tw) tw.style.display = '';
-        const cols3 = document.getElementById('ost-letra-cols');
-        if (cols3) cols3.style.gridTemplateColumns = '';
-      } else {
-        // Formato livre (Letras.mus) — mostrar tudo em coluna única
-        const el = document.getElementById('ost-col-hangul');
-        if (el) {
-          // Transformar [titulo]...[/titulo] em span estilizado
-          // e primeira linha vazia separando blocos vira espaço
-          const formatted = letra
-            .replace(/\[titulo\](.*?)\[\/titulo\]/gi, '<span class="letra-titulo">$1</span>')
-            .split('\n').join('<br>');
-          // Primeira linha (antes da primeira quebra) vira título automático
-          const lines = letra.split('\n');
-          const primeiraLinha = lines[0].trim();
-          const resto = lines.slice(1).join('\n');
-          el.innerHTML = `<span class="letra-titulo">${primeiraLinha}</span><br>${resto.replace(/\n/g,'<br>')}`;
-        }
-        // Esconder colunas extras
-        const romWrap = document.getElementById('ost-col-rom-wrap');
-        const tradWrap = document.getElementById('ost-col-trad-wrap');
-        if (romWrap) romWrap.style.display = 'none';
-        if (tradWrap) tradWrap.style.display = 'none';
-        const cols = document.getElementById('ost-letra-cols');
-        if (cols) cols.style.gridTemplateColumns = '1fr';
-      }
-    } else {
-      secao.style.display = 'none';
-    }
-  }
-}
-
-
-
-
-
-// ── ANIVERSÁRIOS DO DIA ───────────────────────────────────
-function renderAniversarios() {
-  const section = document.getElementById('aniv-section');
-  const list = document.getElementById('aniv-list');
-  if (!section || !list || !allAtores.length) return;
-
-  const hoje = new Date();
-  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-  const dia = String(hoje.getDate()).padStart(2, '0');
-  const mdHoje = `${mes}-${dia}`; // formato MM-DD
-
-  const aniversariantes = allAtores.filter(a => {
-    const nasc = a.fields['Data de Nascimento'] || '';
-    if (!nasc) return false;
-    // nasc pode ser YYYY-MM-DD
-    const partes = nasc.split('-');
-    if (partes.length < 3) return false;
-    return `${partes[1]}-${partes[2]}` === mdHoje;
-  });
-
-  if (!aniversariantes.length) {
-    section.style.display = 'none';
-    return;
-  }
-
-  section.style.display = 'block';
-  list.innerHTML = aniversariantes.map(a => {
-    const f = a.fields;
-    const foto = f['Foto']?.[0]?.url || '';
-    const nome = f['Nome'] || '';
-    const nasc = f['Data de Nascimento'] || '';
-    const idade = nasc ? (hoje.getFullYear() - parseInt(nasc.split('-')[0])) + ' anos' : '';
-    return `<div class="aniv-item" onclick="navigate('ator','${a.id}')">
-      ${foto ? `<img class="aniv-foto" src="${foto}" loading="lazy">` : `<div class="aniv-foto" style="background:var(--surface2)"></div>`}
-      <span class="aniv-nome">${nome}</span>
-      ${idade ? `<span class="aniv-idade">${idade}</span>` : ''}
-    </div>`;
-  }).join('');
-}
-
-
-// ── RÁDIO K-DRAMA ─────────────────────────────────────────
-const ARCHIVE_ID = 'kdrama-osts';
-const ARCHIVE_BASE = `https://archive.org/download/${ARCHIVE_ID}/`;
-let radioPlaylist = [];
-let radioIdx = 0;
-let radioPlaying = false;
-let radioLoaded = false;
-
-async function radioCarregarPlaylist() {
-  if (radioLoaded) return;
-  try {
-    const res = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
-    const data = await res.json();
-    const mp3s = (data.files || []).filter(f => f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
-    if (!mp3s.length) return;
-    radioPlaylist = mp3s.map(f => ({
-      url: ARCHIVE_BASE + encodeURIComponent(f.name),
-      name: f.name.replace(/\.mp3$/i, '')
-    })).sort(() => Math.random() - 0.5);
-    radioLoaded = true;
-    document.getElementById('radio-track').textContent = radioPlaylist[0]?.name || '—';
-  } catch(e) { console.warn('Radio load error:', e); }
-}
-
-function radioPlay() {
-  if (!radioPlaylist.length) return;
-  const audio = document.getElementById('radio-audio');
-  const track = radioPlaylist[radioIdx];
-  audio.src = track.url;
-  audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
-  audio.play().catch(() => {});
-  audio.onended = () => radioNext();
-  radioPlaying = true;
-  document.getElementById('radio-play-btn').textContent = '⏸';
-  document.getElementById('radio-track').textContent = track.name;
-  document.getElementById('radio-dot').style.display = 'block';
-  document.getElementById('radio-status-txt').textContent = 'Ao vivo';
-}
-
-function radioStop() {
-  const audio = document.getElementById('radio-audio');
-  audio.pause();
-  audio.src = '';
-  radioPlaying = false;
-  document.getElementById('radio-play-btn').textContent = '▶';
-  document.getElementById('radio-dot').style.display = 'none';
-  document.getElementById('radio-status-txt').textContent = 'K-Drama OST Radio';
-}
-
-function radioToggle() {
-  if (radioPlaying) radioStop();
-  else { radioCarregarPlaylist().then(() => radioPlay()); }
-}
-
-function radioNext() {
-  radioIdx = (radioIdx + 1) % radioPlaylist.length;
-  radioPlay();
-}
-
-function radioSetVol(val) {
-  const audio = document.getElementById('radio-audio');
-  if (audio) audio.volume = parseFloat(val);
-}
-
-
-// ── POSIÇÃO DA CAPA DO POST ───────────────────────────────
-function togglePostCoverPanel(id) {
-  const panel = document.getElementById(`post-cover-panel-${id}`);
-  if (panel) panel.classList.toggle('open');
-}
-
-function setPostCoverPosSlider(id) {
-  const x = document.getElementById(`post-cover-x-${id}`)?.value || 50;
-  const y = document.getElementById(`post-cover-y-${id}`)?.value || 50;
-  const img = document.getElementById(`post-cover-img-${id}`);
-  if (img) img.style.objectPosition = `${x}% ${y}%`;
-  const xVal = document.getElementById(`post-cover-x-val-${id}`);
-  const yVal = document.getElementById(`post-cover-y-val-${id}`);
-  if (xVal) xVal.textContent = `${x}%`;
-  if (yVal) yVal.textContent = `${y}%`;
-  localStorage.setItem(`kdrama_postcoverpos_${id}`, `${x},${y}`);
-}
-
-function restorePostCoverPos(id) {
-  const saved = localStorage.getItem(`kdrama_postcoverpos_${id}`);
-  if (!saved) return;
-  const [x, y] = saved.split(',');
-  const img = document.getElementById(`post-cover-img-${id}`);
-  if (img) img.style.objectPosition = `${x}% ${y}%`;
-  const sx = document.getElementById(`post-cover-x-${id}`);
-  const sy = document.getElementById(`post-cover-y-${id}`);
-  if (sx) sx.value = x;
-  if (sy) sy.value = y;
-  const xVal = document.getElementById(`post-cover-x-val-${id}`);
-  const yVal = document.getElementById(`post-cover-y-val-${id}`);
-  if (xVal) xVal.textContent = `${x}%`;
-  if (yVal) yVal.textContent = `${y}%`;
-}
-
-
-function ostTogglePlaylist() {
-  const tracks = document.getElementById('ost-page-tracks');
-  const arrow = document.getElementById('ost-toggle-arrow');
-  if (!tracks) return;
-  const open = tracks.classList.contains('open');
-  tracks.classList.toggle('open', !open);
-  if (arrow) arrow.textContent = open ? '▼' : '▲';
-}
-
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
-radioCarregarPlaylist();
 setInterval(() => carregarNoticias(true), 60 * 60 * 1000);
 if (!isOwner()) {
   document.querySelectorAll('.edit-toggle').forEach(el => el.style.display='none');
@@ -5716,8 +5224,6 @@ function cardContextMenu(e, page, id) {
             <button class="blog-tool" onclick="bfWrap('**','**')"><b>B</b></button>
             <button class="blog-tool" onclick="bfWrap('*','*')"><i>I</i></button>
             <button class="blog-tool" onclick="bfInsert('> ')">❝</button>
-            <button class="blog-tool" onclick="bfWrapFonte('small')" title="Texto pequeno">P</button>
-            <button class="blog-tool" onclick="bfWrapFonte('large')" title="Texto grande" style="font-size:1rem;font-weight:700">G</button>
             <button class="blog-tool" onclick="bfInsert('\n---spoiler---\n\n---fim-spoiler---\n')">🔒 Spoiler</button>
             <button class="blog-tool" onclick="bfInsertImagem()">🖼 URL</button>
             <button class="blog-tool" onclick="bfInsertImagemUpload()">⬆ Upload</button>
@@ -5777,29 +5283,6 @@ function cardContextMenu(e, page, id) {
       allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
       allowfullscreen
       style="border:none;border-radius:12px;display:block"></iframe>
-  </div>
-</div>
-
-
-<!-- RÁDIO K-DRAMA - RODAPÉ -->
-<div id="radio-footer">
-  <div class="radio-footer-bar">
-    <span class="radio-label">K·RADIO</span>
-    <div class="radio-sep"></div>
-    <button class="radio-play-btn" id="radio-play-btn" onclick="radioToggle()">▶</button>
-    <div class="radio-track-info">
-      <div class="radio-track-name" id="radio-track">Carregando OSTs…</div>
-      <div class="radio-track-status">
-        <span class="radio-live-dot" id="radio-dot"></span>
-        <span id="radio-status-txt">K-Drama OST Radio</span>
-      </div>
-    </div>
-    <button class="radio-next-btn" onclick="radioNext()" title="Próxima">⏭</button>
-    <div class="radio-vol-wrap">
-      <span style="font-size:.75rem;color:var(--text3)">🔊</span>
-      <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
-    </div>
-    <audio id="radio-audio" preload="none"></audio>
   </div>
 </div>
 
