@@ -1973,7 +1973,12 @@ async function renderDorama(id){
 
     const _bposAT = f['Banner Position'];
 const _burlAT = f['Banner URL'];
+const _bposAT = f['Banner Position'];
+const _burlAT = f['Banner URL'];
 const bannerPos = _bposAT || localStorage.getItem(`kdramabannerpos${id}`) || '50 30';
+const savedBannerUrl = _burlAT || localStorage.getItem(`kdramabannerurl${id}`);
+if (_bposAT) localStorage.setItem(`kdramabannerpos${id}`, _bposAT);
+if (_burlAT) localStorage.setItem(`kdramabannerurl${id}`, _burlAT);
 const savedBannerUrl = _burlAT || localStorage.getItem(`kdramabannerurl${id}`);
 if (_bposAT) localStorage.setItem(`kdramabannerpos${id}`, _bposAT);
 if (_burlAT) localStorage.setItem(`kdramabannerurl${id}`, _burlAT);
@@ -2166,10 +2171,6 @@ function saveBannerPos(){
   const tipo = currentSerie ? 'dorama' : 'ator';
   bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
   showToast('Posição salva ✓');
-if (isOwner()) {
-    const urlAtual = localStorage.getItem(`kdramabannerurl${currentRecordId}`) || null;
-    patchRecord(TABLES.series, currentRecordId, {'Banner Position': pos, ...(urlAtual && {'Banner URL': urlAtual})}).catch(()=>{});
-}
 }
 
 async function changeBannerUrl(){
@@ -2185,10 +2186,6 @@ async function changeBannerUrl(){
   const tipo = currentSerie ? 'dorama' : 'ator';
   bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
   showToast('Imagem salva ✓');
-if (isOwner()) {
-    const posAtual = localStorage.getItem(`kdramabannerpos${currentRecordId}`) || '50 30';
-    patchRecord(TABLES.series, currentRecordId, {'Banner URL': url, 'Banner Position': posAtual}).catch(()=>{});
-}
 }
 
 // ── NEW DRAMA MODAL ───────────────────────────────────────
