@@ -1971,8 +1971,10 @@ async function renderDorama(id){
       <div class="tmdb-results" id="tmdb-results"></div>
     </div>`;
 
-    const bannerPos = localStorage.getItem(`kdrama_bannerpos_${id}`) || '50% 30%';
-    const savedBannerUrl = localStorage.getItem(`kdrama_bannerurl_${id}`);
+    const bannerPos = f['Banner Position'] || localStorage.getItem(`kdrama_bannerpos_${id}`) || '50% 30%';
+    const savedBannerUrl = f['Banner URL'] || localStorage.getItem(`kdrama_bannerurl_${id}`);
+    if (f['Banner Position']) localStorage.setItem(`kdrama_bannerpos_${id}`, f['Banner Position']);
+    if (f['Banner URL']) localStorage.setItem(`kdrama_bannerurl_${id}`, f['Banner URL']);
     const bannerSrc = savedBannerUrl || photo;
 
     content.innerHTML=`
