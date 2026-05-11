@@ -1177,11 +1177,11 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           <div id="ost-letra-section" style="display:none" class="ost-letra-section">
             <div class="ost-letra-cols" id="ost-letra-cols">
               <div id="ost-col-hangul-wrap">
-                <div class="ost-letra-col-title">Letra</div>
+                <div class="ost-letra-section-title" id="ost-letra-section-title">🎵 Letra</div>
                 <div class="ost-letra-col-text" id="ost-col-hangul"></div>
               </div>
               <div id="ost-col-rom-wrap" style="display:none">
-                <div class="ost-letra-col-title">Romanizado</div>
+                <div class="ost-letra-col-title" id="ost-letra-col-titulo-musica">Letra</div>
                 <div class="ost-letra-col-text" id="ost-col-rom"></div>
               </div>
               <div id="ost-col-trad-wrap" style="display:none">
@@ -4966,8 +4966,12 @@ function ostPageTocar(idx) {
   renderOstTracks();
 
   // Renderizar letra se tiver
-  const letra = f['Letra'] || '';
-  const secao = document.getElementById('ost-letra-section');
+  const tituloSecao = document.getElementById('ost-letra-section-title');
+if (tituloSecao) tituloSecao.innerHTML = '🎵 ' + (f['Nome da Faixa'] || 'Letra');
+const tituloCol = document.getElementById('ost-letra-col-titulo-musica');
+if (tituloCol) tituloCol.textContent = f['Nome da Faixa'] || 'Letra';
+const letra = f['Letra'];
+const secao = document.getElementById('ost-letra-section');
   if (secao) {
     if (letra) {
       secao.style.display = 'block';
