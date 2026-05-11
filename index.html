@@ -1204,7 +1204,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <h2 class="page-heading">Direção <em>&</em> Roteiro</h2>
       <p class="actors-sub">Os criadores por trás de cada história</p>
       <div class="search-bar-wrap">
-        <span class="search-icon">🔍</span>
+        <div class="search-icon">🔍</div>
         <input type="text" class="search-bar" id="dir-search" placeholder="Buscar diretores e roteiristas…" oninput="filterDirecao(this.value)">
       </div>
     </div>
@@ -5347,12 +5347,10 @@ function filterDirecao(q) {
     const f = d.fields;
     const foto = Array.isArray(f['Foto']) ? f['Foto'][0]?.url : f['Foto'];
     return `<div class="actor-card" onclick="navigate('diretor','${d.id}')" style="animation-delay:${i*0.03}s">
-      <div class="actor-card-img-wrap">
-        ${foto ? `<img src="${foto}" class="actor-card-img" loading="lazy">` : `<div class="actor-card-img" style="display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--surface2)">🎬</div>`}
-      </div>
-      <div class="actor-card-info">
-        <div class="actor-card-name">${f['Nome'] || '—'}</div>
-        ${f['Tipo'] ? `<div class="actor-card-role">${f['Tipo']}</div>` : ''}
+      ${foto ? `<img class="actor-photo" src="${foto}" alt="${f['Nome']||''}" loading="lazy">` : `<div class="actor-photo-placeholder">🎬</div>`}
+      <div class="actor-info">
+        <div class="actor-name">${f['Nome'] || '—'}</div>
+        ${f['Tipo'] ? `<div style="font-size:.73rem;color:var(--text3);margin-bottom:2px">${f['Tipo']}</div>` : ''}
       </div>
     </div>`;
   }).join('');
