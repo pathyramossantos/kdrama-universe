@@ -1704,6 +1704,7 @@ async function createRecord(tableId,fields){
 }
 
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas
+const CACHE_VERSION = 'v3'; // Incrementar quando fields mudarem
 
 async function loadAllData(){
   if(!apiKey) return;
@@ -1712,8 +1713,8 @@ async function loadAllData(){
   try{
     const cached = localStorage.getItem('kdrama_cache');
     if(cached){
-      const {data, ts} = JSON.parse(cached);
-      if(Date.now() - ts < CACHE_TTL){
+      const {data, ts, v} = JSON.parse(cached);
+      if(v === CACHE_VERSION && Date.now() - ts < CACHE_TTL){
         allSeries=data.series; allAtores=data.atores;
         allElenco=data.elenco; allPlataformas=data.plataformas;
         populatePlatformFilter();
@@ -1729,7 +1730,7 @@ async function loadAllData(){
               fetchTable(TABLES.plataformas, {fields:['Nome','Logo','Séries']})
             ]);
             allSeries=s; allAtores=a; allElenco=e; allPlataformas=p;
-            localStorage.setItem('kdrama_cache', JSON.stringify({data:{series:s,atores:a,elenco:e,plataformas:p},ts:Date.now()}));
+            localStorage.setItem('kdrama_cache', JSON.stringify({v:CACHE_VERSION,data:{series:s,atores:a,elenco:e,plataformas:p},ts:Date.now(),v:CACHE_VERSION}));
           } catch(_){}
         }, 3000);
         return;
@@ -5369,7 +5370,8 @@ function setDirTipo(tipo) {
 async function renderDiretor(id) {
   const detail = document.getElementById('diretor-detail');
   if (!detail) return;
-  detail.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+  detail.innerHTML = '<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>';
+
   let dir = allDirecao.find(d => d.id === id);
   if (!dir) {
     try {
@@ -5385,55 +5387,100 @@ async function renderDiretor(id) {
   const foto = Array.isArray(f['Foto']) ? f['Foto'][0]?.url : f['Foto'];
   const tipo = f['Tipo'] || '';
 
-  // Buscar doramas onde aparece como diretor ou roteirista
+  // Buscar doramas vinculados
   if (!allSeries.length && apiKey) {
-    try {
-      allSeries = await fetchTable(TABLES.series, {fields:['Nome','Capa','Ano Lançamento','Diretores','Roteiristas']});
-    } catch(_) {}
+    try { allSeries = await fetchTable(TABLES.series, {fields:['Nome','Capa','Ano Lançamento','Diretores','Roteiristas']}); } catch(_) {}
   }
   const vinculados = allSeries.filter(s =>
     (s.fields['Diretores'] || []).includes(dir.id) ||
     (s.fields['Roteiristas'] || []).includes(dir.id)
   );
-  const doramaCards = vinculados.map(s => {
-    const sf = s.fields;
-    const capa = getPhoto(s);
-    return `<div class="drama-card" onclick="navigate('dorama','${s.id}')" style="max-width:160px">
-      <div class="card-img-wrap"><img src="${capa}" loading="lazy" class="card-img"></div>
-      <div class="card-info">
-        <div class="card-title">${sf['Nome']||'—'}</div>
-        <div class="card-year">${sf['Ano Lançamento']||''}</div>
+
+  const filmografiaHTML = vinculados.length ? `
+    <div class="actor-detail-section">
+      <div class="section-title">Filmografia em K-Dramas</div>
+      <div class="filmografia-grid">
+        ${vinculados.map(s => {
+          const sf = s.fields;
+          const capa = getPhoto(s);
+          const papel = (s.fields['Diretores']||[]).includes(dir.id) ? 'Diretor' : 'Roteirista';
+          return `<div class="filmografia-card" onclick="navigate('dorama','${s.id}')" style="cursor:pointer">
+            <div class="filmografia-poster">
+              ${capa ? `<img src="${capa}" alt="${sf['Nome']||''}" loading="lazy">` : `<div class="cast-photo-placeholder" style="font-size:1.2rem;aspect-ratio:2/3">드</div>`}
+            </div>
+            <div class="filmografia-info">
+              <div class="filmografia-serie">${sf['Nome']||'—'}</div>
+              ${sf['Ano Lançamento'] ? `<div class="filmografia-ano">${sf['Ano Lançamento']}</div>` : ''}
+              <div class="filmografia-badges">
+                <span class="badge badge-exp" style="font-size:.6rem">${papel.toUpperCase()}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
       </div>
-    </div>`;
-  }).join('');
+    </div>` : `<div class="actor-detail-section"><p style="color:var(--text3);font-size:.85rem;font-style:italic">Nenhum dorama vinculado ainda</p></div>`;
+
+  // Banner
+  const dirBannerPos = localStorage.getItem(`kdrama_dirbanner_pos_${id}`) || '50% 20%';
+  const dirBannerUrl = localStorage.getItem(`kdrama_dirbanner_url_${id}`);
+  const dirBannerSrc = dirBannerUrl || foto;
 
   detail.innerHTML = `
-    <div class="detail-banner" style="background:linear-gradient(to bottom,var(--bg2),var(--bg))">
-      ${foto ? `<img src="${foto}" class="banner-img" style="object-position:center top;opacity:.3">` : ''}
-      <div class="detail-banner-content">
-        <button class="back-btn" onclick="navigate('direcao')">← Voltar</button>
-        <div style="display:flex;align-items:flex-end;gap:24px;margin-top:32px">
-          ${foto
-            ? `<img src="${foto}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-dim);flex-shrink:0">`
-            : `<div style="width:100px;height:100px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:2.5rem;flex-shrink:0">🎬</div>`}
-          <div>
-            ${tipo ? `<div style="font-size:.7rem;font-weight:700;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px">${tipo}</div>` : ''}
-            <h1 class="detail-title">${f['Nome'] || '—'}</h1>
-            ${f['Nome Estrangeiro'] ? `<div class="detail-subtitle">${f['Nome Estrangeiro']}</div>` : ''}
-            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-              ${f['Instagram'] ? `<a href="${f['Instagram']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg> Instagram</a>` : ''}
-              ${f['Site'] ? `<a href="${f['Site']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Site</a>` : ''}
-            </div>
-          </div>
+    <div class="banner-controls" id="banner-controls" style="display:none">
+      <div class="banner-ctrl-group">
+        <label class="banner-ctrl-label">↕ Posição Vertical</label>
+        <input type="range" id="banner-pos-y" min="0" max="100" value="${parseInt(dirBannerPos.split(' ')[1]||'20')}" oninput="dirUpdateBannerPos('${id}')" class="banner-slider">
+      </div>
+      <div class="banner-ctrl-group">
+        <label class="banner-ctrl-label">↔ Posição Horizontal</label>
+        <input type="range" id="banner-pos-x" min="0" max="100" value="${parseInt(dirBannerPos.split(' ')[0]||'50')}" oninput="dirUpdateBannerPos('${id}')" class="banner-slider">
+      </div>
+      <button class="btn-gold btn-sm" onclick="dirSaveBannerPos('${id}')">Salvar Posição</button>
+      <div class="banner-ctrl-sep"></div>
+      <div class="banner-ctrl-group" style="flex:1;min-width:240px">
+        <label class="banner-ctrl-label">🖼 Trocar Imagem (URL ou Upload)</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="banner-url-input" class="tmdb-input" placeholder="https://…" style="font-size:.78rem;flex:1">
+          <button class="btn-gold btn-sm" onclick="dirChangeBannerUrl('${id}')">Aplicar</button>
+          <label class="btn-outline btn-sm" style="cursor:pointer;display:flex;align-items:center;gap:4px">
+            📁<input type="file" accept="image/*" style="display:none" onchange="dirUploadBannerImg(this,'${id}')">
+          </label>
+          <button class="btn-outline btn-sm" onclick="dirResetBannerUrl('${id}')" title="Voltar foto original">↺</button>
         </div>
       </div>
     </div>
-    <div class="detail-content">
-      ${f['Biografia'] ? `<div class="actor-detail-section"><div class="section-title">Biografia</div><p style="color:var(--text2);line-height:1.8;font-size:.92rem">${f['Biografia']}</p></div>` : ''}
-      ${doramaCards ? `<div class="actor-detail-section"><div class="section-title">Doramas</div><div style="display:flex;flex-wrap:wrap;gap:16px">${doramaCards}</div></div>` : '<div class="actor-detail-section"><div class="section-title">Doramas</div><p style="color:var(--text3);font-size:.85rem;font-style:italic">Nenhum dorama vinculado ainda</p></div>'}
-    </div>`;
-}
 
+    <div class="detail-banner" id="detail-banner">
+      ${dirBannerSrc ? `<img id="banner-img" src="${dirBannerSrc}" alt="${f['Nome']||''}" style="object-position:${dirBannerPos}">` : `<div class="detail-banner-placeholder">🎬</div>`}
+      <div class="detail-banner-grad"></div>
+      <div class="detail-banner-content">
+        ${isOwner() ? `<button class="edit-toggle" style="background:rgba(10,10,12,.6);backdrop-filter:blur(10px)" onclick="toggleEditMode()">✏️ Editar</button>` : ''}
+        <button class="back-btn" onclick="navigate('direcao')">← Direção & Roteiro</button>
+        <h1 class="detail-title">${f['Nome'] || '—'}</h1>
+        ${f['Nome Estrangeiro'] ? `<div style="font-family:'Noto Serif KR',serif;font-size:1.1rem;color:rgba(255,255,255,.6);margin:-8px 0 10px">${f['Nome Estrangeiro']}</div>` : ''}
+        <div class="detail-badges">
+          ${tipo ? `<span class="badge badge-exp">${tipo}</span>` : ''}
+          ${vinculados.length ? `<span class="badge badge-status-concluido">${vinculados.length} dorama${vinculados.length>1?'s':''} no catálogo</span>` : ''}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          ${f['Instagram'] ? `<a href="${f['Instagram']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none">📸 Instagram</a>` : ''}
+          ${f['Site'] ? `<a href="${f['Site']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none">🌐 Site</a>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div style="max-width:1100px;margin:0 auto;padding:40px clamp(16px,4vw,48px);display:grid;grid-template-columns:280px 1fr;gap:40px" class="ator-body-grid">
+      <div>
+        ${foto ? `<img src="${foto}" alt="${f['Nome']||''}" style="width:100%;border-radius:var(--card-r);box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid var(--border);object-fit:cover;aspect-ratio:3/4">` : ''}
+      </div>
+      <div>
+        ${filmografiaHTML}
+      </div>
+    </div>`;
+
+  setTimeout(() => applyEditModeToDOM(), 100);
+  setTimeout(() => applyEditModeToDOM(), 500);
+}
 
 
 // ── BANNER DIRETOR ────────────────────────────────────────
