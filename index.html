@@ -1189,7 +1189,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <div class="letras-input-wrap">
         <div class="letras-field">
           <label class="letras-label">Hangul (letra original em coreano)</label>
-          <textarea class="letras-textarea" id="letras-hangul" placeholder="하필 또 그 자리에 네가 와 있었어&#10;그때의 나는 아직도 너를 사랑했으니까&#10;..."></textarea>
+          <textarea class="letras-textarea" id="letras-hangul" placeholder="Cole aqui o Hangul puro, ou o texto do Letras.mus com Hangul e romanização intercalados…"></textarea>
         </div>
       </div>
 
@@ -5166,51 +5166,72 @@ function restorePostCoverPos(id) {
 
 // ── ASSISTENTE DE LETRAS ──────────────────────────────────
 async function letrasProcessar() {
-  const hangul = document.getElementById('letras-hangul')?.value.trim();
-  if (!hangul) { showToast('Cole o Hangul primeiro'); return; }
+  const input = document.getElementById('letras-hangul')?.value.trim();
+  if (!input) { showToast('Cole a letra primeiro'); return; }
 
   const status = document.getElementById('letras-status');
   const result = document.getElementById('letras-result');
   status.style.display = 'flex';
   result.style.display = 'none';
-  document.getElementById('letras-status-txt').textContent = 'Romanizando…';
+  document.getElementById('letras-status-txt').textContent = 'Processando…';
 
   try {
-    const sys = `Você é um especialista em coreano e K-pop. Responda APENAS com JSON, sem markdown, sem explicações.`;
+    const sys = `Você é um especialista em coreano e K-pop. Analise o texto fornecido e retorne APENAS um objeto JSON válido, sem markdown, sem explicações, sem texto adicional.`;
 
-    const prompt = `Dada esta letra em coreano (Hangul):
+    const prompt = `Analise esta letra (pode conter Hangul, romanização ou mistura dos dois):
 
-${hangul}
+${input}
 
-Retorne um JSON com exatamente estas chaves:
+Identifique o que é Hangul e o que é romanização (se houver).
+Retorne um JSON com estas chaves:
 {
-  "romanizado": "a letra romanizada linha por linha, mantendo as mesmas quebras de linha",
-  "traducao": "a tradução para português brasileiro linha por linha, mantendo as mesmas quebras de linha"
+  "hangul": "apenas as linhas em Hangul (caracteres coreanos), mantendo quebras de linha originais",
+  "romanizado": "a romanização completa linha por linha (extraia se já existir, ou gere a partir do Hangul)",
+  "traducao": "a tradução para português brasileiro linha por linha, poética e natural"
 }
 
-IMPORTANTE: mantenha exatamente o mesmo número de linhas em cada versão.`;
+Se o texto já tiver romanização intercalada (linha hangul, linha romanização alternadas), separe-as.
+Retorne APENAS o JSON, nada mais.`;
 
-    document.getElementById('letras-status-txt').textContent = 'Traduzindo…';
     const resposta = await callClaude(prompt, sys);
-    
+
     let dados;
     try {
-      const clean = resposta.replace(/```json|```/g, '').trim();
-      dados = JSON.parse(clean);
+      // Tentar extrair JSON mesmo com texto ao redor
+      const jsonMatch = resposta.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('sem JSON');
+      dados = JSON.parse(jsonMatch[0]);
     } catch(e) {
-      throw new Error('Erro ao interpretar resposta da IA. Tente novamente.');
+      // Fallback: tratar a resposta como texto simples e pedir de novo
+      const sys2 = `Responda APENAS com JSON válido.`;
+      const prompt2 = `Converta para JSON com as chaves "hangul", "romanizado" e "traducao":
+
+${resposta}`;
+      try {
+        const r2 = await callClaude(prompt2, sys2);
+        const m2 = r2.match(/\{[\s\S]*\}/);
+        dados = JSON.parse(m2[0]);
+      } catch(_) {
+        throw new Error('Não foi possível processar. Tente com só o Hangul.');
+      }
     }
 
+    const hangulOut = dados.hangul || input;
     const rom = dados.romanizado || '';
     const trad = dados.traducao || '';
 
-    // Atualizar preview
-    document.getElementById('letras-preview-hangul').textContent = hangul;
+    document.getElementById('letras-preview-hangul').textContent = hangulOut;
     document.getElementById('letras-preview-rom').textContent = rom;
     document.getElementById('letras-preview-trad').textContent = trad;
 
-    // Gerar formato pro Airtable
-    const output = `[hangul]\n${hangul}\n\n[romanizado]\n${rom}\n\n[traducao]\n${trad}`;
+    const output = `[hangul]
+${hangulOut}
+
+[romanizado]
+${rom}
+
+[traducao]
+${trad}`;
     document.getElementById('letras-output').textContent = output;
 
     status.style.display = 'none';
