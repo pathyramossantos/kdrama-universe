@@ -4952,22 +4952,30 @@ function ostPageTocar(idx) {
   if (secao) {
     if (letra) {
       secao.style.display = 'block';
-      // Detectar formato com tags ou texto puro
       const hasHangul = letra.includes('[hangul]');
       if (hasHangul) {
-        const get = (tag) => {
-          const m = letra.match(new RegExp('\\[' + tag + '\\]([\\s\\S]*?)(?=\\[|$)', 'i'));
-          return (m?.[1] || '').trim();
-        };
+        // Formato com tags
+        const get = tag => { const m = letra.match(new RegExp('\[' + tag + '\]([\s\S]*?)(?=\[|$)', 'i')); return (m?.[1]||'').trim(); };
         const col = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
         col('ost-col-hangul', get('hangul'));
         col('ost-col-rom', get('romanizado'));
         col('ost-col-trad', get('traducao'));
+        // Mostrar 3 colunas
+        document.getElementById('ost-col-hangul').parentElement.style.display = '';
+        document.getElementById('ost-col-rom').parentElement.style.display = '';
+        document.getElementById('ost-col-trad').parentElement.style.display = '';
       } else {
-        // Texto puro — mostrar tudo no primeiro campo
-        document.getElementById('ost-col-hangul').textContent = letra;
-        document.getElementById('ost-col-rom').textContent = '';
-        document.getElementById('ost-col-trad').textContent = '';
+        // Formato livre (Letras.mus) — mostrar tudo em coluna única
+        const el = document.getElementById('ost-col-hangul');
+        if (el) el.textContent = letra;
+        // Esconder colunas de romanizado e tradução
+        const romEl = document.getElementById('ost-col-rom');
+        const tradEl = document.getElementById('ost-col-trad');
+        if (romEl) romEl.parentElement.style.display = 'none';
+        if (tradEl) tradEl.parentElement.style.display = 'none';
+        // Expandir coluna única
+        const cols = document.querySelector('.ost-letra-cols');
+        if (cols) cols.style.gridTemplateColumns = '1fr';
       }
     } else {
       secao.style.display = 'none';
