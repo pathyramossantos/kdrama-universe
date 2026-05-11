@@ -914,7 +914,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     <a data-page="atores" onclick="navigate('atores')">Atores</a>
     <a data-page="blog" onclick="navigate('blog')">Blog</a>
     <a data-page="config" onclick="navigate('config')" id="nav-config">Configurações</a>
-    <a data-page="letras" onclick="navigate('letras')" id="nav-letras" style="display:none">🎵 Letras</a>
     <button id="theme-btn" title="Alternar tema">☀</button>
   </div>
   <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
@@ -1172,61 +1171,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             </div>
           </div>
 
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- PÁGINA LETRAS (só para owner) -->
-  <div class="page" id="page-letras">
-    <div class="letras-wrap">
-      <div class="letras-header">
-        <h1 class="letras-title">🎵 Assistente de Letras</h1>
-        <p class="letras-sub">Cole o Hangul e a IA romaniza e traduz automaticamente</p>
-      </div>
-
-      <div class="letras-input-wrap">
-        <div class="letras-field">
-          <label class="letras-label">Hangul (letra original em coreano)</label>
-          <textarea class="letras-textarea" id="letras-hangul" placeholder="Cole aqui o Hangul puro, ou o texto do Letras.mus com Hangul e romanização intercalados…"></textarea>
-        </div>
-      </div>
-
-      <div class="letras-btn-bar">
-        <button class="btn-gold" onclick="letrasProcessar()">✨ Romanizar e Traduzir</button>
-        <button class="btn-outline" onclick="letrasLimpar()">Limpar</button>
-      </div>
-
-      <div id="letras-status" style="display:none" class="letras-loading">
-        <span class="spinner" style="width:16px;height:16px;display:inline-block;border-width:2px"></span>
-        <span id="letras-status-txt">Processando com IA…</span>
-      </div>
-
-      <div id="letras-result" style="display:none">
-        <div class="letras-result">
-          <div class="letras-result-header">
-            <span class="letras-result-title">Preview</span>
-            <button class="btn-outline btn-sm" onclick="letrasCopiar()">📋 Copiar pro Airtable</button>
-          </div>
-          <div class="letras-result-body">
-            <div class="letras-cols">
-              <div>
-                <div class="letras-col-title">한국어 Hangul</div>
-                <div class="letras-col-text" id="letras-preview-hangul"></div>
-              </div>
-              <div>
-                <div class="letras-col-title">Romanizado</div>
-                <div class="letras-col-text" id="letras-preview-rom"></div>
-              </div>
-              <div>
-                <div class="letras-col-title">Tradução PT</div>
-                <div class="letras-col-text" id="letras-preview-trad"></div>
-              </div>
-            </div>
-            <div style="margin-top:16px;font-size:.75rem;color:var(--text3);margin-bottom:6px">Formato gerado (para colar no Airtable):</div>
-            <div class="letras-output" id="letras-output"></div>
-          </div>
         </div>
       </div>
     </div>
@@ -5005,17 +4949,29 @@ function ostPageTocar(idx) {
   // Renderizar letra se tiver
   const letra = f['Letra'] || '';
   const secao = document.getElementById('ost-letra-section');
-  if (letra && secao) {
-    secao.style.display = 'block';
-    const hangulMatch = letra.match(/\[hangul\]([\s\S]*?)(?=\[romanizado\]|\[traducao\]|$)/i);
-    const romMatch = letra.match(/\[romanizado\]([\s\S]*?)(?=\[hangul\]|\[traducao\]|$)/i);
-    const tradMatch = letra.match(/\[traducao\]([\s\S]*?)(?=\[hangul\]|\[romanizado\]|$)/i);
-    const col = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = (txt||'').trim(); };
-    col('ost-col-hangul', hangulMatch?.[1]);
-    col('ost-col-rom', romMatch?.[1]);
-    col('ost-col-trad', tradMatch?.[1]);
-  } else if (secao) {
-    secao.style.display = 'none';
+  if (secao) {
+    if (letra) {
+      secao.style.display = 'block';
+      // Detectar formato com tags ou texto puro
+      const hasHangul = letra.includes('[hangul]');
+      if (hasHangul) {
+        const get = (tag) => {
+          const m = letra.match(new RegExp('\\[' + tag + '\\]([\\s\\S]*?)(?=\\[|$)', 'i'));
+          return (m?.[1] || '').trim();
+        };
+        const col = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+        col('ost-col-hangul', get('hangul'));
+        col('ost-col-rom', get('romanizado'));
+        col('ost-col-trad', get('traducao'));
+      } else {
+        // Texto puro — mostrar tudo no primeiro campo
+        document.getElementById('ost-col-hangul').textContent = letra;
+        document.getElementById('ost-col-rom').textContent = '';
+        document.getElementById('ost-col-trad').textContent = '';
+      }
+    } else {
+      secao.style.display = 'none';
+    }
   }
 }
 
@@ -5164,96 +5120,6 @@ function restorePostCoverPos(id) {
 }
 
 
-// ── ASSISTENTE DE LETRAS ──────────────────────────────────
-async function letrasProcessar() {
-  const input = document.getElementById('letras-hangul')?.value.trim();
-  if (!input) { showToast('Cole a letra primeiro'); return; }
-
-  const status = document.getElementById('letras-status');
-  const result = document.getElementById('letras-result');
-  status.style.display = 'flex';
-  result.style.display = 'none';
-  document.getElementById('letras-status-txt').textContent = 'Processando…';
-
-  try {
-    const sys = `Você é um especialista em coreano e K-pop. Analise o texto fornecido e retorne APENAS um objeto JSON válido, sem markdown, sem explicações, sem texto adicional.`;
-
-    const prompt = `Analise esta letra (pode conter Hangul, romanização ou mistura dos dois):
-
-${input}
-
-Identifique o que é Hangul e o que é romanização (se houver).
-Retorne um JSON com estas chaves:
-{
-  "hangul": "apenas as linhas em Hangul (caracteres coreanos), mantendo quebras de linha originais",
-  "romanizado": "a romanização completa linha por linha (extraia se já existir, ou gere a partir do Hangul)",
-  "traducao": "a tradução para português brasileiro linha por linha, poética e natural"
-}
-
-Se o texto já tiver romanização intercalada (linha hangul, linha romanização alternadas), separe-as.
-Retorne APENAS o JSON, nada mais.`;
-
-    const resposta = await callClaude(prompt, sys);
-
-    let dados;
-    try {
-      // Tentar extrair JSON mesmo com texto ao redor
-      const jsonMatch = resposta.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('sem JSON');
-      dados = JSON.parse(jsonMatch[0]);
-    } catch(e) {
-      // Fallback: tratar a resposta como texto simples e pedir de novo
-      const sys2 = `Responda APENAS com JSON válido.`;
-      const prompt2 = `Converta para JSON com as chaves "hangul", "romanizado" e "traducao":
-
-${resposta}`;
-      try {
-        const r2 = await callClaude(prompt2, sys2);
-        const m2 = r2.match(/\{[\s\S]*\}/);
-        dados = JSON.parse(m2[0]);
-      } catch(_) {
-        throw new Error('Não foi possível processar. Tente com só o Hangul.');
-      }
-    }
-
-    const hangulOut = dados.hangul || input;
-    const rom = dados.romanizado || '';
-    const trad = dados.traducao || '';
-
-    document.getElementById('letras-preview-hangul').textContent = hangulOut;
-    document.getElementById('letras-preview-rom').textContent = rom;
-    document.getElementById('letras-preview-trad').textContent = trad;
-
-    const output = `[hangul]
-${hangulOut}
-
-[romanizado]
-${rom}
-
-[traducao]
-${trad}`;
-    document.getElementById('letras-output').textContent = output;
-
-    status.style.display = 'none';
-    result.style.display = 'block';
-    showToast('✓ Letra processada!');
-  } catch(e) {
-    status.style.display = 'none';
-    showToast('Erro: ' + e.message);
-  }
-}
-
-function letrasLimpar() {
-  document.getElementById('letras-hangul').value = '';
-  document.getElementById('letras-result').style.display = 'none';
-}
-
-function letrasCopiar() {
-  const output = document.getElementById('letras-output')?.textContent;
-  if (!output) return;
-  navigator.clipboard.writeText(output).then(() => showToast('📋 Copiado!'));
-}
-
 function ostTogglePlaylist() {
   const tracks = document.getElementById('ost-page-tracks');
   const arrow = document.getElementById('ost-toggle-arrow');
@@ -5272,8 +5138,6 @@ if (!isOwner()) {
   const nc = document.getElementById('nav-config'); if(nc) nc.style.display='none';
   const nb = document.querySelector('[onclick="openBlogForm()"]'); if(nb) nb.style.display='none';
   document.querySelectorAll('.btn-new-drama').forEach(el => el.style.display='none');
-} else {
-  const nl = document.getElementById('nav-letras'); if(nl) nl.style.display='inline';
 }
 
 
