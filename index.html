@@ -1201,11 +1201,11 @@ select.filter-select:focus{border-color:var(--gold-dim)}
   <div class="page" id="page-direcao">
     <div class="aniv-section" style="display:none" id="dir-aniv-section"></div>
     <div class="actors-header">
-      <h1 class="actors-title">Direção <span class="actors-title-amp">&</span> Roteiro</h1>
+      <h2 class="page-heading">Direção <em>&</em> Roteiro</h2>
       <p class="actors-sub">Os criadores por trás de cada história</p>
-      <div class="search-bar-wrap" style="max-width:320px">
+      <div class="search-bar-wrap">
         <span class="search-icon">🔍</span>
-        <input type="text" class="search-bar" id="dir-search" placeholder="Buscar…" oninput="filterDirecao(this.value)">
+        <input type="text" class="search-bar" id="dir-search" placeholder="Buscar diretores e roteiristas…" oninput="filterDirecao(this.value)">
       </div>
     </div>
     <!-- Filtro por tipo -->
@@ -1556,7 +1556,7 @@ const TABLES = {
   atores:'tbllXIzMRWnN4CuPk',
   elenco:'tblUCtO9f0tNeiTZu',
   plataformas:'tblZGuAtPX9nnpWet',
-  direcao:'tblgyTDRAi1TM3knR'
+  direcao:'tblXRuUzGaY1HxH4e'
 };
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMG  = 'https://image.tmdb.org/t/p/w500';
@@ -1981,7 +1981,7 @@ async function renderDorama(id){
     if ((dirIds.length || rotIds.length) && TABLES.direcao && apiKey) {
       try {
         if (!allDirecao.length) {
-          allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Biografia'] });
+          allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Foto', 'Biografia'] });
         }
         const dirs = allDirecao.filter(d => dirIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'DIRETOR'}));
         const rots = allDirecao.filter(d => rotIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'ROTEIRISTA'}));
@@ -5309,6 +5309,7 @@ function ostTogglePlaylist() {
 }
 
 
+
 // ── DIREÇÃO ───────────────────────────────────────────────
 let dirSearchQuery = '';
 let dirTipoFilter = '';
@@ -5319,7 +5320,9 @@ async function renderDirecao() {
   grid.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
   if (!allDirecao.length) {
     try {
-      const recs = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Biografia'] });
+      const recs = await fetchTable(TABLES.direcao, {
+        fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Data de Nascimento', 'Biografia', 'Instagram', 'Site', 'Tipo']
+      });
       allDirecao = recs.sort((a, b) => (a.fields['Nome'] || '').localeCompare(b.fields['Nome'] || ''));
     } catch(e) {
       grid.innerHTML = `<div class="empty-state"><p>Erro: ${e.message}</p></div>`;
@@ -5334,7 +5337,7 @@ function filterDirecao(q) {
   const grid = document.getElementById('direcao-grid');
   if (!grid) return;
   let filtered = [...allDirecao];
-  if (dirTipoFilter) filtered = filtered.filter(d => d.fields['Tipo'] === dirTipoFilter);
+  if (dirTipoFilter) filtered = filtered.filter(d => (d.fields['Tipo'] || '') === dirTipoFilter);
   if (dirSearchQuery) filtered = filtered.filter(d => (d.fields['Nome'] || '').toLowerCase().includes(dirSearchQuery));
   if (!filtered.length) {
     grid.innerHTML = '<div class="empty-state"><div class="icon">🎬</div><p>Nenhum resultado</p></div>';
@@ -5342,16 +5345,14 @@ function filterDirecao(q) {
   }
   grid.innerHTML = filtered.map((d, i) => {
     const f = d.fields;
-    const foto = null;
-    const tipo = f['Tipo'] || '';
+    const foto = Array.isArray(f['Foto']) ? f['Foto'][0]?.url : f['Foto'];
     return `<div class="actor-card" onclick="navigate('diretor','${d.id}')" style="animation-delay:${i*0.03}s">
-      <div style="position:relative;aspect-ratio:3/4;overflow:hidden;background:var(--surface)">
-        ${foto ? `<img src="${foto}" style="width:100%;height:100%;object-fit:cover" loading="lazy">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">🎬</div>`}
-        ${tipo ? `<span style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.7);color:var(--gold);font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:.06em">${tipo.toUpperCase()}</span>` : ''}
+      <div class="actor-card-img-wrap">
+        ${foto ? `<img src="${foto}" class="actor-card-img" loading="lazy">` : `<div class="actor-card-img" style="display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--surface2)">🎬</div>`}
       </div>
-      <div style="padding:10px 12px">
-        <div style="font-size:.88rem;font-weight:600;color:var(--text)">${f['Nome'] || '—'}</div>
-        <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${f['Tipo']||''}</div>
+      <div class="actor-card-info">
+        <div class="actor-card-name">${f['Nome'] || '—'}</div>
+        ${f['Tipo'] ? `<div class="actor-card-role">${f['Tipo']}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -5370,7 +5371,9 @@ async function renderDiretor(id) {
   let dir = allDirecao.find(d => d.id === id);
   if (!dir) {
     try {
-      const recs = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Biografia'] });
+      const recs = await fetchTable(TABLES.direcao, {
+        fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Data de Nascimento', 'Biografia', 'Instagram', 'Site', 'Tipo']
+      });
       allDirecao = recs;
       dir = recs.find(d => d.id === id);
     } catch(e) { detail.innerHTML = `<p>Erro: ${e.message}</p>`; return; }
@@ -5379,34 +5382,28 @@ async function renderDiretor(id) {
   const f = dir.fields;
   const foto = Array.isArray(f['Foto']) ? f['Foto'][0]?.url : f['Foto'];
   const tipo = f['Tipo'] || '';
-  const doramas = f['Dorama'] || [];
 
-  // Buscar doramas onde ele aparece como diretor ou roteirista
-  let doramaCards = '';
-  {
-    if (!allSeries.length && apiKey) {
-      try {
-        const sr = await fetchTable(TABLES.series, {fields:['Nome','Capa','Ano Lançamento','Experiência','Status','Plataformas','Gêneros','Diretores','Roteiristas']});
-        allSeries = sr;
-      } catch(_) {}
-    }
-    const vinculados = allSeries.filter(s => 
-      (s.fields['Diretores'] || []).includes(dir.id) || 
-      (s.fields['Roteiristas'] || []).includes(dir.id)
-    );
-    doramaCards = vinculados.map(s => {
-      const sf = s.fields;
-      const capa = getPhoto(s);
-      return `<div class="drama-card" onclick="navigate('dorama','${s.id}')" style="max-width:160px">
-        <div class="card-img-wrap"><img src="${capa}" loading="lazy" class="card-img"></div>
-        <div class="card-info">
-          <div class="card-title">${sf['Nome']||'—'}</div>
-          <div class="card-year">${sf['Ano Lançamento']||''}</div>
-        </div>
-      </div>`;
-    }).join('');
+  // Buscar doramas onde aparece como diretor ou roteirista
+  if (!allSeries.length && apiKey) {
+    try {
+      allSeries = await fetchTable(TABLES.series, {fields:['Nome','Capa','Ano Lançamento','Diretores','Roteiristas']});
+    } catch(_) {}
   }
-
+  const vinculados = allSeries.filter(s =>
+    (s.fields['Diretores'] || []).includes(dir.id) ||
+    (s.fields['Roteiristas'] || []).includes(dir.id)
+  );
+  const doramaCards = vinculados.map(s => {
+    const sf = s.fields;
+    const capa = getPhoto(s);
+    return `<div class="drama-card" onclick="navigate('dorama','${s.id}')" style="max-width:160px">
+      <div class="card-img-wrap"><img src="${capa}" loading="lazy" class="card-img"></div>
+      <div class="card-info">
+        <div class="card-title">${sf['Nome']||'—'}</div>
+        <div class="card-year">${sf['Ano Lançamento']||''}</div>
+      </div>
+    </div>`;
+  }).join('');
 
   detail.innerHTML = `
     <div class="detail-banner" style="background:linear-gradient(to bottom,var(--bg2),var(--bg))">
@@ -5414,22 +5411,27 @@ async function renderDiretor(id) {
       <div class="detail-banner-content">
         <button class="back-btn" onclick="navigate('direcao')">← Voltar</button>
         <div style="display:flex;align-items:flex-end;gap:24px;margin-top:32px">
-          ${foto ? `<img src="${foto}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-dim);flex-shrink:0">` : `<div style="width:100px;height:100px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:2.5rem;flex-shrink:0">🎬</div>`}
+          ${foto
+            ? `<img src="${foto}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-dim);flex-shrink:0">`
+            : `<div style="width:100px;height:100px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:2.5rem;flex-shrink:0">🎬</div>`}
           <div>
             ${tipo ? `<div style="font-size:.7rem;font-weight:700;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px">${tipo}</div>` : ''}
             <h1 class="detail-title">${f['Nome'] || '—'}</h1>
-            <div class="detail-badges">
-              <span class="badge badge-status-concluido">${doramas.length} dorama${doramas.length !== 1 ? 's' : ''}</span>
+            ${f['Nome Estrangeiro'] ? `<div class="detail-subtitle">${f['Nome Estrangeiro']}</div>` : ''}
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+              ${f['Instagram'] ? `<a href="${f['Instagram']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg> Instagram</a>` : ''}
+              ${f['Site'] ? `<a href="${f['Site']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Site</a>` : ''}
             </div>
           </div>
         </div>
       </div>
     </div>
     <div class="detail-content">
-      ${f['Biografia'] ? `<div class="actor-detail-section"><div class="section-title">Sobre</div><p style="color:var(--text2);line-height:1.8;font-size:.92rem">${f['Biografia']}</p></div>` : ''}
-      ${doramaCards ? `<div class="actor-detail-section"><div class="section-title">Doramas</div><div style="display:flex;flex-wrap:wrap;gap:16px">${doramaCards}</div></div>` : ''}
+      ${f['Biografia'] ? `<div class="actor-detail-section"><div class="section-title">Biografia</div><p style="color:var(--text2);line-height:1.8;font-size:.92rem">${f['Biografia']}</p></div>` : ''}
+      ${doramaCards ? `<div class="actor-detail-section"><div class="section-title">Doramas</div><div style="display:flex;flex-wrap:wrap;gap:16px">${doramaCards}</div></div>` : '<div class="actor-detail-section"><div class="section-title">Doramas</div><p style="color:var(--text3);font-size:.85rem;font-style:italic">Nenhum dorama vinculado ainda</p></div>'}
     </div>`;
 }
+
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
