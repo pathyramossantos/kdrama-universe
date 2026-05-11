@@ -792,6 +792,8 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 /* Playlist */
 .ost-playlist-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;position:sticky;top:80px}
+.ost-playlist-toggle{display:none;width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;cursor:pointer;text-align:left;border-bottom:1px solid var(--border)}
+@media(max-width:768px){.ost-playlist-toggle{display:flex;align-items:center;justify-content:space-between}.ost-playlist-header{display:none}.ost-playlist-tracks{display:none}.ost-playlist-tracks.open{display:block}.ost-page-layout{grid-template-columns:1fr}}
 .ost-playlist-header{padding:16px 20px;border-bottom:1px solid var(--border);font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
 .ost-playlist-header::before{content:'';display:block;width:3px;height:1em;background:var(--gold);border-radius:2px}
 .ost-playlist-tracks{max-height:480px;overflow-y:auto}
@@ -866,6 +868,40 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-body .txt-small{font-size:.78rem;color:var(--text3)}
 .post-body .txt-large{font-size:1.15rem;font-weight:500;color:var(--text)}
 
+
+/* ── PÁGINA LETRAS ─────────────────────────────────────────── */
+#page-letras{background:var(--bg)}
+.letras-wrap{max-width:900px;margin:0 auto;padding:40px clamp(16px,4vw,48px) 100px}
+.letras-header{margin-bottom:32px}
+.letras-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.letras-sub{font-size:.85rem;color:var(--text2)}
+.letras-input-wrap{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:20px}
+.letras-field{display:flex;flex-direction:column;gap:6px}
+.letras-label{font-size:.75rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.08em}
+.letras-textarea{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;padding:14px;outline:none;resize:vertical;min-height:200px;transition:border-color .2s;line-height:1.8}
+.letras-textarea:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px var(--gold-glow)}
+.letras-btn-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}
+.letras-result{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:24px}
+.letras-result-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.letras-result-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text)}
+.letras-result-body{padding:20px}
+.letras-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:640px){.letras-cols{grid-template-columns:1fr}}
+.letras-col-title{font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.letras-col-text{font-size:.85rem;line-height:2;color:var(--text2);white-space:pre-wrap}
+.letras-output{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'DM Sans',monospace;font-size:.78rem;color:var(--text2);white-space:pre-wrap;line-height:1.8;margin-top:16px;max-height:300px;overflow-y:auto}
+.letras-loading{display:flex;align-items:center;gap:10px;color:var(--text3);font-size:.85rem;padding:20px}
+
+
+/* Letra OST em colunas */
+.ost-letra-section{margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:24px}
+.ost-letra-section-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.ost-letra-section-title::before{content:'';display:block;width:3px;height:1em;background:var(--gold);border-radius:2px}
+.ost-letra-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:640px){.ost-letra-cols{grid-template-columns:1fr}}
+.ost-letra-col-title{font-size:.68rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.ost-letra-col-text{font-size:.82rem;line-height:2.1;color:var(--text2);white-space:pre-wrap}
+
 </style>
 </head>
 <body>
@@ -878,6 +914,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     <a data-page="atores" onclick="navigate('atores')">Atores</a>
     <a data-page="blog" onclick="navigate('blog')">Blog</a>
     <a data-page="config" onclick="navigate('config')" id="nav-config">Configurações</a>
+    <a data-page="letras" onclick="navigate('letras')" id="nav-letras" style="display:none">🎵 Letras</a>
     <button id="theme-btn" title="Alternar tema">☀</button>
   </div>
   <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
@@ -1120,6 +1157,10 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       </div>
       <div class="ost-page-layout">
         <div class="ost-playlist-panel">
+          <button class="ost-playlist-toggle" onclick="ostTogglePlaylist()">
+            <span>🎵 Playlist</span>
+            <span id="ost-toggle-arrow">▼</span>
+          </button>
           <div class="ost-playlist-header">Playlist</div>
           <div class="ost-playlist-tracks" id="ost-page-tracks"></div>
         </div>
@@ -1131,6 +1172,61 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             </div>
           </div>
 
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- PÁGINA LETRAS (só para owner) -->
+  <div class="page" id="page-letras">
+    <div class="letras-wrap">
+      <div class="letras-header">
+        <h1 class="letras-title">🎵 Assistente de Letras</h1>
+        <p class="letras-sub">Cole o Hangul e a IA romaniza e traduz automaticamente</p>
+      </div>
+
+      <div class="letras-input-wrap">
+        <div class="letras-field">
+          <label class="letras-label">Hangul (letra original em coreano)</label>
+          <textarea class="letras-textarea" id="letras-hangul" placeholder="하필 또 그 자리에 네가 와 있었어&#10;그때의 나는 아직도 너를 사랑했으니까&#10;..."></textarea>
+        </div>
+      </div>
+
+      <div class="letras-btn-bar">
+        <button class="btn-gold" onclick="letrasProcessar()">✨ Romanizar e Traduzir</button>
+        <button class="btn-outline" onclick="letrasLimpar()">Limpar</button>
+      </div>
+
+      <div id="letras-status" style="display:none" class="letras-loading">
+        <span class="spinner" style="width:16px;height:16px;display:inline-block;border-width:2px"></span>
+        <span id="letras-status-txt">Processando com IA…</span>
+      </div>
+
+      <div id="letras-result" style="display:none">
+        <div class="letras-result">
+          <div class="letras-result-header">
+            <span class="letras-result-title">Preview</span>
+            <button class="btn-outline btn-sm" onclick="letrasCopiar()">📋 Copiar pro Airtable</button>
+          </div>
+          <div class="letras-result-body">
+            <div class="letras-cols">
+              <div>
+                <div class="letras-col-title">한국어 Hangul</div>
+                <div class="letras-col-text" id="letras-preview-hangul"></div>
+              </div>
+              <div>
+                <div class="letras-col-title">Romanizado</div>
+                <div class="letras-col-text" id="letras-preview-rom"></div>
+              </div>
+              <div>
+                <div class="letras-col-title">Tradução PT</div>
+                <div class="letras-col-text" id="letras-preview-trad"></div>
+              </div>
+            </div>
+            <div style="margin-top:16px;font-size:.75rem;color:var(--text3);margin-bottom:6px">Formato gerado (para colar no Airtable):</div>
+            <div class="letras-output" id="letras-output"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -4858,7 +4954,7 @@ async function renderOstPage(serieId) {
 
   try {
     const allRecs = await fetchTable(TABLES.ost, {
-      fields: ['Nome da Faixa', 'Artista', 'URL do Youtube', 'Ordem', 'Dorama']
+      fields: ['Nome da Faixa', 'Artista', 'URL do Youtube', 'Ordem', 'Dorama', 'Letra']
     });
     const recs = allRecs.filter(r => (r.fields['Dorama'] || []).includes(serieId));
     if (!recs.length) {
@@ -4905,6 +5001,22 @@ function ostPageTocar(idx) {
 
   // Atualizar playlist visual
   renderOstTracks();
+
+  // Renderizar letra se tiver
+  const letra = f['Letra'] || '';
+  const secao = document.getElementById('ost-letra-section');
+  if (letra && secao) {
+    secao.style.display = 'block';
+    const hangulMatch = letra.match(/\[hangul\]([\s\S]*?)(?=\[romanizado\]|\[traducao\]|$)/i);
+    const romMatch = letra.match(/\[romanizado\]([\s\S]*?)(?=\[hangul\]|\[traducao\]|$)/i);
+    const tradMatch = letra.match(/\[traducao\]([\s\S]*?)(?=\[hangul\]|\[romanizado\]|$)/i);
+    const col = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = (txt||'').trim(); };
+    col('ost-col-hangul', hangulMatch?.[1]);
+    col('ost-col-rom', romMatch?.[1]);
+    col('ost-col-trad', tradMatch?.[1]);
+  } else if (secao) {
+    secao.style.display = 'none';
+  }
 }
 
 
@@ -5051,6 +5163,85 @@ function restorePostCoverPos(id) {
   if (yVal) yVal.textContent = `${y}%`;
 }
 
+
+// ── ASSISTENTE DE LETRAS ──────────────────────────────────
+async function letrasProcessar() {
+  const hangul = document.getElementById('letras-hangul')?.value.trim();
+  if (!hangul) { showToast('Cole o Hangul primeiro'); return; }
+
+  const status = document.getElementById('letras-status');
+  const result = document.getElementById('letras-result');
+  status.style.display = 'flex';
+  result.style.display = 'none';
+  document.getElementById('letras-status-txt').textContent = 'Romanizando…';
+
+  try {
+    const sys = `Você é um especialista em coreano e K-pop. Responda APENAS com JSON, sem markdown, sem explicações.`;
+
+    const prompt = `Dada esta letra em coreano (Hangul):
+
+${hangul}
+
+Retorne um JSON com exatamente estas chaves:
+{
+  "romanizado": "a letra romanizada linha por linha, mantendo as mesmas quebras de linha",
+  "traducao": "a tradução para português brasileiro linha por linha, mantendo as mesmas quebras de linha"
+}
+
+IMPORTANTE: mantenha exatamente o mesmo número de linhas em cada versão.`;
+
+    document.getElementById('letras-status-txt').textContent = 'Traduzindo…';
+    const resposta = await callClaude(prompt, sys);
+    
+    let dados;
+    try {
+      const clean = resposta.replace(/```json|```/g, '').trim();
+      dados = JSON.parse(clean);
+    } catch(e) {
+      throw new Error('Erro ao interpretar resposta da IA. Tente novamente.');
+    }
+
+    const rom = dados.romanizado || '';
+    const trad = dados.traducao || '';
+
+    // Atualizar preview
+    document.getElementById('letras-preview-hangul').textContent = hangul;
+    document.getElementById('letras-preview-rom').textContent = rom;
+    document.getElementById('letras-preview-trad').textContent = trad;
+
+    // Gerar formato pro Airtable
+    const output = `[hangul]\n${hangul}\n\n[romanizado]\n${rom}\n\n[traducao]\n${trad}`;
+    document.getElementById('letras-output').textContent = output;
+
+    status.style.display = 'none';
+    result.style.display = 'block';
+    showToast('✓ Letra processada!');
+  } catch(e) {
+    status.style.display = 'none';
+    showToast('Erro: ' + e.message);
+  }
+}
+
+function letrasLimpar() {
+  document.getElementById('letras-hangul').value = '';
+  document.getElementById('letras-result').style.display = 'none';
+}
+
+function letrasCopiar() {
+  const output = document.getElementById('letras-output')?.textContent;
+  if (!output) return;
+  navigator.clipboard.writeText(output).then(() => showToast('📋 Copiado!'));
+}
+
+function ostTogglePlaylist() {
+  const tracks = document.getElementById('ost-page-tracks');
+  const arrow = document.getElementById('ost-toggle-arrow');
+  if (!tracks) return;
+  const open = tracks.classList.contains('open');
+  tracks.classList.toggle('open', !open);
+  if (arrow) arrow.textContent = open ? '▼' : '▲';
+}
+
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
 radioCarregarPlaylist();
@@ -5060,6 +5251,8 @@ if (!isOwner()) {
   const nc = document.getElementById('nav-config'); if(nc) nc.style.display='none';
   const nb = document.querySelector('[onclick="openBlogForm()"]'); if(nb) nb.style.display='none';
   document.querySelectorAll('.btn-new-drama').forEach(el => el.style.display='none');
+} else {
+  const nl = document.getElementById('nav-letras'); if(nl) nl.style.display='inline';
 }
 
 
