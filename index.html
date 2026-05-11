@@ -1974,16 +1974,18 @@ async function renderDorama(id){
     }
 
     // Buscar direção relacionada ao dorama
+    // Diretores e Roteiristas vêm dos campos linkados na série
+    const dirIds = f['Diretores'] || [];
+    const rotIds = f['Roteiristas'] || [];
     let dirDorama = [];
-    if (TABLES.direcao && apiKey) {
+    if ((dirIds.length || rotIds.length) && TABLES.direcao && apiKey) {
       try {
         if (!allDirecao.length) {
-          allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Dorama'] });
+          allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Foto', 'Biografia'] });
         }
-        dirDorama = allDirecao.filter(d => {
-          const doramas = d.fields['Dorama'] || [];
-          return doramas.includes(serie.id) || doramas.some(x => x === serie.id || x?.id === serie.id);
-        });
+        const dirs = allDirecao.filter(d => dirIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'DIRETOR'}));
+        const rots = allDirecao.filter(d => rotIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'ROTEIRISTA'}));
+        dirDorama = [...dirs, ...rots];
       } catch(_) {}
     }
 
@@ -2081,7 +2083,7 @@ async function renderDorama(id){
         ${f['Sinopse']?`<div class="section-title">Sinopse</div><p class="detail-sinopse editable" contenteditable="false" data-field="Sinopse">${f['Sinopse']}</p>`:''}
         ${dirDorama.length ? `<div class="section-title" style="margin-top:20px">Direção & Roteiro</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
-          ${dirDorama.map(d => `<span onclick="navigate('diretor','${d.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--surface);border:1px solid var(--border);cursor:pointer;font-size:.78rem;color:var(--text);transition:var(--transition)" onmouseover="this.style.borderColor='var(--gold-dim)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'"><span style="font-size:.62rem;color:var(--gold);font-weight:700;text-transform:uppercase">${d.fields['Tipo']||''}</span> ${d.fields['Nome']||''}</span>`).join('')}
+          ${dirDorama.map(d => `<span onclick="navigate('diretor','${d.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--surface);border:1px solid var(--border);cursor:pointer;font-size:.78rem;color:var(--text);transition:var(--transition)" onmouseover="this.style.borderColor='var(--gold-dim)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'"><span style="font-size:.62rem;color:var(--gold);font-weight:700;text-transform:uppercase">${d._tipoDisplay||d.fields['Tipo']||''}</span> ${d.fields['Nome']||''}</span>`).join('')}
         </div>` : ''}
 
         ${gallery.length?`
@@ -3828,7 +3830,7 @@ async function renderBlog() {
   if (!tbl) { list.innerHTML = `<div class="empty-state"><div class="icon">📝</div><p>Crie a tabela Blog no Airtable e adicione o ID em TABLES.blog no código.</p></div>`; return; }
   list.innerHTML = skeletons(4, '16/7');
   try {
-    const records = await fetchTable(tbl, { fields: ['Título','Tipo','Status','Kicker','Conteúdo','Capa','Tags','Nota','Dorama','Data','Experiência','Autor','Dorama ID'] });
+    const records = await fetchTable(tbl, { fields: ['Título','Tipo','Status','Kicker','Conteúdo','Capa','Tags','Nota','Dorama','Data','Experiência','Autor','Dorama ID','Diretores','Roteiristas'] });
     allPosts = records.filter(p => p.fields['Status'] === 'Publicado').sort((a, b) => {
       const parseData = d => d ? new Date(d).getTime() : 0;
       const dataDiff = parseData(b.fields['Data']) - parseData(a.fields['Data']);
@@ -5201,15 +5203,19 @@ function radioPlay() {
   audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
 
   // Se tiver offset, começar no ponto certo
-  if (window._radioStartOffset && window._radioStartOffset > 0) {
-    audio.addEventListener('loadedmetadata', function onMeta() {
-      audio.currentTime = Math.min(window._radioStartOffset, audio.duration - 1);
-      audio.removeEventListener('loadedmetadata', onMeta);
+  const offset = window._radioStartOffset || 0;
+  window._radioStartOffset = 0;
+  if (offset > 5) {
+    // Aguardar metadados antes de definir currentTime e tocar
+    audio.addEventListener('canplay', function onCanPlay() {
+      audio.removeEventListener('canplay', onCanPlay);
+      audio.currentTime = Math.min(offset, audio.duration - 2);
+      audio.play().catch(() => {});
     });
-    window._radioStartOffset = 0;
+    audio.load();
+  } else {
+    audio.play().catch(() => {});
   }
-
-  audio.play().catch(() => {});
   audio.onended = () => radioNext();
   radioPlaying = true;
   radioAutoplayPendente = false;
@@ -5313,7 +5319,7 @@ async function renderDirecao() {
   grid.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
   if (!allDirecao.length) {
     try {
-      const recs = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Foto', 'Dorama', 'Biografia'] });
+      const recs = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Foto', 'Biografia'] });
       allDirecao = recs.sort((a, b) => (a.fields['Nome'] || '').localeCompare(b.fields['Nome'] || ''));
     } catch(e) {
       grid.innerHTML = `<div class="empty-state"><p>Erro: ${e.message}</p></div>`;
@@ -5345,7 +5351,7 @@ function filterDirecao(q) {
       </div>
       <div style="padding:10px 12px">
         <div style="font-size:.88rem;font-weight:600;color:var(--text)">${f['Nome'] || '—'}</div>
-        <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${(f['Dorama']||[]).length} dorama${(f['Dorama']||[]).length !== 1 ? 's' : ''}</div>
+        <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${f['Tipo']||''}</div>
       </div>
     </div>`;
   }).join('');
@@ -5364,7 +5370,7 @@ async function renderDiretor(id) {
   let dir = allDirecao.find(d => d.id === id);
   if (!dir) {
     try {
-      const recs = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Foto', 'Dorama', 'Biografia'] });
+      const recs = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Foto', 'Biografia'] });
       allDirecao = recs;
       dir = recs.find(d => d.id === id);
     } catch(e) { detail.innerHTML = `<p>Erro: ${e.message}</p>`; return; }
@@ -5375,16 +5381,19 @@ async function renderDiretor(id) {
   const tipo = f['Tipo'] || '';
   const doramas = f['Dorama'] || [];
 
-  // Buscar doramas vinculados
+  // Buscar doramas onde ele aparece como diretor ou roteirista
   let doramaCards = '';
-  if (doramas.length) {
+  {
     if (!allSeries.length && apiKey) {
       try {
-        const sr = await fetchTable(TABLES.series, {fields:['Nome','Capa','Ano Lançamento','Experiência','Status','Plataformas','Gêneros']});
+        const sr = await fetchTable(TABLES.series, {fields:['Nome','Capa','Ano Lançamento','Experiência','Status','Plataformas','Gêneros','Diretores','Roteiristas']});
         allSeries = sr;
       } catch(_) {}
     }
-    const vinculados = allSeries.filter(s => doramas.includes(s.id));
+    const vinculados = allSeries.filter(s => 
+      (s.fields['Diretores'] || []).includes(dir.id) || 
+      (s.fields['Roteiristas'] || []).includes(dir.id)
+    );
     doramaCards = vinculados.map(s => {
       const sf = s.fields;
       const capa = getPhoto(s);
@@ -5397,6 +5406,7 @@ async function renderDiretor(id) {
       </div>`;
     }).join('');
   }
+
 
   detail.innerHTML = `
     <div class="detail-banner" style="background:linear-gradient(to bottom,var(--bg2),var(--bg))">
