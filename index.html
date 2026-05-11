@@ -902,6 +902,10 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .ost-letra-col-title{font-size:.68rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
 .ost-letra-col-text{font-size:.82rem;line-height:2.1;color:var(--text2);white-space:pre-wrap}
 
+
+.ost-letra-col-text .letra-titulo{font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;display:block;margin-bottom:4px;margin-top:16px}
+.ost-letra-col-text .letra-titulo:first-child{margin-top:0}
+
 </style>
 </head>
 <body>
@@ -1171,7 +1175,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             </div>
           </div>
           <div id="ost-letra-section" style="display:none" class="ost-letra-section">
-            <div class="ost-letra-section-title">🎵 Letra</div>
             <div class="ost-letra-cols" id="ost-letra-cols">
               <div id="ost-col-hangul-wrap">
                 <div class="ost-letra-col-title">Letra</div>
@@ -4988,7 +4991,18 @@ function ostPageTocar(idx) {
       } else {
         // Formato livre (Letras.mus) — mostrar tudo em coluna única
         const el = document.getElementById('ost-col-hangul');
-        if (el) el.textContent = letra;
+        if (el) {
+          // Transformar [titulo]...[/titulo] em span estilizado
+          // e primeira linha vazia separando blocos vira espaço
+          const formatted = letra
+            .replace(/\[titulo\](.*?)\[\/titulo\]/gi, '<span class="letra-titulo">$1</span>')
+            .split('\n').join('<br>');
+          // Primeira linha (antes da primeira quebra) vira título automático
+          const lines = letra.split('\n');
+          const primeiraLinha = lines[0].trim();
+          const resto = lines.slice(1).join('\n');
+          el.innerHTML = `<span class="letra-titulo">${primeiraLinha}</span><br>${resto.replace(/\n/g,'<br>')}`;
+        }
         // Esconder colunas extras
         const romWrap = document.getElementById('ost-col-rom-wrap');
         const tradWrap = document.getElementById('ost-col-trad-wrap');
