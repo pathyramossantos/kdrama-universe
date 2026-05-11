@@ -4966,6 +4966,8 @@ function ostPageTocar(idx) {
 
   // Atualizar playlist visual
   renderOstTracks();
+const _tl = document.querySelector('.ost-letra-col-title');
+if (_tl) _tl.textContent = '🎵 ' + (ostPagePlaylist[idx]?.fields?.['Nome da Faixa'] || 'Letra');
 
   // Renderizar letra se tiver
   const letra = f['Letra'] || '';
