@@ -1978,7 +1978,10 @@ async function renderDorama(id){
         if (!allDirecao.length) {
           allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Dorama'] });
         }
-        dirDorama = allDirecao.filter(d => (d.fields['Dorama'] || []).includes(serie.id));
+        dirDorama = allDirecao.filter(d => {
+          const doramas = d.fields['Dorama'] || [];
+          return doramas.includes(serie.id) || doramas.some(x => x === serie.id || x?.id === serie.id);
+        });
       } catch(_) {}
     }
 
@@ -5141,14 +5144,18 @@ function radioShuffleSeeded(arr, seed) {
 // ── Calcular posição atual na playlist ───────────────────
 function radioCalcularPosicao() {
   if (!radioPlaylist.length) return { idx: 0, offset: 0 };
-  // Tempo total desde meia-noite em segundos
   const agora = new Date();
   const segundosDia = agora.getHours() * 3600 + agora.getMinutes() * 60 + agora.getSeconds();
+  // Total da playlist
+  const totalDur = radioPlaylist.reduce((s, t) => s + (t.duration || 180), 0);
+  if (!totalDur) return { idx: 0, offset: 0 };
+  // Posição dentro do ciclo da playlist
+  const posNoCiclo = segundosDia % totalDur;
   let acumulado = 0;
   for (let i = 0; i < radioPlaylist.length; i++) {
-    const dur = radioPlaylist[i].duration || 180; // fallback 3min
-    if (acumulado + dur > segundosDia % radioPlaylist.reduce((s, t) => s + (t.duration || 180), 0)) {
-      return { idx: i, offset: segundosDia % dur };
+    const dur = radioPlaylist[i].duration || 180;
+    if (posNoCiclo < acumulado + dur) {
+      return { idx: i, offset: Math.floor(posNoCiclo - acumulado) };
     }
     acumulado += dur;
   }
@@ -5434,6 +5441,8 @@ if (!isOwner()) {
   const nc = document.getElementById('nav-config'); if(nc) nc.style.display='none';
   const nb = document.querySelector('[onclick="openBlogForm()"]'); if(nb) nb.style.display='none';
   document.querySelectorAll('.btn-new-drama').forEach(el => el.style.display='none');
+} else {
+  const nd = document.getElementById('nav-direcao'); if(nd) nd.style.display='inline';
 }
 
 
