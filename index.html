@@ -5325,7 +5325,7 @@ async function renderDirecao() {
   if (!allDirecao.length) {
     try {
       const recs = await fetchTable(TABLES.direcao, {
-        fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Data de Nascimento', 'Biografia', 'Instagram', 'Site', 'Tipo']
+        fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Instagram', 'Site', 'Tipo']
       });
       allDirecao = recs.sort((a, b) => (a.fields['Nome'] || '').localeCompare(b.fields['Nome'] || ''));
     } catch(e) {
@@ -5374,7 +5374,7 @@ async function renderDiretor(id) {
   if (!dir) {
     try {
       const recs = await fetchTable(TABLES.direcao, {
-        fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Data de Nascimento', 'Biografia', 'Instagram', 'Site', 'Tipo']
+        fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Instagram', 'Site', 'Tipo']
       });
       allDirecao = recs;
       dir = recs.find(d => d.id === id);
