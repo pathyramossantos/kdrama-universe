@@ -1170,7 +1170,23 @@ select.filter-select:focus{border-color:var(--gold-dim)}
               <span>Selecione uma faixa para ouvir</span>
             </div>
           </div>
-
+          <div id="ost-letra-section" style="display:none" class="ost-letra-section">
+            <div class="ost-letra-section-title">🎵 Letra</div>
+            <div class="ost-letra-cols" id="ost-letra-cols">
+              <div id="ost-col-hangul-wrap">
+                <div class="ost-letra-col-title">Letra</div>
+                <div class="ost-letra-col-text" id="ost-col-hangul"></div>
+              </div>
+              <div id="ost-col-rom-wrap" style="display:none">
+                <div class="ost-letra-col-title">Romanizado</div>
+                <div class="ost-letra-col-text" id="ost-col-rom"></div>
+              </div>
+              <div id="ost-col-trad-wrap" style="display:none">
+                <div class="ost-letra-col-title">Tradução PT</div>
+                <div class="ost-letra-col-text" id="ost-col-trad"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -4961,20 +4977,24 @@ function ostPageTocar(idx) {
         col('ost-col-rom', get('romanizado'));
         col('ost-col-trad', get('traducao'));
         // Mostrar 3 colunas
-        document.getElementById('ost-col-hangul').parentElement.style.display = '';
-        document.getElementById('ost-col-rom').parentElement.style.display = '';
-        document.getElementById('ost-col-trad').parentElement.style.display = '';
+        const hw = document.getElementById('ost-col-hangul-wrap');
+        const rw = document.getElementById('ost-col-rom-wrap');
+        const tw = document.getElementById('ost-col-trad-wrap');
+        if (hw) hw.style.display = '';
+        if (rw) rw.style.display = '';
+        if (tw) tw.style.display = '';
+        const cols3 = document.getElementById('ost-letra-cols');
+        if (cols3) cols3.style.gridTemplateColumns = '';
       } else {
         // Formato livre (Letras.mus) — mostrar tudo em coluna única
         const el = document.getElementById('ost-col-hangul');
         if (el) el.textContent = letra;
-        // Esconder colunas de romanizado e tradução
-        const romEl = document.getElementById('ost-col-rom');
-        const tradEl = document.getElementById('ost-col-trad');
-        if (romEl) romEl.parentElement.style.display = 'none';
-        if (tradEl) tradEl.parentElement.style.display = 'none';
-        // Expandir coluna única
-        const cols = document.querySelector('.ost-letra-cols');
+        // Esconder colunas extras
+        const romWrap = document.getElementById('ost-col-rom-wrap');
+        const tradWrap = document.getElementById('ost-col-trad-wrap');
+        if (romWrap) romWrap.style.display = 'none';
+        if (tradWrap) tradWrap.style.display = 'none';
+        const cols = document.getElementById('ost-letra-cols');
         if (cols) cols.style.gridTemplateColumns = '1fr';
       }
     } else {
