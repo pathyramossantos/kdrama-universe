@@ -1723,7 +1723,7 @@ async function loadAllData(){
         setTimeout(async () => {
           try {
             const [s,a,e,p] = await Promise.all([
-              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro']}),
+              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas']}),
               fetchTable(TABLES.atores, {fields:['Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco','Biografia','Instagram','Site','Url Hancinema']}),
               fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']}),
               fetchTable(TABLES.plataformas, {fields:['Nome','Logo','Séries']})
@@ -1981,7 +1981,7 @@ async function renderDorama(id){
     if ((dirIds.length || rotIds.length) && TABLES.direcao && apiKey) {
       try {
         if (!allDirecao.length) {
-          allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Foto', 'Biografia'] });
+          allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Biografia'] });
         }
         const dirs = allDirecao.filter(d => dirIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'DIRETOR'}));
         const rots = allDirecao.filter(d => rotIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'ROTEIRISTA'}));
@@ -4064,7 +4064,7 @@ async function bfPopularSelectDoramas() {
   // Buscar do Airtable se allSeries estiver vazio
   if (!allSeries.length && TABLES.series && apiKey) {
     try {
-      allSeries = await fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro']});
+      allSeries = await fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas']});
     } catch(_){}
   }
   const series = [...allSeries].sort((a,b) => (a.fields['Nome']||'').localeCompare(b.fields['Nome']||''));
@@ -5319,7 +5319,7 @@ async function renderDirecao() {
   grid.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
   if (!allDirecao.length) {
     try {
-      const recs = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Foto', 'Biografia'] });
+      const recs = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Biografia'] });
       allDirecao = recs.sort((a, b) => (a.fields['Nome'] || '').localeCompare(b.fields['Nome'] || ''));
     } catch(e) {
       grid.innerHTML = `<div class="empty-state"><p>Erro: ${e.message}</p></div>`;
@@ -5342,7 +5342,7 @@ function filterDirecao(q) {
   }
   grid.innerHTML = filtered.map((d, i) => {
     const f = d.fields;
-    const foto = Array.isArray(f['Foto']) ? f['Foto'][0]?.url : f['Foto'];
+    const foto = null;
     const tipo = f['Tipo'] || '';
     return `<div class="actor-card" onclick="navigate('diretor','${d.id}')" style="animation-delay:${i*0.03}s">
       <div style="position:relative;aspect-ratio:3/4;overflow:hidden;background:var(--surface)">
@@ -5370,7 +5370,7 @@ async function renderDiretor(id) {
   let dir = allDirecao.find(d => d.id === id);
   if (!dir) {
     try {
-      const recs = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Foto', 'Biografia'] });
+      const recs = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Biografia'] });
       allDirecao = recs;
       dir = recs.find(d => d.id === id);
     } catch(e) { detail.innerHTML = `<p>Erro: ${e.message}</p>`; return; }
