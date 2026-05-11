@@ -2016,6 +2016,8 @@ async function renderDorama(id){
       </div>
       <div class="tmdb-results" id="tmdb-results"></div>
     </div>`;
+  setTimeout(() => applyEditModeToDOM(), 100);
+  setTimeout(() => applyEditModeToDOM(), 500);
 
     const bannerPos = f['Banner Position'] || localStorage.getItem(`kdrama_bannerpos_${id}`) || '50% 30%';
     const savedBannerUrl = f['Banner URL'] || localStorage.getItem(`kdrama_bannerurl_${id}`);
@@ -2113,6 +2115,8 @@ async function renderDorama(id){
             }).join('')}
           </div>`:''}​      </div>
     </div>`;
+  setTimeout(() => applyEditModeToDOM(), 100);
+  setTimeout(() => applyEditModeToDOM(), 500);
 
     // store gallery for lightbox
     window._dramaGallery = gallery;
@@ -5430,6 +5434,56 @@ async function renderDiretor(id) {
     </div>`;
 }
 
+
+
+// ── BANNER DIRETOR ────────────────────────────────────────
+function dirUpdateBannerPos(id) {
+  const x = document.getElementById('banner-pos-x')?.value || 50;
+  const y = document.getElementById('banner-pos-y')?.value || 20;
+  const img = document.getElementById('banner-img');
+  if (img) img.style.objectPosition = `${x}% ${y}%`;
+}
+
+function dirSaveBannerPos(id) {
+  const x = document.getElementById('banner-pos-x')?.value || 50;
+  const y = document.getElementById('banner-pos-y')?.value || 20;
+  const pos = `${x}% ${y}%`;
+  localStorage.setItem(`kdrama_dirbanner_pos_${id}`, pos);
+  const url = localStorage.getItem(`kdrama_dirbanner_url_${id}`) || '';
+  bannerSalvarAirtable(id, 'diretor', { pos, url });
+  showToast('Posição salva ✓');
+}
+
+function dirChangeBannerUrl(id) {
+  const url = document.getElementById('banner-url-input')?.value.trim();
+  if (!url) { showToast('Cole uma URL de imagem primeiro'); return; }
+  const img = document.getElementById('banner-img');
+  if (img) img.src = url;
+  localStorage.setItem(`kdrama_dirbanner_url_${id}`, url);
+  const pos = localStorage.getItem(`kdrama_dirbanner_pos_${id}`) || '50% 20%';
+  bannerSalvarAirtable(id, 'diretor', { pos, url });
+  showToast('Imagem salva ✓');
+}
+
+function dirResetBannerUrl(id) {
+  localStorage.removeItem(`kdrama_dirbanner_url_${id}`);
+  location.reload();
+}
+
+async function dirUploadBannerImg(input, id) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    showToast('⬆️ Enviando imagem…');
+    const url = await uploadParaGithub(file, 'diretores');
+    const img = document.getElementById('banner-img');
+    if (img) img.src = url;
+    localStorage.setItem(`kdrama_dirbanner_url_${id}`, url);
+    const pos = localStorage.getItem(`kdrama_dirbanner_pos_${id}`) || '50% 20%';
+    bannerSalvarAirtable(id, 'diretor', { pos, url });
+    showToast('✓ Imagem enviada!');
+  } catch(e) { showToast('Erro: ' + e.message); }
+}
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
