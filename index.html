@@ -1269,7 +1269,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           <button class="btn-gold" onclick="saveConfig()">Salvar e Conectar</button>
           <button class="btn-outline" onclick="clearConfig()">Limpar</button>
           <button class="btn-outline" onclick="clearCache()">🔄 Atualizar dados</button>
-          <button class="btn-outline" onclick="radioAtualizarPlaylist()">📻 Atualizar playlist da rádio</button>
+
         </div>
         <div id="config-status" class="config-status"></div>
       </div>
@@ -5139,251 +5139,48 @@ function renderAniversarios() {
 
 
 // ── RÁDIO K-DRAMA ─────────────────────────────────────────
-const ARCHIVE_ID = 'kdrama-osts';
-const ARCHIVE_BASE = `https://archive.org/download/${ARCHIVE_ID}/`;
-let radioPlaylist = [];
-let radioIdx = 0;
+const RADIO_STREAM_URL = 'https://uk25freenew.listen2myradio.com/live.mp3?typeportmount=ice_31230_stream_436554283';
 let radioPlaying = false;
-let radioLoaded = false;
-let radioAutoplayPendente = true;
 
-// ── Shuffle determinístico por data ──────────────────────
-function radioDailySeed() {
-  const d = new Date();
-  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-}
-
-function radioShuffleSeeded(arr, seed) {
-  const a = [...arr];
-  let s = seed;
-  for (let i = a.length - 1; i > 0; i--) {
-    s = (s * 1664525 + 1013904223) & 0xffffffff;
-    const j = Math.abs(s) % (i + 1);
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-// ── Calcular posição atual na playlist ───────────────────
-function radioCalcularPosicao() {
-  if (!radioPlaylist.length) return { idx: 0, offset: 0 };
-  const agora = new Date();
-  const segundosDia = agora.getHours() * 3600 + agora.getMinutes() * 60 + agora.getSeconds();
-  // Total da playlist
-  const totalDur = radioPlaylist.reduce((s, t) => s + (t.duration || 180), 0);
-  if (!totalDur) return { idx: 0, offset: 0 };
-  // Posição dentro do ciclo da playlist
-  const posNoCiclo = segundosDia % totalDur;
-  let acumulado = 0;
-  for (let i = 0; i < radioPlaylist.length; i++) {
-    const dur = radioPlaylist[i].duration || 180;
-    if (posNoCiclo < acumulado + dur) {
-      return { idx: i, offset: Math.floor(posNoCiclo - acumulado) };
-    }
-    acumulado += dur;
-  }
-  return { idx: 0, offset: 0 };
-}
-
-async function radioCarregarPlaylist() {
-  // Recarregar se mudou o dia (shuffle diário) ou nunca carregou
-  const hoje = new Date().toDateString();
-  if (radioLoaded && localStorage.getItem('radio_playlist_dia') === hoje) return;
-  try {
-    const res = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
-    const data = await res.json();
-    const mp3s = (data.files || []).filter(f => f.name.endsWith('.mp3') && !f.name.includes('_vbr'));
-    if (!mp3s.length) return;
-
-    const seed = radioDailySeed();
-    const shuffled = radioShuffleSeeded(mp3s, seed);
-
-    radioPlaylist = shuffled.map(f => ({
-      url: ARCHIVE_BASE + encodeURIComponent(f.name),
-      name: f.name.replace(/\.mp3$/i, ''),
-      duration: parseFloat(f.length) || 180
-    }));
-
-    radioLoaded = true;
-    localStorage.setItem('radio_playlist_dia', hoje);
-
-    // Tentar restaurar posição salva na sessão (restauração de página)
-    const saved = sessionStorage.getItem('radio_state');
-    if (saved) {
-      try {
-        const state = JSON.parse(saved);
-        // Verificar se é do mesmo dia/playlist
-        if (state.dia === hoje && state.idx < radioPlaylist.length &&
-            radioPlaylist[state.idx].name === state.name) {
-          const elapsed = Math.floor((Date.now() - state.ts) / 1000);
-          const trackDur = radioPlaylist[state.idx].duration || 180;
-          const offset = state.offset + elapsed;
-          if (offset < trackDur - 2) {
-            // Ainda estamos dentro da mesma música
-            radioIdx = state.idx;
-            window._radioStartOffset = offset;
-          } else {
-            // A música já teria terminado — calcular quantas músicas passaram
-            let extra = offset - trackDur;
-            let idx = (state.idx + 1) % radioPlaylist.length;
-            while (extra > 0) {
-              const dur = radioPlaylist[idx].duration || 180;
-              if (extra < dur - 2) break;
-              extra -= dur;
-              idx = (idx + 1) % radioPlaylist.length;
-            }
-            radioIdx = idx;
-            window._radioStartOffset = Math.max(0, extra);
-          }
-          document.getElementById('radio-track').textContent = radioPlaylist[radioIdx]?.name || '—';
-          return;
-        }
-      } catch(e) { /* estado inválido, ignorar */ }
-    }
-
-    // Sem estado salvo — calcular posição pelo horário do dia
-    const pos = radioCalcularPosicao();
-    radioIdx = pos.idx;
-    window._radioStartOffset = pos.offset;
-
-    document.getElementById('radio-track').textContent = radioPlaylist[radioIdx]?.name || '—';
-  } catch(e) { console.warn('Radio load error:', e); }
-}
-
-function radioUpdateUI(track) {
-  document.getElementById('radio-play-btn').textContent = '⏸';
-  document.getElementById('radio-track').textContent = track?.name || '—';
-  document.getElementById('radio-dot').style.display = 'block';
-  document.getElementById('radio-status-txt').textContent = 'Ao vivo';
-  if (document.getElementById('page-radio')?.classList.contains('active')) {
-    radioRenderTracklist();
-    const btn = document.getElementById('radio-page-play');
-    if (btn) btn.textContent = '⏸';
-    const viz = document.getElementById('radio-viz-track');
-    if (viz) viz.textContent = track?.name || '';
-  }
+// ── RÁDIO — stream ao vivo ────────────────────────────────
+function radioUpdateUI(playing) {
+  document.getElementById('radio-play-btn').textContent = playing ? '⏸' : '▶';
+  document.getElementById('radio-dot').style.display = playing ? 'block' : 'none';
+  document.getElementById('radio-status-txt').textContent = playing ? 'Ao vivo' : 'K-Drama OST Radio';
+  document.getElementById('radio-track').textContent = playing ? '🎵 K-Drama OST Radio' : 'K-Drama OST Radio';
+  const btn = document.getElementById('radio-page-play');
+  if (btn) btn.textContent = playing ? '⏸' : '▶';
 }
 
 function radioPlay() {
-  if (!radioPlaylist.length) return;
   const audio = document.getElementById('radio-audio');
-  const track = radioPlaylist[radioIdx];
-
-  // Limpar listeners anteriores
-  audio.onended = null;
-  audio.onerror = null;
-  if (window._radioSilenceCheck) clearTimeout(window._radioSilenceCheck);
-
-  radioPlaying = true;
-  radioAutoplayPendente = false;
-  radioUpdateUI(track);
-
-  // Salvar estado atual no sessionStorage para restauração após reload
-  const hoje = new Date().toDateString();
-  sessionStorage.setItem('radio_state', JSON.stringify({
-    dia: hoje,
-    idx: radioIdx,
-    name: track.name,
-    offset: window._radioStartOffset || 0,
-    ts: Date.now()
-  }));
-
-  // Configurar próxima música quando terminar
-  audio.onended = () => {
-    window._radioStartOffset = 0;
-    radioIdx = (radioIdx + 1) % radioPlaylist.length;
-    setTimeout(() => radioPlay(), 100);
-  };
-
-  // Erro ao carregar — pular pra próxima
-  audio.onerror = () => {
-    console.warn('Erro ao carregar:', track.name, '— pulando');
-    radioIdx = (radioIdx + 1) % radioPlaylist.length;
-    setTimeout(() => radioPlay(), 300);
-  };
-
-  const offset = window._radioStartOffset || 0;
-  window._radioStartOffset = 0;
+  audio.src = RADIO_STREAM_URL;
   audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
-
-  // Guardar qual idx estamos tocando pra evitar race condition
-  const playingIdx = radioIdx;
-
-  // Limpar listener canplay anterior se existir
-  if (window._radioCanplayFn) {
-    audio.removeEventListener('canplay', window._radioCanplayFn);
-    window._radioCanplayFn = null;
-  }
-
-  audio.src = track.url;
-
-  if (offset > 5) {
-    // Com offset: aguardar canplay pra saber a duração antes de seek
-    window._radioCanplayFn = function onReady() {
-      audio.removeEventListener('canplay', window._radioCanplayFn);
-      window._radioCanplayFn = null;
-      if (radioIdx !== playingIdx) return;
-      if (audio.duration && isFinite(audio.duration)) {
-        audio.currentTime = Math.min(offset, audio.duration - 2);
-      }
-      audio.play().catch(() => {});
-    };
-    audio.addEventListener('canplay', window._radioCanplayFn);
-  } else {
-    // Sem offset: play direto, sem esperar
-    audio.play().catch(() => {});
-  }
-
-  // Watchdog — verifica a cada 2s se o áudio está progredindo
-  if (window._radioWatchdog) clearInterval(window._radioWatchdog);
-  let _lastTime = -1;
-  let _stuckCount = 0;
-  window._radioWatchdog = setInterval(() => {
-    if (!radioPlaying) { clearInterval(window._radioWatchdog); return; }
-    const a = document.getElementById('radio-audio');
-    if (!a || a.paused) return;
-    if (a.currentTime === _lastTime) {
-      _stuckCount++;
-      if (_stuckCount >= 2) {
-        // Preso por 4s — forçar reload
-        _stuckCount = 0;
-        const src = a.src;
-        a.src = '';
-        a.src = src;
-        a.play().catch(() => {});
-      }
-    } else {
-      _stuckCount = 0;
-    }
-    _lastTime = a.currentTime;
-  }, 2000);
+  audio.play().then(() => {
+    radioPlaying = true;
+    radioUpdateUI(true);
+  }).catch(e => {
+    console.warn('Radio play error:', e);
+  });
 }
 
 function radioStop() {
   const audio = document.getElementById('radio-audio');
-  if (window._radioWatchdog) clearInterval(window._radioWatchdog);
-  audio.onended = null;
-  audio.onerror = null;
   audio.pause();
   audio.src = '';
   radioPlaying = false;
-  document.getElementById('radio-play-btn').textContent = '▶';
-  document.getElementById('radio-dot').style.display = 'none';
-  document.getElementById('radio-status-txt').textContent = 'K-Drama OST Radio';
-  const btn = document.getElementById('radio-page-play');
-  if (btn) btn.textContent = '▶';
-  radioRenderTracklist();
+  radioUpdateUI(false);
 }
 
 function radioToggle() {
   if (radioPlaying) radioStop();
-  else radioCarregarPlaylist().then(() => radioPlay());
+  else radioPlay();
 }
 
 function radioNext() {
-  window._radioStartOffset = 0;
-  radioIdx = (radioIdx + 1) % radioPlaylist.length;
-  radioPlay();
+  // Stream ao vivo não tem próxima — reconecta
+  radioStop();
+  setTimeout(() => radioPlay(), 300);
 }
 
 function radioSetVol(val) {
@@ -5735,30 +5532,9 @@ async function ostLetraSalvar() {
   }
 }
 
-function radioAtualizarPlaylist() {
-  localStorage.removeItem('radio_playlist_dia');
-  radioLoaded = false;
-  radioPlaylist = [];
-  radioCarregarPlaylist().then(() => showToast('✓ Playlist atualizada! ' + radioPlaylist.length + ' músicas'));
-}
 
 // ── INIT ──────────────────────────────────────────────────
 parseHash();
-// Carregar playlist em background
-radioCarregarPlaylist();
-// Tocar no primeiro clique do usuário
-document.addEventListener('click', function radioFirstPlay(e) {
-  if (!radioAutoplayPendente) return;
-  // Não disparar se for clique no botão de pause
-  if (e.target.id === 'radio-play-btn') return;
-  radioAutoplayPendente = false;
-  if (!radioPlaying && radioPlaylist.length) {
-    radioPlay();
-  } else if (!radioPlaying) {
-    radioCarregarPlaylist().then(() => radioPlay());
-  }
-  document.removeEventListener('click', radioFirstPlay);
-}, { capture: true });
 setInterval(() => carregarNoticias(true), 60 * 60 * 1000);
 if (!isOwner()) {
   document.querySelectorAll('.edit-toggle').forEach(el => el.style.display='none');
