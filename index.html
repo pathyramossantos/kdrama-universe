@@ -5308,18 +5308,27 @@ function radioPlay() {
 
   // Guardar qual idx estamos tocando pra evitar race condition
   const playingIdx = radioIdx;
+
+  // Limpar listener canplay anterior antes de adicionar novo
+  if (window._radioCanplayFn) {
+    audio.removeEventListener('canplay', window._radioCanplayFn);
+    window._radioCanplayFn = null;
+  }
+
   audio.src = track.url;
 
-  // Sempre aguardar canplay antes de tocar — resolve o bug de restauração
-  audio.addEventListener('canplay', function onReady() {
-    audio.removeEventListener('canplay', onReady);
+  // Aguardar canplay antes de tocar
+  window._radioCanplayFn = function onReady() {
+    audio.removeEventListener('canplay', window._radioCanplayFn);
+    window._radioCanplayFn = null;
     // Só aplicar se ainda for a mesma música
     if (radioIdx !== playingIdx) return;
     if (offset > 5 && audio.duration && isFinite(audio.duration)) {
       audio.currentTime = Math.min(offset, audio.duration - 2);
     }
     audio.play().catch(() => {});
-  });
+  };
+  audio.addEventListener('canplay', window._radioCanplayFn);
 
   // Watchdog — verifica a cada 2s se o áudio está progredindo
   if (window._radioWatchdog) clearInterval(window._radioWatchdog);
