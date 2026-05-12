@@ -5208,70 +5208,95 @@ async function radioCarregarPlaylist() {
   } catch(e) { console.warn('Radio load error:', e); }
 }
 
-function radioPlay() {
-  if (!radioPlaylist.length) return;
-  const audio = document.getElementById('radio-audio');
-  const track = radioPlaylist[radioIdx];
-  audio.src = track.url;
-  audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
-
-  // Se tiver offset, começar no ponto certo
-  const offset = window._radioStartOffset || 0;
-  window._radioStartOffset = 0;
-  if (offset > 5) {
-    // Aguardar metadados antes de definir currentTime e tocar
-    audio.addEventListener('canplay', function onCanPlay() {
-      audio.removeEventListener('canplay', onCanPlay);
-      audio.currentTime = Math.min(offset, audio.duration - 2);
-      audio.play().catch(() => {});
-    });
-    audio.load();
-  } else {
-    audio.play().catch(() => {});
-  }
-  audio.onended = () => radioNext();
-  radioPlaying = true;
-  radioAutoplayPendente = false;
+function radioUpdateUI(track) {
   document.getElementById('radio-play-btn').textContent = '⏸';
-  document.getElementById('radio-track').textContent = track.name;
+  document.getElementById('radio-track').textContent = track?.name || '—';
   document.getElementById('radio-dot').style.display = 'block';
   document.getElementById('radio-status-txt').textContent = 'Ao vivo';
-
-  // Detectar silêncio — se após 3s não tiver progresso, reiniciar
-  if (window._radioSilenceCheck) clearTimeout(window._radioSilenceCheck);
-  window._radioSilenceCheck = setTimeout(() => {
-    const a = document.getElementById('radio-audio');
-    if (!a || !radioPlaying) return;
-    const t1 = a.currentTime;
-    setTimeout(() => {
-      const a2 = document.getElementById('radio-audio');
-      if (!a2 || !radioPlaying) return;
-      if (a2.currentTime === t1 && !a2.paused) {
-        // Está "tocando" mas sem progresso — reiniciar
-        const pos = a2.currentTime;
-        a2.pause();
-        a2.load();
-        a2.addEventListener('canplay', function fix() {
-          a2.removeEventListener('canplay', fix);
-          a2.currentTime = pos > 5 ? pos : 0;
-          a2.play().catch(() => {});
-        });
-      }
-    }, 2000);
-  }, 3000);
-
-  // Atualizar página rádio se aberta
   if (document.getElementById('page-radio')?.classList.contains('active')) {
     radioRenderTracklist();
     const btn = document.getElementById('radio-page-play');
     if (btn) btn.textContent = '⏸';
     const viz = document.getElementById('radio-viz-track');
-    if (viz) viz.textContent = track.name;
+    if (viz) viz.textContent = track?.name || '';
   }
+}
+
+function radioPlay() {
+  if (!radioPlaylist.length) return;
+  const audio = document.getElementById('radio-audio');
+  const track = radioPlaylist[radioIdx];
+
+  // Limpar listeners anteriores
+  audio.onended = null;
+  audio.onerror = null;
+  if (window._radioSilenceCheck) clearTimeout(window._radioSilenceCheck);
+
+  radioPlaying = true;
+  radioAutoplayPendente = false;
+  radioUpdateUI(track);
+
+  // Configurar próxima música quando terminar
+  audio.onended = () => {
+    window._radioStartOffset = 0;
+    radioIdx = (radioIdx + 1) % radioPlaylist.length;
+    setTimeout(() => radioPlay(), 500);
+  };
+
+  // Erro ao carregar — pular pra próxima
+  audio.onerror = () => {
+    console.warn('Erro ao carregar:', track.name, '— pulando');
+    radioIdx = (radioIdx + 1) % radioPlaylist.length;
+    setTimeout(() => radioPlay(), 1000);
+  };
+
+  const offset = window._radioStartOffset || 0;
+  window._radioStartOffset = 0;
+  audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
+
+  if (offset > 5) {
+    // Começar no ponto certo (rádio fake)
+    audio.src = track.url;
+    audio.addEventListener('canplaythrough', function onReady() {
+      audio.removeEventListener('canplaythrough', onReady);
+      audio.currentTime = Math.min(offset, (audio.duration || offset + 10) - 2);
+      audio.play().catch(() => {});
+    });
+    audio.load();
+  } else {
+    audio.src = track.url;
+    audio.play().catch(() => {
+      // Fallback: tentar após load
+      audio.addEventListener('canplay', function onCan() {
+        audio.removeEventListener('canplay', onCan);
+        audio.play().catch(() => {});
+      });
+    });
+  }
+
+  // Detector de silêncio — verifica se está progredindo
+  window._radioSilenceCheck = setTimeout(() => {
+    if (!radioPlaying) return;
+    const t1 = audio.currentTime;
+    setTimeout(() => {
+      if (!radioPlaying || audio.paused) return;
+      if (audio.currentTime === t1) {
+        // Preso — recarregar do mesmo ponto
+        audio.load();
+        audio.addEventListener('canplay', function unfreeze() {
+          audio.removeEventListener('canplay', unfreeze);
+          audio.play().catch(() => {});
+        });
+      }
+    }, 2500);
+  }, 4000);
 }
 
 function radioStop() {
   const audio = document.getElementById('radio-audio');
+  if (window._radioSilenceCheck) clearTimeout(window._radioSilenceCheck);
+  audio.onended = null;
+  audio.onerror = null;
   audio.pause();
   audio.src = '';
   radioPlaying = false;
