@@ -1252,6 +1252,8 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <h2 class="page-heading">Configurações</h2>
         <p class="page-sub">Conecte seu catálogo ao Airtable e ao TMDB</p>
       </div>
+
+      <!-- Airtable -->
       <div class="config-card">
         <h3>🔑 Airtable</h3>
         <div class="config-field">
@@ -1262,22 +1264,25 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn-gold" onclick="saveConfig()">Salvar e Conectar</button>
           <button class="btn-outline" onclick="clearConfig()">Limpar</button>
-          <button class="btn-outline" onclick="clearCache()" title="Força recarregar dados do Airtable">🔄 Atualizar dados</button>
+          <button class="btn-outline" onclick="clearCache()">🔄 Atualizar dados</button>
         </div>
         <div id="config-status" class="config-status"></div>
       </div>
+
+      <!-- Banners -->
       <div class="config-card">
         <h3>🖼 Configurações de Banner</h3>
-        <p style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Salva e restaura todas as posições e imagens personalizadas dos banners de doramas e atores.</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-          <button class="btn-gold" onclick="exportBannerSettings()">⬇ Exportar configurações</button>
-          <label class="btn-outline" style="cursor:pointer">
-            ⬆ Importar configurações
-            <input type="file" accept=".json" onchange="importBannerSettings(event)" style="display:none">
-          </label>
+        <p style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Salva e restaura todas as posições e imagens personalizadas dos banners.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-gold" onclick="exportBannerSettings()">⬇ Exportar</button>
+          <label class="btn-outline" style="cursor:pointer">⬆ Importar<input type="file" accept=".json" onchange="importBannerSettings(event)" style="display:none"></label>
         </div>
         <div id="banner-settings-status" class="config-status"></div>
       </div>
+
+      <!-- TMDB -->
+      <div class="config-card">
+        <h3>🎬 TMDB</h3>
         <div class="config-field">
           <label class="config-label">API Key (v3)</label>
           <input type="password" id="tmdb-key-input" class="config-input" placeholder="d955f…">
@@ -1290,15 +1295,12 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       </div>
 
       <!-- Gemini AI -->
-      <div class="config-section">
-        <div class="config-section-title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-          Gemini AI (Biografias)
-        </div>
+      <div class="config-card">
+        <h3>✨ Gemini AI (Biografias)</h3>
         <div class="config-field">
           <label class="config-label">Gemini API Key</label>
           <input type="password" id="gemini-key-input" class="config-input" placeholder="AIza…">
-          <p class="config-hint">Chave do Google Gemini. Usada para gerar biografias dos atores com IA. Gratuita em <a href="https://aistudio.google.com" target="_blank" style="color:var(--gold)">aistudio.google.com</a>.</p>
+          <p class="config-hint">Chave do Google Gemini. Gratuita em <a href="https://aistudio.google.com" target="_blank" style="color:var(--gold)">aistudio.google.com</a>.</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn-gold" onclick="saveGeminiConfig()">Salvar Gemini Key</button>
@@ -1306,12 +1308,9 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <div id="gemini-status" class="config-status"></div>
       </div>
 
-      <!-- GitHub Storage -->
-      <div class="config-section">
-        <div class="config-section-title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-          GitHub — Armazenamento de Mídia
-        </div>
+      <!-- GitHub -->
+      <div class="config-card">
+        <h3>🐙 GitHub — Armazenamento de Mídia</h3>
         <div class="config-field">
           <label class="config-label">Usuário do GitHub</label>
           <input type="text" id="github-user-input" class="config-input" placeholder="seu-usuario">
@@ -1332,6 +1331,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         </div>
         <div id="github-status" class="config-status"></div>
       </div>
+
     </div>
   </div>
 </div>
@@ -2004,10 +2004,8 @@ async function renderDorama(id){
     let dirDorama = [];
     if ((dirIds.length || rotIds.length) && TABLES.direcao && apiKey) {
       try {
-        // Sempre recarregar se allDirecao não tiver os campos necessários
-        if (!allDirecao.length || !allDirecao[0]?.fields['Foto'] === undefined) {
-          allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Tipo'] });
-        }
+        // Sempre buscar direcao fresh pra garantir campos corretos
+        allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Tipo'] });
         const dirs = allDirecao.filter(d => dirIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'DIRETOR'}));
         const rots = allDirecao.filter(d => rotIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'ROTEIRISTA'}));
         dirDorama = [...dirs, ...rots];
