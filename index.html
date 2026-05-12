@@ -1265,6 +1265,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           <button class="btn-gold" onclick="saveConfig()">Salvar e Conectar</button>
           <button class="btn-outline" onclick="clearConfig()">Limpar</button>
           <button class="btn-outline" onclick="clearCache()">🔄 Atualizar dados</button>
+          <button class="btn-outline" onclick="radioAtualizarPlaylist()">📻 Atualizar playlist da rádio</button>
         </div>
         <div id="config-status" class="config-status"></div>
       </div>
@@ -5181,7 +5182,9 @@ function radioCalcularPosicao() {
 }
 
 async function radioCarregarPlaylist() {
-  if (radioLoaded) return;
+  // Recarregar se mudou o dia (shuffle diário) ou nunca carregou
+  const hoje = new Date().toDateString();
+  if (radioLoaded && localStorage.getItem('radio_playlist_dia') === hoje) return;
   try {
     const res = await fetch(`https://archive.org/metadata/${ARCHIVE_ID}`);
     const data = await res.json();
@@ -5667,6 +5670,13 @@ async function ostLetraSalvar() {
   } catch(e) {
     if (status) status.textContent = 'Erro: ' + e.message;
   }
+}
+
+function radioAtualizarPlaylist() {
+  localStorage.removeItem('radio_playlist_dia');
+  radioLoaded = false;
+  radioPlaylist = [];
+  radioCarregarPlaylist().then(() => showToast('✓ Playlist atualizada! ' + radioPlaylist.length + ' músicas'));
 }
 
 // ── INIT ──────────────────────────────────────────────────
