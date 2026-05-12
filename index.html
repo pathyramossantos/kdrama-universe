@@ -5205,8 +5205,43 @@ async function radioCarregarPlaylist() {
     }));
 
     radioLoaded = true;
+    localStorage.setItem('radio_playlist_dia', hoje);
 
-    // Calcular posição atual
+    // Tentar restaurar posição salva na sessão (restauração de página)
+    const saved = sessionStorage.getItem('radio_state');
+    if (saved) {
+      try {
+        const state = JSON.parse(saved);
+        // Verificar se é do mesmo dia/playlist
+        if (state.dia === hoje && state.idx < radioPlaylist.length &&
+            radioPlaylist[state.idx].name === state.name) {
+          const elapsed = Math.floor((Date.now() - state.ts) / 1000);
+          const trackDur = radioPlaylist[state.idx].duration || 180;
+          const offset = state.offset + elapsed;
+          if (offset < trackDur - 2) {
+            // Ainda estamos dentro da mesma música
+            radioIdx = state.idx;
+            window._radioStartOffset = offset;
+          } else {
+            // A música já teria terminado — calcular quantas músicas passaram
+            let extra = offset - trackDur;
+            let idx = (state.idx + 1) % radioPlaylist.length;
+            while (extra > 0) {
+              const dur = radioPlaylist[idx].duration || 180;
+              if (extra < dur - 2) break;
+              extra -= dur;
+              idx = (idx + 1) % radioPlaylist.length;
+            }
+            radioIdx = idx;
+            window._radioStartOffset = Math.max(0, extra);
+          }
+          document.getElementById('radio-track').textContent = radioPlaylist[radioIdx]?.name || '—';
+          return;
+        }
+      } catch(e) { /* estado inválido, ignorar */ }
+    }
+
+    // Sem estado salvo — calcular posição pelo horário do dia
     const pos = radioCalcularPosicao();
     radioIdx = pos.idx;
     window._radioStartOffset = pos.offset;
@@ -5243,6 +5278,16 @@ function radioPlay() {
   radioAutoplayPendente = false;
   radioUpdateUI(track);
 
+  // Salvar estado atual no sessionStorage para restauração após reload
+  const hoje = new Date().toDateString();
+  sessionStorage.setItem('radio_state', JSON.stringify({
+    dia: hoje,
+    idx: radioIdx,
+    name: track.name,
+    offset: window._radioStartOffset || 0,
+    ts: Date.now()
+  }));
+
   // Configurar próxima música quando terminar
   audio.onended = () => {
     window._radioStartOffset = 0;
@@ -5264,17 +5309,17 @@ function radioPlay() {
   // Guardar qual idx estamos tocando pra evitar race condition
   const playingIdx = radioIdx;
   audio.src = track.url;
-  if (offset > 5) {
-    audio.addEventListener('canplay', function onReady() {
-      audio.removeEventListener('canplay', onReady);
-      // Só aplicar se ainda for a mesma música
-      if (radioIdx !== playingIdx) return;
-      if (audio.duration) audio.currentTime = Math.min(offset, audio.duration - 2);
-      audio.play().catch(() => {});
-    });
-  } else {
+
+  // Sempre aguardar canplay antes de tocar — resolve o bug de restauração
+  audio.addEventListener('canplay', function onReady() {
+    audio.removeEventListener('canplay', onReady);
+    // Só aplicar se ainda for a mesma música
+    if (radioIdx !== playingIdx) return;
+    if (offset > 5 && audio.duration && isFinite(audio.duration)) {
+      audio.currentTime = Math.min(offset, audio.duration - 2);
+    }
     audio.play().catch(() => {});
-  }
+  });
 
   // Watchdog — verifica a cada 2s se o áudio está progredindo
   if (window._radioWatchdog) clearInterval(window._radioWatchdog);
