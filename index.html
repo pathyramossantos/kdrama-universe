@@ -2004,13 +2004,15 @@ async function renderDorama(id){
     let dirDorama = [];
     if ((dirIds.length || rotIds.length) && TABLES.direcao && apiKey) {
       try {
-        if (!allDirecao.length) {
-          allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Tipo', 'Foto', 'Biografia'] });
+        // Sempre recarregar se allDirecao não tiver os campos necessários
+        if (!allDirecao.length || !allDirecao[0]?.fields['Foto'] === undefined) {
+          allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Tipo'] });
         }
         const dirs = allDirecao.filter(d => dirIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'DIRETOR'}));
         const rots = allDirecao.filter(d => rotIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'ROTEIRISTA'}));
         dirDorama = [...dirs, ...rots];
-      } catch(_) {}
+        console.log('dirDorama:', dirDorama.length, dirIds, rotIds);
+      } catch(e) { console.warn('dirDorama error:', e); }
     }
 
     // Buscar resenha do blog para este dorama
