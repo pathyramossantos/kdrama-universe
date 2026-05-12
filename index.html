@@ -5257,10 +5257,14 @@ function radioPlay() {
   window._radioStartOffset = 0;
   audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
 
+  // Guardar qual idx estamos tocando pra evitar race condition
+  const playingIdx = radioIdx;
   audio.src = track.url;
   if (offset > 5) {
     audio.addEventListener('canplay', function onReady() {
       audio.removeEventListener('canplay', onReady);
+      // Só aplicar se ainda for a mesma música
+      if (radioIdx !== playingIdx) return;
       if (audio.duration) audio.currentTime = Math.min(offset, audio.duration - 2);
       audio.play().catch(() => {});
     });
