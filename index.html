@@ -2011,7 +2011,7 @@ async function renderDorama(id){
         const dirs = allDirecao.filter(d => dirIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'DIRETOR'}));
         const rots = allDirecao.filter(d => rotIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'ROTEIRISTA'}));
         dirDorama = [...dirs, ...rots];
-        console.log('dirDorama:', dirDorama.length, dirIds, rotIds);
+
       } catch(e) { console.warn('dirDorama error:', e); }
     }
 
