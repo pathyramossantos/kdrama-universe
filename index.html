@@ -5240,38 +5240,29 @@ function radioPlay() {
   audio.onended = () => {
     window._radioStartOffset = 0;
     radioIdx = (radioIdx + 1) % radioPlaylist.length;
-    setTimeout(() => radioPlay(), 500);
+    setTimeout(() => radioPlay(), 100);
   };
 
   // Erro ao carregar — pular pra próxima
   audio.onerror = () => {
     console.warn('Erro ao carregar:', track.name, '— pulando');
     radioIdx = (radioIdx + 1) % radioPlaylist.length;
-    setTimeout(() => radioPlay(), 1000);
+    setTimeout(() => radioPlay(), 300);
   };
 
   const offset = window._radioStartOffset || 0;
   window._radioStartOffset = 0;
   audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
 
+  audio.src = track.url;
   if (offset > 5) {
-    // Começar no ponto certo (rádio fake)
-    audio.src = track.url;
-    audio.addEventListener('canplaythrough', function onReady() {
-      audio.removeEventListener('canplaythrough', onReady);
-      audio.currentTime = Math.min(offset, (audio.duration || offset + 10) - 2);
+    audio.addEventListener('canplay', function onReady() {
+      audio.removeEventListener('canplay', onReady);
+      if (audio.duration) audio.currentTime = Math.min(offset, audio.duration - 2);
       audio.play().catch(() => {});
     });
-    audio.load();
   } else {
-    audio.src = track.url;
-    audio.play().catch(() => {
-      // Fallback: tentar após load
-      audio.addEventListener('canplay', function onCan() {
-        audio.removeEventListener('canplay', onCan);
-        audio.play().catch(() => {});
-      });
-    });
+    audio.play().catch(() => {});
   }
 
   // Detector de silêncio — verifica se está progredindo
@@ -6306,7 +6297,7 @@ function cardContextMenu(e, page, id) {
       <span style="font-size:.75rem;color:var(--text3)">🔊</span>
       <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
     </div>
-    <audio id="radio-audio" preload="auto"></audio>
+    <audio id="radio-audio" preload="none"></audio>
   </div>
 </div>
 
