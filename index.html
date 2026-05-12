@@ -5265,27 +5265,34 @@ function radioPlay() {
     audio.play().catch(() => {});
   }
 
-  // Detector de silêncio — verifica se está progredindo
-  window._radioSilenceCheck = setTimeout(() => {
-    if (!radioPlaying) return;
-    const t1 = audio.currentTime;
-    setTimeout(() => {
-      if (!radioPlaying || audio.paused) return;
-      if (audio.currentTime === t1) {
-        // Preso — recarregar do mesmo ponto
-        audio.load();
-        audio.addEventListener('canplay', function unfreeze() {
-          audio.removeEventListener('canplay', unfreeze);
-          audio.play().catch(() => {});
-        });
+  // Watchdog — verifica a cada 2s se o áudio está progredindo
+  if (window._radioWatchdog) clearInterval(window._radioWatchdog);
+  let _lastTime = -1;
+  let _stuckCount = 0;
+  window._radioWatchdog = setInterval(() => {
+    if (!radioPlaying) { clearInterval(window._radioWatchdog); return; }
+    const a = document.getElementById('radio-audio');
+    if (!a || a.paused) return;
+    if (a.currentTime === _lastTime) {
+      _stuckCount++;
+      if (_stuckCount >= 2) {
+        // Preso por 4s — forçar reload
+        _stuckCount = 0;
+        const src = a.src;
+        a.src = '';
+        a.src = src;
+        a.play().catch(() => {});
       }
-    }, 2500);
-  }, 4000);
+    } else {
+      _stuckCount = 0;
+    }
+    _lastTime = a.currentTime;
+  }, 2000);
 }
 
 function radioStop() {
   const audio = document.getElementById('radio-audio');
-  if (window._radioSilenceCheck) clearTimeout(window._radioSilenceCheck);
+  if (window._radioWatchdog) clearInterval(window._radioWatchdog);
   audio.onended = null;
   audio.onerror = null;
   audio.pause();
