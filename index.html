@@ -5436,7 +5436,7 @@ async function renderDirecao() {
   if (!allDirecao.length) {
     try {
       const recs = await fetchTable(TABLES.direcao, {
-        fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Instagram', 'Site', 'Tipo']
+        fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Tipo']
       });
       allDirecao = recs.sort((a, b) => (a.fields['Nome'] || '').localeCompare(b.fields['Nome'] || ''));
     } catch(e) {
@@ -5486,7 +5486,7 @@ async function renderDiretor(id) {
   if (!dir) {
     try {
       const recs = await fetchTable(TABLES.direcao, {
-        fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Instagram', 'Site', 'Tipo']
+        fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Tipo']
       });
       allDirecao = recs;
       dir = recs.find(d => d.id === id);
@@ -5572,10 +5572,7 @@ async function renderDiretor(id) {
           ${tipo ? `<span class="badge badge-exp">${tipo}</span>` : ''}
           ${vinculados.length ? `<span class="badge badge-status-concluido">${vinculados.length} dorama${vinculados.length>1?'s':''} no catálogo</span>` : ''}
         </div>
-        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-          ${f['Instagram'] ? `<a href="${f['Instagram']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none">📸 Instagram</a>` : ''}
-          ${f['Site'] ? `<a href="${f['Site']}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);color:#fff;font-size:.8rem;font-weight:600;text-decoration:none">🌐 Site</a>` : ''}
-        </div>
+
       </div>
     </div>
 
