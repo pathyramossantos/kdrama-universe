@@ -5309,7 +5309,7 @@ function radioPlay() {
   // Guardar qual idx estamos tocando pra evitar race condition
   const playingIdx = radioIdx;
 
-  // Limpar listener canplay anterior antes de adicionar novo
+  // Limpar listener canplay anterior se existir
   if (window._radioCanplayFn) {
     audio.removeEventListener('canplay', window._radioCanplayFn);
     window._radioCanplayFn = null;
@@ -5317,18 +5317,22 @@ function radioPlay() {
 
   audio.src = track.url;
 
-  // Aguardar canplay antes de tocar
-  window._radioCanplayFn = function onReady() {
-    audio.removeEventListener('canplay', window._radioCanplayFn);
-    window._radioCanplayFn = null;
-    // Só aplicar se ainda for a mesma música
-    if (radioIdx !== playingIdx) return;
-    if (offset > 5 && audio.duration && isFinite(audio.duration)) {
-      audio.currentTime = Math.min(offset, audio.duration - 2);
-    }
+  if (offset > 5) {
+    // Com offset: aguardar canplay pra saber a duração antes de seek
+    window._radioCanplayFn = function onReady() {
+      audio.removeEventListener('canplay', window._radioCanplayFn);
+      window._radioCanplayFn = null;
+      if (radioIdx !== playingIdx) return;
+      if (audio.duration && isFinite(audio.duration)) {
+        audio.currentTime = Math.min(offset, audio.duration - 2);
+      }
+      audio.play().catch(() => {});
+    };
+    audio.addEventListener('canplay', window._radioCanplayFn);
+  } else {
+    // Sem offset: play direto, sem esperar
     audio.play().catch(() => {});
-  };
-  audio.addEventListener('canplay', window._radioCanplayFn);
+  }
 
   // Watchdog — verifica a cada 2s se o áudio está progredindo
   if (window._radioWatchdog) clearInterval(window._radioWatchdog);
