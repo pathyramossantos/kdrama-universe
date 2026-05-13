@@ -4012,27 +4012,10 @@ async function renderPost(id) {
 }
 
 function renderPostBody(text) {
-  // Blocos de colunas: :::colunas ... ||| ... :::
-  let html = text.replace(/:::colunas(?:-invertidas)?\n([\s\S]*?):::/g, (match, inner) => {
-    const invertido = match.startsWith(':::colunas-invertidas');
-    const partes = inner.split('|||');
-    if (partes.length < 2) return renderMd(inner.trim());
-    const esq = renderMd(partes[0].trim());
-    const dir = renderMd(partes[1].trim());
-    const col1 = invertido ? dir : esq;
-    const col2 = invertido ? esq : dir;
-    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:1.5em 0">
-      <div>${col1}</div>
-      <div>${col2}</div>
-    </div>`;
-  });
-
-  // Spoilers
-  html = html.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
+  let html = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
     const sid = 'spl_' + Math.random().toString(36).slice(2, 7);
     return `<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">🔒 Revelar Spoiler</button><div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`;
   });
-
   return renderMd(html);
 }
 
@@ -4407,7 +4390,7 @@ function renderCarouselDoramas() {
   el.innerHTML = doramas.map(s => {
     const f = s.fields;
     const capa = Array.isArray(f['Capa']) ? (f['Capa'][0]?.url || '') : (f['Capa'] || Array.isArray(f['Poster']) ? (f['Poster']?.[0]?.url || '') : (f['Poster'] || ''));
-    return `<div class="hc-dorama-card" onclick="openDorama('${s.id}')">
+    return `<div class="hc-dorama-card" onclick="navigate('dorama','${s.id}')">
       ${capa
         ? `<img class="hc-dorama-card-img" src="${capa}" loading="lazy" onerror="this.style.display='none'">`
         : `<div class="hc-dorama-card-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem">🎬</div>`}
