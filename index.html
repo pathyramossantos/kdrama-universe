@@ -4342,6 +4342,16 @@ async function renderInicio() {
       atualizarStatsHome();
     }
   }
+  // Carregar posts se ainda não foram carregados
+  if (!allPosts.length && TABLES.blog && apiKey) {
+    try {
+      const records = await fetchTable(TABLES.blog, { fields: ['Título','Tipo','Status','Capa','Data'] });
+      allPosts = records.filter(p => p.fields['Status'] === 'Publicado').sort((a, b) => {
+        const parseData = d => d ? new Date(d).getTime() : 0;
+        return parseData(b.fields['Data']) - parseData(a.fields['Data']);
+      });
+    } catch(e) {}
+  }
   _bdayMes = new Date().getMonth();
   _bdayAno = new Date().getFullYear();
   renderBdayCal();
