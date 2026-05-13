@@ -4056,14 +4056,17 @@ text = text.replace(/:{3}colunas(-invertidas)?\s*([\s\S]*?)\s*:{3}/g, (_, inv, i
   if (inv) [esq, dir] = [dir, esq];
 
   // Converte imagens markdown em <img> antes do renderMd
-  const renderImgs = txt => txt.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, cap, url) => {
-    const lower = cap.toLowerCase();
-    const maxW = lower === 'pequena' ? '300px'
-               : lower === 'media' || lower === 'mídia' || lower === 'mdia' ? '500px'
-               : lower === 'gif' ? '100%'
-               : '100%';
-    return `<img src="${url}" alt="${cap}" loading="lazy" style="width:100%;max-width:${maxW};border-radius:8px;display:block">`;
-  });
+const renderImgs = txt => txt.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, cap, url) => {
+  const lower = cap.toLowerCase();
+  const maxW = lower === 'pequena' ? '300px'
+             : lower === 'media' || lower === 'mídia' || lower === 'mdia' ? '500px'
+             : '100%';
+  // PNG: sem border-radius, preserva transparência
+  if (lower === 'png') {
+    return `<img src="${url}" alt="" loading="lazy" style="width:100%;max-width:100%;display:block;mix-blend-mode:normal">`;
+  }
+  return `<img src="${url}" alt="${cap}" loading="lazy" style="width:100%;max-width:${maxW};border-radius:8px;display:block">`;
+});
 
   blocos.push(`<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center;margin:1.5em 0">
     <div>${renderMd(renderImgs(esq))}</div><div>${renderMd(renderImgs(dir))}</div></div>`);
