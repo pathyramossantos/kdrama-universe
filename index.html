@@ -4048,24 +4048,27 @@ function renderPostBody(text) {
     return `${CHAVE}${blocos.length - 1}`;
   });
 
-  // 2. Colunas
-  text = text.replace(/:{3}colunas(-invertidas)?\s*([\s\S]*?)\s*:{3}/g, (_, inv, inner) => {
-    const partes = inner.split('|||');
-    let esq = (partes[0] || '').trim();
-    let dir = (partes[1] || '').trim();
-    if (inv) [esq, dir] = [dir, esq];
-    blocos.push(`<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:1.5em 0">
-      <div>${renderMd(esq)}</div><div>${renderMd(dir)}</div></div>`);
-    return `${CHAVE}${blocos.length - 1}`;
+ // 2. Colunas
+text = text.replace(/:{3}colunas(-invertidas)?\s*([\s\S]*?)\s*:{3}/g, (_, inv, inner) => {
+  const partes = inner.split('|||');
+  let esq = (partes[0] || '').trim();
+  let dir = (partes[1] || '').trim();
+  if (inv) [esq, dir] = [dir, esq];
+
+  // Converte imagens markdown em <img> antes do renderMd
+  const renderImgs = txt => txt.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, cap, url) => {
+    const lower = cap.toLowerCase();
+    const maxW = lower === 'pequena' ? '300px'
+               : lower === 'media' || lower === 'mídia' || lower === 'mdia' ? '500px'
+               : lower === 'gif' ? '100%'
+               : '100%';
+    return `<img src="${url}" alt="${cap}" loading="lazy" style="width:100%;max-width:${maxW};border-radius:8px;display:block">`;
   });
 
-  // 3. Spoilers
-  text = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
-    const sid = 'spl' + Math.random().toString(36).slice(2, 7);
-    blocos.push(`<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">Revelar Spoiler</button>
-      <div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`);
-    return `${CHAVE}${blocos.length - 1}`;
-  });
+  blocos.push(`<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:1.5em 0">
+    <div>${renderMd(renderImgs(esq))}</div><div>${renderMd(renderImgs(dir))}</div></div>`);
+  return `${CHAVE}${blocos.length - 1}`;
+});
 
   // 4. renderMd no texto restante
   let html = renderMd(text);
