@@ -4307,12 +4307,9 @@ async function bfSalvar() {
 // navigate unificado abaixo — patches removidos
 
 async function renderInicio() {
-  if (allSeries.length || allAtores.length) atualizarStatsHome();
-  else {
-    if (apiKey) {
-      try { await loadAllData(); } catch(e) {}
-      atualizarStatsHome();
-    }
+  if (apiKey) {
+    try { await loadAllData(); } catch(e) {}
+    atualizarStatsHome();
   }
   if (!allPosts.length && TABLES.blog && apiKey) {
     try {
