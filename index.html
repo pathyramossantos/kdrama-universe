@@ -692,7 +692,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 /* Imagens e vídeos no corpo do post */
 .post-body img{width:100%;border-radius:var(--radius);margin:1.5em 0;border:1px solid var(--border);display:block}
-.post-body img.post-icon{width:auto !important;height:auto !important;display:inline-block !important;margin:0 4px !important;border:none !important;border-radius:0 !important;vertical-align:middle !important;max-width:none !important}
+.post-body img.post-icon{width:auto !important;height:auto !important;display:inline-block !important;margin:0 4px !important;border:none !important;border-radius:0 !important;vertical-align:middle !important}
 .post-body p:has(img.post-icon){margin-bottom:1em;line-height:2}
 .post-body .post-video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);margin:1.5em 0;border:1px solid var(--border)}
 .post-body .post-video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
@@ -4016,7 +4016,6 @@ async function renderPost(id) {
 function renderPostBody(text) {
   const blocos = [];
 
-  // Colunas — extrair antes do renderMd
   text = text.replace(/:::colunas(-invertidas)?\n([\s\S]*?):::/g, (match, inv, inner) => {
     const partes = inner.split('|||');
     let esq = (partes[0] || '').trim();
@@ -4028,7 +4027,6 @@ function renderPostBody(text) {
     return key;
   });
 
-  // Spoilers — extrair antes do renderMd
   text = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
     const sid = 'spl_' + Math.random().toString(36).slice(2, 7);
     const key = `\x00BLK${blocos.length}\x00`;
@@ -4036,10 +4034,8 @@ function renderPostBody(text) {
     return key;
   });
 
-  // Renderizar markdown
   let html = renderMd(text);
 
-  // Restaurar blocos
   blocos.forEach((bloco, i) => {
     html = html.split(`\x00BLK${i}\x00`).join(bloco);
   });
@@ -4122,12 +4118,12 @@ function renderMd(text) {
       })
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/!\[([^\]]*)\]\(([^)]+?)\s+=(\d+)x(\d+)\)/g, (_, cap, url, w, h) =>
+      .replace(/!\[([^\]]*)\]\((.+?)\s+=(\d+)x(\d+)\)/g, (_, cap, url, w, h) =>
         `<img src="${url}" alt="${cap}" loading="lazy" class="post-icon" style="width:${w}px;height:${h}px">`)
-      .replace(/\[!\[([^\]]*)\]\(([^)]+?)(?:\s+=(\d+)x(\d+))?\)\]\(([^)]+)\)/g, (_, cap, img, w, h, link) => {
-        const style = (w || h) ? ` style="width:${w||'auto'}px;height:${h||'auto'}px"` : '';
-        return `<a href="${link}" target="_blank" rel="noopener"><img src="${img}" alt="${cap}" loading="lazy" class="post-icon"${style}></a>`;
-      })
+      .replace(/\[!\[([^\]]*)\]\((.+?)\s+=(\d+)x(\d+)\)\]\(([^)]+)\)/g, (_, cap, img, w, h, link) =>
+        `<a href="${link}" target="_blank" rel="noopener"><img src="${img}" alt="${cap}" loading="lazy" class="post-icon" style="width:${w}px;height:${h}px"></a>`)
+      .replace(/\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^)]+)\)/g, (_, cap, img, link) =>
+        `<a href="${link}" target="_blank" rel="noopener"><img src="${img}" alt="${cap}" loading="lazy" class="post-icon"></a>`)
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, txt, url) => {
       // Link interno (#post/ID, #ator/ID, etc) — navega dentro do site
       const internalMatch = url.match(/^#(post|ator|dorama)\/(.+)$/);
