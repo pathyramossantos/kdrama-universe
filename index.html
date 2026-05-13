@@ -4116,14 +4116,20 @@ function renderMd(text) {
       return `<img src="${url}" alt="${caption}" loading="lazy" class="post-icon" style="width:${w}px;height:${h}px">${caption ? `<div class="post-img-caption">${caption}</div>` : ''}`;
     }
 
-    // Múltiplas imagens na mesma linha: ![gif](url1) ![gif](url2)
-    if (/^(!\[(gif|pequena|média|media)\]\([^)]+\)\s*){2,}$/.test(t)) {
-      return `<p style="text-align:center;margin:1em 0">${t.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, cap, url) => {
-        const lower = (cap||'').toLowerCase();
-        const maxW = lower === 'pequena' ? 'max-width:300px' : lower === 'media' || lower === 'média' ? 'max-width:500px' : '';
-        return `<img src="${url}" alt="" loading="lazy" class="post-gif"${maxW ? ` style="${maxW}"` : ''}>`;
-      })}</p>`;
-    }
+    // Múltiplas imagens na mesma linha → flex lado a lado
+if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
+  const imgs = [...t.matchAll(/!\[([^\]]*)\]\(([^)]+)\)/g)];
+  const html = imgs.map(([, cap, url]) => {
+    const lower = cap.toLowerCase();
+    const maxW = lower === 'pequena' ? '150px'
+               : lower === 'media' || lower === 'mídia' || lower === 'mdia' ? '250px'
+               : lower === 'media2' ? '350px'
+               : lower === 'gif' ? '100%'
+               : '300px';
+    return `<img src="${url}" alt="${cap}" loading="lazy" class="post-gif" style="max-width:${maxW};height:auto;border-radius:6px;object-fit:cover;">`;
+  }).join('');
+  return `<div style="display:flex;flex-wrap:wrap;gap:8px;margin:1em 0;align-items:flex-start;justify-content:center">${html}</div>`;
+}
 
     // Imagem normal: ![caption](url)
     const imgMatch = t.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
