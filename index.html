@@ -1764,7 +1764,7 @@ async function createRecord(tableId,fields){
 }
 
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas
-const CACHE_VERSION = 'v5'; // Incrementar quando fields mudarem
+const CACHE_VERSION = 'v6'; // Incrementar quando fields mudarem
 
 async function loadAllData(){
   if(!apiKey) return;
@@ -1784,8 +1784,8 @@ async function loadAllData(){
         setTimeout(async () => {
           try {
             const [s,a,e,p] = await Promise.all([
-              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas','Data','Banner Position','Banner URL']}),
-              fetchTable(TABLES.atores, {fields:['Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco','Biografia','Instagram','Site','Url Hancinema','Data do cadastro']}),
+              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas','Data','Banner_Position','Banner_Url']}),
+              fetchTable(TABLES.atores, {fields:['Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco','Biografia','Instagram','Site','Url Hancinema','Data do cadastro','Banner_Position','Banner_Url']}),
               fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']}),
               fetchTable(TABLES.plataformas, {fields:['Nome','Logo','Séries']})
             ]);
@@ -2088,10 +2088,10 @@ async function renderDorama(id){
   setTimeout(() => applyEditModeToDOM(), 100);
   setTimeout(() => applyEditModeToDOM(), 500);
 
-    const bannerPos = f['Banner Position'] || localStorage.getItem(`kdrama_bannerpos_${id}`) || '50% 30%';
-    const savedBannerUrl = f['Banner URL'] || localStorage.getItem(`kdrama_bannerurl_${id}`);
-    if (f['Banner Position']) localStorage.setItem(`kdrama_bannerpos_${id}`, f['Banner Position']);
-    if (f['Banner URL']) localStorage.setItem(`kdrama_bannerurl_${id}`, f['Banner URL']);
+    const bannerPos = f['Banner_Position'] || localStorage.getItem(`kdrama_bannerpos_${id}`) || '50% 30%';
+    const savedBannerUrl = f['Banner_Url'] || localStorage.getItem(`kdrama_bannerurl_${id}`);
+    if (f['Banner_Position']) localStorage.setItem(`kdrama_bannerpos_${id}`, f['Banner_Position']);
+    if (f['Banner_Url']) localStorage.setItem(`kdrama_bannerurl_${id}`, f['Banner_Url']);
     const bannerSrc = savedBannerUrl || photo;
 
     content.innerHTML=`
@@ -2296,7 +2296,6 @@ function saveBannerPos(){
   const pos=`${x}% ${y}%`;
   const key=`kdrama_bannerpos_${currentRecordId}`;
   localStorage.setItem(key,pos);
-  // Salvar no Airtable
   const url = localStorage.getItem(`kdrama_bannerurl_${currentRecordId}`) || '';
   const tipo = currentSerie ? 'dorama' : 'ator';
   bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
@@ -2312,14 +2311,14 @@ async function bannerSalvarAirtable(id, tipo, { pos, url }) {
   if (!tableId) return;
   try {
     const fields = {};
-    if (pos) fields['Banner Position'] = pos;
-    if (url) fields['Banner URL'] = url;
+    if (pos) fields['Banner_Position'] = pos;
+    if (url) fields['Banner_Url'] = url;
     await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tableId}/${id}`, {
       method: 'PATCH',
       headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ fields })
     });
-  } catch(e) { console.warn('Erro ao salvar banner no Airtable:', e); }
+  } catch(e) { console.warn('Erro ao salvar banner:', e); }
 }
 
 async function changeBannerUrl(){
@@ -2796,8 +2795,10 @@ async function renderAtor(id){
         </div>
       </div>` : '';
 
-    const atorBannerPos = localStorage.getItem(`kdrama_atorbannerpos_${id}`) || '50% 20%';
-    const atorBannerUrl = localStorage.getItem(`kdrama_atorbannerurl_${id}`);
+    const atorBannerPos = f['Banner_Position'] || localStorage.getItem(`kdrama_atorbannerpos_${id}`) || '50% 20%';
+    const atorBannerUrl = f['Banner_Url'] || localStorage.getItem(`kdrama_atorbannerurl_${id}`);
+    if (f['Banner_Position']) localStorage.setItem(`kdrama_atorbannerpos_${id}`, f['Banner_Position']);
+    if (f['Banner_Url']) localStorage.setItem(`kdrama_atorbannerurl_${id}`, f['Banner_Url']);
     const atorBannerSrc = atorBannerUrl || photo;
 
     const tmdbActorBox=`<div class="tmdb-search-box" id="tmdb-ator-box" style="display:none;border-radius:0;border-left:none;border-right:none;margin:0">
@@ -3966,7 +3967,7 @@ async function renderPost(id) {
   if (apiKey) {
     try {
       if (!allAtores.length && TABLES.atores)
-        allAtores = await fetchTable(TABLES.atores, {fields:['Nome','Data de Nascimento','Biografia','Foto','Instagram','Site','Url Hancinema','Data do cadastro']});
+        allAtores = await fetchTable(TABLES.atores, {fields:['Nome','Data de Nascimento','Biografia','Foto','Instagram','Site','Url Hancinema','Data do cadastro','Banner_Position','Banner_Url']});
       if (!allElenco.length && TABLES.elenco)
         allElenco = await fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']});
     } catch(_){}
