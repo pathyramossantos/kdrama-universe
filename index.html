@@ -4012,38 +4012,11 @@ async function renderPost(id) {
 }
 
 function renderPostBody(text) {
-  // Extrair blocos especiais antes do renderMd
-  const blocos = [];
-
-  // Colunas
-  text = text.replace(/:::colunas(-invertidas)?\n([\s\S]*?):::/g, (match, inv, inner) => {
-    const partes = inner.split('|||');
-    let esq = (partes[0] || '').trim();
-    let dir = (partes[1] || '').trim();
-    if (inv) { [esq, dir] = [dir, esq]; }
-    const html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:1.5em 0"><div>${renderMd(esq)}</div><div>${renderMd(dir)}</div></div>`;
-    const key = `\x00BLK${blocos.length}\x00`;
-    blocos.push(html);
-    return key;
-  });
-
-  // Spoilers
-  text = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
+  let html = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
     const sid = 'spl_' + Math.random().toString(36).slice(2, 7);
-    const key = `\x00BLK${blocos.length}\x00`;
-    blocos.push(`<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">🔒 Revelar Spoiler</button><div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`);
-    return key;
+    return `<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">🔒 Revelar Spoiler</button><div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`;
   });
-
-  // Renderizar markdown
-  let html = renderMd(text);
-
-  // Restaurar blocos
-  blocos.forEach((bloco, i) => {
-    html = html.split(`\x00BLK${i}\x00`).join(bloco);
-  });
-
-  return html;
+  return renderMd(html);
 }
 
 function renderMd(text) {
@@ -4058,7 +4031,23 @@ function renderMd(text) {
     if (t.startsWith('### ')) return `<h3>${t.slice(4)}</h3>`;
     if (t.startsWith('> ')) return `<blockquote>${t.slice(2)}</blockquote>`;
 
-    // Imagem: ![caption](url)
+
+    // Imagem com link e tamanho: [![caption](img =32x32)](link)
+    const imgLinkMatch = t.match(/^\[!\[([^\]]*)\]\(([^)]+?)(?:\s+=(\d+)x(\d+))?\)\]\(([^)]+)\)$/);
+    if (imgLinkMatch) {
+      const [, caption, imgUrl, w, h, link] = imgLinkMatch;
+      const style = (w || h) ? ` style="width:${w||'auto'}px;height:${h||'auto'}px;display:inline-block;vertical-align:middle"` : '';
+      return `<a href="${link}" target="_blank" rel="noopener"><img src="${imgUrl}" alt="${caption}" loading="lazy"${style}></a>`;
+    }
+
+    // Imagem com tamanho: ![caption](url =LARGxALT)
+    const imgSizeMatch = t.match(/^!\[([^\]]*)\]\(([^)]+?)\s+=(\d+)x(\d+)\)$/);
+    if (imgSizeMatch) {
+      const [, caption, url, w, h] = imgSizeMatch;
+      return `<img src="${url}" alt="${caption}" loading="lazy" style="width:${w}px;height:${h}px;object-fit:contain">${caption ? `<div class="post-img-caption">${caption}</div>` : ''}`;
+    }
+
+    // Imagem normal: ![caption](url)
     const imgMatch = t.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (imgMatch) {
       const [, caption, url] = imgMatch;
@@ -4105,6 +4094,12 @@ function renderMd(text) {
       })
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/!\[([^\]]*)\]\(([^)]+?)\s+=(\d+)x(\d+)\)/g, (_, cap, url, w, h) =>
+        `<img src="${url}" alt="${cap}" loading="lazy" style="width:${w}px;height:${h}px;object-fit:contain;vertical-align:middle">`)
+      .replace(/\[!\[([^\]]*)\]\(([^)]+?)(?:\s+=(\d+)x(\d+))?\)\]\(([^)]+)\)/g, (_, cap, img, w, h, link) => {
+        const style = (w || h) ? ` style="width:${w||'auto'}px;height:${h||'auto'}px;display:inline-block;vertical-align:middle"` : 'style="vertical-align:middle"';
+        return `<a href="${link}" target="_blank" rel="noopener"><img src="${img}" alt="${cap}" loading="lazy" ${style}></a>`;
+      })
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, txt, url) => {
       // Link interno (#post/ID, #ator/ID, etc) — navega dentro do site
       const internalMatch = url.match(/^#(post|ator|dorama)\/(.+)$/);
