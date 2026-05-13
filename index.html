@@ -692,6 +692,8 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 /* Imagens e vídeos no corpo do post */
 .post-body img{width:100%;border-radius:var(--radius);margin:1.5em 0;border:1px solid var(--border);display:block}
+.post-body img.post-gif{width:auto;max-width:100%;height:auto;display:inline-block;margin:4px;border:none;border-radius:var(--radius);vertical-align:top}
+.post-body p:has(img.post-gif){text-align:center;margin:1em 0}
 .post-body img.post-icon{width:auto !important;height:auto !important;display:inline-block !important;margin:0 4px !important;border:none !important;border-radius:0 !important;vertical-align:middle !important}
 .post-body p:has(img.post-icon){margin-bottom:1em;line-height:2}
 .post-body .post-video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);margin:1.5em 0;border:1px solid var(--border)}
@@ -1782,7 +1784,7 @@ async function loadAllData(){
         setTimeout(async () => {
           try {
             const [s,a,e,p] = await Promise.all([
-              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas','Data']}),
+              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas','Data','Banner Position','Banner URL']}),
               fetchTable(TABLES.atores, {fields:['Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco','Biografia','Instagram','Site','Url Hancinema','Data do cadastro']}),
               fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']}),
               fetchTable(TABLES.plataformas, {fields:['Nome','Logo','Séries']})
@@ -2299,6 +2301,25 @@ function saveBannerPos(){
   const tipo = currentSerie ? 'dorama' : 'ator';
   bannerSalvarAirtable(currentRecordId, tipo, { pos, url });
   showToast('Posição salva ✓');
+}
+
+async function bannerSalvarAirtable(id, tipo, { pos, url }) {
+  if (!apiKey || !id) return;
+  let tableId;
+  if (tipo === 'dorama') tableId = TABLES.series;
+  else if (tipo === 'diretor') tableId = TABLES.direcao;
+  else tableId = TABLES.atores;
+  if (!tableId) return;
+  try {
+    const fields = {};
+    if (pos) fields['Banner Position'] = pos;
+    if (url) fields['Banner URL'] = url;
+    await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tableId}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields })
+    });
+  } catch(e) { console.warn('Erro ao salvar banner no Airtable:', e); }
 }
 
 async function changeBannerUrl(){
@@ -4070,11 +4091,19 @@ function renderMd(text) {
       return `<img src="${url}" alt="${caption}" loading="lazy" class="post-icon" style="width:${w}px;height:${h}px">${caption ? `<div class="post-img-caption">${caption}</div>` : ''}`;
     }
 
+    // Imagem natural (gif): ![gif](url) ou múltiplas na mesma linha
+    if (/^(!\[gif\]\([^)]+\)\s*)+$/.test(t)) {
+      return `<p style="text-align:center;margin:1em 0">${t.replace(/!\[gif\]\(([^)]+)\)/g, (_, url) =>
+        `<img src="${url}" alt="" loading="lazy" class="post-gif">`)}</p>`;
+    }
+
     // Imagem normal: ![caption](url)
     const imgMatch = t.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (imgMatch) {
       const [, caption, url] = imgMatch;
-      return `<img src="${url}" alt="${caption}" loading="lazy">${caption ? `<div class="post-img-caption">${caption}</div>` : ''}`;
+      // caption vazio = tratar como gif (tamanho natural)
+      if (!caption) return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif"></p>`;
+      return `<img src="${url}" alt="${caption}" loading="lazy">${`<div class="post-img-caption">${caption}</div>`}`;
     }
 
     // Vídeo YouTube: [youtube](VIDEO_ID ou URL)
