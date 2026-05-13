@@ -5665,7 +5665,12 @@ async function ostLetraSalvar() {
 
 
 // ── INIT ──────────────────────────────────────────────────
-parseHash();
+async function initApp() {
+  await loadAllData();
+  parseHash();
+}
+initApp();
+
 if (!isOwner()) {
   document.querySelectorAll('.edit-toggle').forEach(el => el.style.display='none');
   const nc = document.getElementById('nav-config'); if(nc) nc.style.display='none';
@@ -5674,7 +5679,6 @@ if (!isOwner()) {
 } else {
   const nd = document.getElementById('nav-direcao'); if(nd) nd.style.display='inline';
 }
-
 
 // ── ACTOR MDL SEARCH (movido para dentro do documento) ──────
 
