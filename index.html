@@ -5666,8 +5666,9 @@ async function ostLetraSalvar() {
 
 // ── INIT ──────────────────────────────────────────────────
 async function initApp() {
-  await loadAllData();
-  parseHash();
+  parseHash();         // abre a página imediatamente
+  await loadAllData(); // carrega dados em paralelo
+  parseHash();         // re-renderiza com os dados chegados
 }
 initApp();
 
