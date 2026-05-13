@@ -973,47 +973,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     </section>
 
     <!-- Cards de navegação -->
-    <div class="home-nav-section">
-      <div class="home-nav-cards">
-        <div class="home-nav-card home-nav-card-doramas" onclick="navigate('doramas')">
-          <div class="home-nav-card-icon">🎬</div>
-          <div>
-            <div class="home-nav-card-title">Doramas</div>
-            <div class="home-nav-card-sub">Sua coleção pessoal de séries, com avaliações, elenco e galeria</div>
-          </div>
-          <div>
-            <div class="home-nav-card-stat" id="hnc-stat-doramas">—</div>
-            <div class="home-nav-card-stat-label">séries catalogadas</div>
-          </div>
-          <div class="home-nav-card-arrow">↗</div>
-        </div>
-        <div class="home-nav-card home-nav-card-atores" onclick="navigate('atores')">
-          <div class="home-nav-card-icon">🌟</div>
-          <div>
-            <div class="home-nav-card-title">Atores & Atrizes</div>
-            <div class="home-nav-card-sub">Os rostos que tornaram cada história inesquecível</div>
-          </div>
-          <div>
-            <div class="home-nav-card-stat" id="hnc-stat-atores">—</div>
-            <div class="home-nav-card-stat-label">atores cadastrados</div>
-          </div>
-          <div class="home-nav-card-arrow">↗</div>
-        </div>
-        <div class="home-nav-card home-nav-card-blog" onclick="navigate('blog')">
-          <div class="home-nav-card-icon">✍️</div>
-          <div>
-            <div class="home-nav-card-title">Blog</div>
-            <div class="home-nav-card-sub">Resenhas completas e posts sobre o universo K-Drama</div>
-          </div>
-          <div>
-            <div class="home-nav-card-stat" id="hnc-stat-blog">—</div>
-            <div class="home-nav-card-stat-label">posts publicados</div>
-          </div>
-          <div class="home-nav-card-arrow">↗</div>
-        </div>
-      </div>
-    </div>
-
     <!-- Atualizações do site -->
     <div class="home-updates-section">
       <div class="home-updates-inner">
@@ -1057,6 +1016,19 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           </div>
         </div>
 
+        <!-- Atores recentes -->
+        <div class="home-carousel-block">
+          <div class="home-section-header">
+            <div class="home-section-title">Atores & Atrizes</div>
+            <button class="carousel-nav-btn" onclick="navigate('atores')">Ver tudo ↗</button>
+          </div>
+          <div class="home-carousel-wrap">
+            <button class="carousel-arrow carousel-arrow-left" onclick="carouselScroll('carousel-atores',-1)">‹</button>
+            <div class="home-carousel" id="carousel-atores"></div>
+            <button class="carousel-arrow carousel-arrow-right" onclick="carouselScroll('carousel-atores',1)">›</button>
+          </div>
+        </div>
+
         <!-- Posts livres -->
         <div class="home-carousel-block">
           <div class="home-section-header">
@@ -1080,7 +1052,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:8px">
         <div>
           <h2 class="page-heading">Doramas</h2>
-          <p class="page-sub">Sua coleção completa</p>
+          <p class="page-sub">Sua coleção completa · <span id="stat-total-doramas" style="color:var(--gold);font-weight:600">—</span> séries catalogadas</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <button class="btn-new-drama" onclick="openNewDramaModal()">
@@ -1147,7 +1119,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px">
         <div>
           <h2 class="page-heading">Atores <em>&</em> Atrizes</h2>
-          <p class="page-sub">Os rostos que tornaram tudo inesquecível</p>
+          <p class="page-sub">Os rostos que tornaram tudo inesquecível · <span id="stat-total-atores" style="color:var(--gold);font-weight:600">—</span> cadastrados</p>
         </div>
         <button class="btn-new-drama" onclick="openFormAtor()" style="margin-top:4px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -1182,7 +1154,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <div>
           <div class="blog-title-kr">블로그 · 리뷰</div>
           <h2 class="page-heading">Blog <em>&amp;</em> Resenhas</h2>
-          <p class="page-sub">Opiniões, rankings e análises sem papas na língua</p>
+          <p class="page-sub">Opiniões, rankings e análises sem papas na língua · <span id="stat-total-blog" style="color:var(--gold);font-weight:600">—</span> posts publicados</p>
         </div>
         <button class="btn-gold" onclick="openBlogForm()" style="align-self:flex-end">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -1714,11 +1686,11 @@ function navigate(page, id) {
   window.scrollTo(0, 0);
 
   if (pageAlias === 'inicio')                   renderInicio();
-  if (pageAlias === 'home')                     renderHome();
-  if (pageAlias === 'atores')                   renderAtores();
+  if (pageAlias === 'home')                     { renderHome(); atualizarStatsHome(); }
+  if (pageAlias === 'atores')                   { renderAtores(); atualizarStatsHome(); }
   if (pageAlias === 'dorama' && id)             renderDorama(id);
   if (pageAlias === 'ator' && id)               renderAtor(id);
-  if (pageAlias === 'blog')                     renderBlog();
+  if (pageAlias === 'blog')                     { renderBlog(); atualizarStatsHome(); }
   if (pageAlias === 'ost-detail' && id)         renderOstPage(id);
   if (pageAlias === 'post' && id)               renderPost(id);
   if (pageAlias === 'direcao')                  renderDirecao();
@@ -4359,9 +4331,9 @@ async function renderInicio() {
 
 function atualizarStatsHome() {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '—'; };
-  set('hnc-stat-doramas', allSeries.length || null);
-  set('hnc-stat-atores', allAtores.length || null);
-  set('hnc-stat-blog', allPosts.filter(p => p.fields['Status'] === 'Publicado').length || null);
+  set('stat-total-doramas', allSeries.length || null);
+  set('stat-total-atores', allAtores.length || null);
+  set('stat-total-blog', allPosts.filter(p => p.fields['Status'] === 'Publicado').length || null);
 }
 
 // ── CARROSSÉIS DO HOME ────────────────────────────────────
@@ -4433,11 +4405,38 @@ function renderCarouselDoramas() {
   }).join('');
 }
 
+function renderCarouselAtores() {
+  const el = document.getElementById('carousel-atores');
+  if (!el) return;
+  const atores = [...allAtores]
+    .filter(a => a.fields['Data do cadastro'])
+    .sort((a, b) => new Date(b.fields['Data do cadastro'] || 0) - new Date(a.fields['Data do cadastro'] || 0))
+    .slice(0, 10);
+  if (!atores.length) {
+    el.innerHTML = `<div class="hc-carousel-empty">Nenhum ator com data cadastrada ainda.</div>`;
+    return;
+  }
+  el.innerHTML = atores.map(a => {
+    const f = a.fields;
+    const foto = Array.isArray(f['Foto']) ? (f['Foto'][0]?.url || '') : (f['Foto'] || '');
+    return `<div class="hc-dorama-card" onclick="navigate('ator','${a.id}')">
+      ${foto
+        ? `<img class="hc-dorama-card-img" src="${foto}" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="hc-dorama-card-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem">🌟</div>`}
+      <div class="hc-dorama-card-body">
+        <div class="hc-dorama-card-title">${f['Nome'] || 'Sem nome'}</div>
+        ${f['Nome Estrangeiro'] ? `<div class="hc-dorama-card-orig">${f['Nome Estrangeiro']}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderCarouseis() {
   renderCarouselBlog('carousel-noticias', 'Notícias');
   renderCarouselBlog('carousel-resenhas', 'Resenha');
   renderCarouselBlog('carousel-posts', 'Post livre');
   renderCarouselDoramas();
+  renderCarouselAtores();
 }
 
 
