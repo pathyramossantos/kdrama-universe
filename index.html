@@ -4038,12 +4038,14 @@ async function renderPost(id) {
 
 function renderPostBody(text) {
   const blocos = [];
-  const CHAVE = '___BLOCO_ESPECIAL_';
+  const CHAVE = 'BLOCOESPECIAL';
 
-  // Embed HTML cru (TikTok, Twitter, etc)
-  text = text.replace(/:::html\s*([\s\S]*?)\s*:::/g, (_, inner) => {
-    blocos.push(`<div class="post-embed">${inner.trim()}</div>`);
-    return CHAVE + (blocos.length - 1) + '___';
+  // ✅ CORRIGIDO — decodifica entidades HTML antes de inserir
+  text = text.replace(/:::html([\s\S]*?):::/g, (_, inner) => {
+    const dec = document.createElement('textarea'); // ← usa textarea pra decode
+    dec.innerHTML = inner.trim();                    // ← &lt; vira <
+    blocos.push(`<div class="post-embed">${dec.value}</div>`);
+    return `${CHAVE}${blocos.length - 1}`;
   });
 
   // Colunas
