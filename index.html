@@ -4012,10 +4012,27 @@ async function renderPost(id) {
 }
 
 function renderPostBody(text) {
-  let html = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
+  // Blocos de colunas: :::colunas ... ||| ... :::
+  let html = text.replace(/:::colunas(?:-invertidas)?\n([\s\S]*?):::/g, (match, inner) => {
+    const invertido = match.startsWith(':::colunas-invertidas');
+    const partes = inner.split('|||');
+    if (partes.length < 2) return renderMd(inner.trim());
+    const esq = renderMd(partes[0].trim());
+    const dir = renderMd(partes[1].trim());
+    const col1 = invertido ? dir : esq;
+    const col2 = invertido ? esq : dir;
+    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:1.5em 0">
+      <div>${col1}</div>
+      <div>${col2}</div>
+    </div>`;
+  });
+
+  // Spoilers
+  html = html.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
     const sid = 'spl_' + Math.random().toString(36).slice(2, 7);
     return `<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">🔒 Revelar Spoiler</button><div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`;
   });
+
   return renderMd(html);
 }
 
