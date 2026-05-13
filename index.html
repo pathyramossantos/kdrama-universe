@@ -1780,7 +1780,7 @@ async function loadAllData(){
           try {
             const [s,a,e,p] = await Promise.all([
               fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas','Data']}),
-              fetchTable(TABLES.atores, {fields:['Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco','Biografia','Instagram','Site','Url Hancinema']}),
+              fetchTable(TABLES.atores, {fields:['Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco','Biografia','Instagram','Site','Url Hancinema','Data do cadastro']}),
               fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']}),
               fetchTable(TABLES.plataformas, {fields:['Nome','Logo','Séries']})
             ]);
@@ -3942,7 +3942,7 @@ async function renderPost(id) {
   if (apiKey) {
     try {
       if (!allAtores.length && TABLES.atores)
-        allAtores = await fetchTable(TABLES.atores, {fields:['Nome','Data de Nascimento','Biografia','Foto','Instagram','Site','Url Hancinema']});
+        allAtores = await fetchTable(TABLES.atores, {fields:['Nome','Data de Nascimento','Biografia','Foto','Instagram','Site','Url Hancinema','Data do cadastro']});
       if (!allElenco.length && TABLES.elenco)
         allElenco = await fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']});
     } catch(_){}
