@@ -4342,16 +4342,6 @@ async function renderInicio() {
       atualizarStatsHome();
     }
   }
-  // Carregar posts completos se ainda não foram carregados
-  if (!allPosts.length && TABLES.blog && apiKey) {
-    try {
-      const records = await fetchTable(TABLES.blog, { fields: ['Título','Tipo','Status','Kicker','Conteúdo','Capa','Tags','Nota','Dorama','Data','Experiência','Autor','Dorama ID','Diretores','Roteiristas'] });
-      allPosts = records.filter(p => p.fields['Status'] === 'Publicado').sort((a, b) => {
-        const parseData = d => d ? new Date(d).getTime() : 0;
-        return parseData(b.fields['Data']) - parseData(a.fields['Data']);
-      });
-    } catch(e) {}
-  }
   _bdayMes = new Date().getMonth();
   _bdayAno = new Date().getFullYear();
   renderBdayCal();
@@ -4394,7 +4384,7 @@ function renderCarouselBlog(id, tipo) {
     const f = p.fields;
     const capa = Array.isArray(f['Capa']) ? (f['Capa'][0]?.url || '') : (f['Capa'] || '');
     const data = formatarDataBlog(f['Data']);
-    return `<div class="hc-blog-card" onclick="openPost('${p.id}')">
+    return `<div class="hc-blog-card" onclick="navigate('post','${p.id}')">
       ${capa
         ? `<img class="hc-blog-card-img" src="${capa}" loading="lazy" onerror="this.style.display='none'">`
         : `<div class="hc-blog-card-img-placeholder">✍️</div>`}
