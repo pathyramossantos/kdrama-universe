@@ -5128,9 +5128,49 @@ function radioPlay() {
   audio.play().then(() => {
     radioPlaying = true;
     radioUpdateUI(true);
+    radioFetchMetadata();
   }).catch(e => {
     console.warn('Radio play error:', e);
   });
+}
+
+// Busca metadados ICY do stream a cada 15 segundos
+let _radioMetaInterval = null;
+async function radioFetchMetadata() {
+  if (_radioMetaInterval) clearInterval(_radioMetaInterval);
+  const fetchMeta = async () => {
+    if (!radioPlaying) return;
+    try {
+      const res = await fetch(RADIO_STREAM_URL, {
+        headers: { 'Icy-MetaData': '1' },
+        signal: AbortSignal.timeout(5000)
+      });
+      const metaInt = parseInt(res.headers.get('icy-metaint') || '0');
+      if (!metaInt) return;
+      const reader = res.body.getReader();
+      let buf = new Uint8Array(0);
+      while (buf.length < metaInt + 5) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const tmp = new Uint8Array(buf.length + value.length);
+        tmp.set(buf); tmp.set(value, buf.length);
+        buf = tmp;
+      }
+      reader.cancel();
+      const metaLen = buf[metaInt] * 16;
+      if (!metaLen) return;
+      const metaBytes = buf.slice(metaInt + 1, metaInt + 1 + metaLen);
+      const meta = new TextDecoder().decode(metaBytes);
+      const match = meta.match(/StreamTitle='([^']*)'/);
+      if (match && match[1]) {
+        const title = match[1].trim();
+        const el = document.getElementById('radio-track');
+        if (el && title) el.textContent = '🎵 ' + title;
+      }
+    } catch(e) {}
+  };
+  fetchMeta();
+  _radioMetaInterval = setInterval(fetchMeta, 15000);
 }
 
 function radioStop() {
@@ -5138,6 +5178,7 @@ function radioStop() {
   audio.pause();
   audio.src = '';
   radioPlaying = false;
+  if (_radioMetaInterval) { clearInterval(_radioMetaInterval); _radioMetaInterval = null; }
   radioUpdateUI(false);
 }
 
