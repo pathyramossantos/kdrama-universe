@@ -4015,6 +4015,7 @@ async function renderPost(id) {
 
 function renderPostBody(text) {
   const blocos = [];
+  const CHAVE = '___BLOCO_ESPECIAL_';
 
   text = text.replace(/:::colunas(-invertidas)?\n([\s\S]*?):::/g, (match, inv, inner) => {
     const partes = inner.split('|||');
@@ -4022,22 +4023,20 @@ function renderPostBody(text) {
     let dir = (partes[1] || '').trim();
     if (inv) { [esq, dir] = [dir, esq]; }
     const html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:1.5em 0"><div>${renderMd(esq)}</div><div>${renderMd(dir)}</div></div>`;
-    const key = `\x00BLK${blocos.length}\x00`;
     blocos.push(html);
-    return key;
+    return CHAVE + (blocos.length - 1) + '___';
   });
 
   text = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
     const sid = 'spl_' + Math.random().toString(36).slice(2, 7);
-    const key = `\x00BLK${blocos.length}\x00`;
     blocos.push(`<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">🔒 Revelar Spoiler</button><div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`);
-    return key;
+    return CHAVE + (blocos.length - 1) + '___';
   });
 
   let html = renderMd(text);
 
   blocos.forEach((bloco, i) => {
-    html = html.split(`\x00BLK${i}\x00`).join(bloco);
+    html = html.split(CHAVE + i + '___').join(bloco);
   });
 
   return html;
