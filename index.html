@@ -4064,13 +4064,22 @@ function renderPostBody(text) {
     return CHAVE + (blocos.length - 1) + '___';
   });
 
-  let html = renderMd(text);
+ let html = renderMd(text);
+blocos.forEach((bloco, i) => {
+  html = html.split(`CHAVE${i}`).join(bloco);
+});
 
-  blocos.forEach((bloco, i) => {
-    html = html.split(CHAVE + i + '___').join(bloco);
+// Executa scripts injetados via :::html::: (TikTok, Twitter, etc)
+setTimeout(() => {
+  document.querySelectorAll('.post-embed script').forEach(old => {
+    const s = document.createElement('script');
+    [...old.attributes].forEach(a => s.setAttribute(a.name, a.value));
+    s.textContent = old.textContent;
+    old.parentNode.replaceChild(s, old);
   });
+}, 100);
 
-  return html;
+return html;
 }
 
 function renderMd(text) {
