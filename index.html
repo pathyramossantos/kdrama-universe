@@ -1779,7 +1779,7 @@ async function loadAllData(){
         setTimeout(async () => {
           try {
             const [s,a,e,p] = await Promise.all([
-              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas']}),
+              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas','Data']}),
               fetchTable(TABLES.atores, {fields:['Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco','Biografia','Instagram','Site','Url Hancinema']}),
               fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']}),
               fetchTable(TABLES.plataformas, {fields:['Nome','Logo','Séries']})
