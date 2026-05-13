@@ -1164,7 +1164,8 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <div class="blog-type-tabs">
         <button class="blog-tab active" data-btype="" onclick="setBlogFilter(this)">Todos</button>
         <button class="blog-tab" data-btype="Resenha" onclick="setBlogFilter(this)">Resenhas</button>
-        <button class="blog-tab" data-btype="Post" onclick="setBlogFilter(this)">Posts Livres</button>
+        <button class="blog-tab" data-btype="Post livre" onclick="setBlogFilter(this)">Posts Livres</button>
+        <button class="blog-tab" data-btype="Notícias" onclick="setBlogFilter(this)">Notícias</button>
       </div>
     </div>
     <div class="blog-layout">
@@ -5944,7 +5945,8 @@ function cardContextMenu(e, page, id) {
           <label class="fl">Tipo</label>
           <select id="bf-tipo" class="fs" onchange="bfToggleDoramaRow()">
             <option value="Resenha">Resenha de Dorama</option>
-            <option value="Post">Post Livre</option>
+            <option value="Post livre">Post Livre</option>
+            <option value="Notícias">Notícia</option>
           </select>
         </div>
         <div class="fg">
