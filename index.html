@@ -4041,7 +4041,7 @@ function renderPostBody(text) {
   const CHAVE = '___BLOCO_ESPECIAL_';
 
   // Embed HTML cru (TikTok, Twitter, etc)
-  text = text.replace(/:::html\n([\s\S]*?):::/g, (_, inner) => {
+  text = text.replace(/:::html\s*([\s\S]*?)\s*:::/g, (_, inner) => {
     blocos.push(`<div class="post-embed">${inner.trim()}</div>`);
     return CHAVE + (blocos.length - 1) + '___';
   });
