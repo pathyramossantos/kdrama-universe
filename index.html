@@ -694,6 +694,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-body img{width:100%;border-radius:var(--radius);margin:1.5em 0;border:1px solid var(--border);display:block}
 .post-body img.post-gif{width:auto;max-width:100%;height:auto;display:inline-block;margin:4px;border:none;border-radius:var(--radius);vertical-align:top}
 .post-body p:has(img.post-gif){text-align:center;margin:1em 0}
+.post-body .post-embed{margin:1.5em 0;display:flex;justify-content:center}
 .post-body img.post-icon{width:auto !important;height:auto !important;display:inline-block !important;margin:0 4px !important;border:none !important;border-radius:0 !important;vertical-align:middle !important}
 .post-body p:has(img.post-icon){margin-bottom:1em;line-height:2}
 .post-body .post-video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);margin:1.5em 0;border:1px solid var(--border)}
@@ -4039,6 +4040,13 @@ function renderPostBody(text) {
   const blocos = [];
   const CHAVE = '___BLOCO_ESPECIAL_';
 
+  // Embed HTML cru (TikTok, Twitter, etc)
+  text = text.replace(/:::html\n([\s\S]*?):::/g, (_, inner) => {
+    blocos.push(`<div class="post-embed">${inner.trim()}</div>`);
+    return CHAVE + (blocos.length - 1) + '___';
+  });
+
+  // Colunas
   text = text.replace(/:::colunas(-invertidas)?\n([\s\S]*?):::/g, (match, inv, inner) => {
     const partes = inner.split('|||');
     let esq = (partes[0] || '').trim();
@@ -4049,6 +4057,7 @@ function renderPostBody(text) {
     return CHAVE + (blocos.length - 1) + '___';
   });
 
+  // Spoilers
   text = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
     const sid = 'spl_' + Math.random().toString(36).slice(2, 7);
     blocos.push(`<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">🔒 Revelar Spoiler</button><div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`);
@@ -4085,26 +4094,34 @@ function renderMd(text) {
       return `<a href="${link}" target="_blank" rel="noopener"><img src="${imgUrl}" alt="${caption}" loading="lazy" class="post-icon"${style}></a>`;
     }
 
-    // Imagem com tamanho: ![caption](url =LARGxALT)
+    // Imagem com tamanho numérico: ![caption](url =LARGxALT)
     const imgSizeMatch = t.match(/^!\[([^\]]*)\]\(([^)]+?)\s+=(\d+)x(\d+)\)$/);
     if (imgSizeMatch) {
       const [, caption, url, w, h] = imgSizeMatch;
       return `<img src="${url}" alt="${caption}" loading="lazy" class="post-icon" style="width:${w}px;height:${h}px">${caption ? `<div class="post-img-caption">${caption}</div>` : ''}`;
     }
 
-    // Imagem natural (gif): ![gif](url) ou múltiplas na mesma linha
-    if (/^(!\[gif\]\([^)]+\)\s*)+$/.test(t)) {
-      return `<p style="text-align:center;margin:1em 0">${t.replace(/!\[gif\]\(([^)]+)\)/g, (_, url) =>
-        `<img src="${url}" alt="" loading="lazy" class="post-gif">`)}</p>`;
+    // Múltiplas imagens na mesma linha: ![gif](url1) ![gif](url2)
+    if (/^(!\[(gif|pequena|média|media)\]\([^)]+\)\s*){2,}$/.test(t)) {
+      return `<p style="text-align:center;margin:1em 0">${t.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, cap, url) => {
+        const lower = (cap||'').toLowerCase();
+        const maxW = lower === 'pequena' ? 'max-width:300px' : lower === 'media' || lower === 'média' ? 'max-width:500px' : '';
+        return `<img src="${url}" alt="" loading="lazy" class="post-gif"${maxW ? ` style="${maxW}"` : ''}>`;
+      })}</p>`;
     }
 
     // Imagem normal: ![caption](url)
     const imgMatch = t.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (imgMatch) {
       const [, caption, url] = imgMatch;
-      // caption vazio = tratar como gif (tamanho natural)
-      if (!caption) return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif"></p>`;
-      return `<img src="${url}" alt="${caption}" loading="lazy">${`<div class="post-img-caption">${caption}</div>`}`;
+      const lower = (caption||'').toLowerCase().trim();
+      // Sem legenda ou legenda especial = tamanho natural centralizado
+      if (!caption || lower === 'gif') return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif"></p>`;
+      if (lower === 'pequena') return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif" style="max-width:300px"></p>`;
+      if (lower === 'media' || lower === 'média') return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif" style="max-width:500px"></p>`;
+      if (lower === 'grande') return `<img src="${url}" alt="" loading="lazy">`;
+      // Legenda normal = imagem grande com legenda
+      return `<img src="${url}" alt="${caption}" loading="lazy"><div class="post-img-caption">${caption}</div>`;
     }
 
     // Vídeo YouTube: [youtube](VIDEO_ID ou URL)
@@ -6190,6 +6207,7 @@ function cardContextMenu(e, page, id) {
             <button class="blog-tool" onclick="bfInsertImagem()">🖼 URL</button>
             <button class="blog-tool" onclick="bfInsertImagemUpload()">⬆ Upload</button>
             <button class="blog-tool" onclick="bfInsertVideo()">▶ Vídeo</button>
+            <button class="blog-tool" onclick="bfInsert('\n:::html\n\n:::\n')" title="Embed HTML (TikTok, etc)">🔗 Embed</button>
             <button class="blog-tool" id="bf-btn-ai" onclick="bfGerarComIA()">✨ IA</button>
             <div class="emoji-picker-wrap" id="emoji-picker-wrap">
               <button class="blog-tool" onclick="toggleEmojiPicker()" title="Emojis">😊 Emoji</button>
