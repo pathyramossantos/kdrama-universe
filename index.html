@@ -4382,7 +4382,7 @@ function renderCarouselBlog(id, tipo) {
   }
   el.innerHTML = posts.map(p => {
     const f = p.fields;
-    const capa = f['Capa']?.[0]?.url || '';
+    const capa = Array.isArray(f['Capa']) ? (f['Capa'][0]?.url || '') : (f['Capa'] || '');
     const data = formatarDataBlog(f['Data']);
     return `<div class="hc-blog-card" onclick="openPost('${p.id}')">
       ${capa
@@ -4410,7 +4410,7 @@ function renderCarouselDoramas() {
   }
   el.innerHTML = doramas.map(s => {
     const f = s.fields;
-    const capa = f['Capa']?.[0]?.url || f['Poster']?.[0]?.url || '';
+    const capa = Array.isArray(f['Capa']) ? (f['Capa'][0]?.url || '') : (f['Capa'] || Array.isArray(f['Poster']) ? (f['Poster']?.[0]?.url || '') : (f['Poster'] || ''));
     return `<div class="hc-dorama-card" onclick="openDorama('${s.id}')">
       ${capa
         ? `<img class="hc-dorama-card-img" src="${capa}" loading="lazy" onerror="this.style.display='none'">`
