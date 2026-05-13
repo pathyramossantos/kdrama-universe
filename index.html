@@ -4066,9 +4066,22 @@ function renderPostBody(text) {
 
   let html = renderMd(text);
 
-  blocos.forEach((bloco, i) => {
-    html = html.split(CHAVE + i + '___').join(bloco);
+blocos.forEach((bloco, i) => {
+  html = html.split(CHAVE + i + '___').join(bloco);
+});
+
+// 👇 ADICIONA AQUI
+setTimeout(() => {
+  document.querySelectorAll('.post-embed script').forEach(old => {
+    const s = document.createElement('script');
+    [...old.attributes].forEach(a => s.setAttribute(a.name, a.value));
+    s.textContent = old.textContent;
+    old.parentNode.replaceChild(s, old);
   });
+}, 100);
+
+return html;
+}
 
   return html;
 }
