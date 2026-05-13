@@ -4038,50 +4038,54 @@ async function renderPost(id) {
 
 function renderPostBody(text) {
   const blocos = [];
-  const CHAVE = 'BLOCOESPECIAL';
+  const CHAVE = '\x02BLOCO_'; // ← caractere de controle, renderMd não toca
 
-  // ✅ CORRIGIDO — decodifica entidades HTML antes de inserir
-  text = text.replace(/:::html([\s\S]*?):::/g, (_, inner) => {
-    const dec = document.createElement('textarea'); // ← usa textarea pra decode
-    dec.innerHTML = inner.trim();                    // ← &lt; vira <
+  // 1. :::html — PRIMEIRO, com decode de entidades e regex tolerante
+  text = text.replace(/:{3}html\s*([\s\S]*?)\s*:{3}/g, (_, inner) => {
+    const dec = document.createElement('textarea');
+    dec.innerHTML = inner.trim(); // &lt; → <
     blocos.push(`<div class="post-embed">${dec.value}</div>`);
     return `${CHAVE}${blocos.length - 1}`;
   });
 
-  // Colunas
-  text = text.replace(/:::colunas(-invertidas)?\n([\s\S]*?):::/g, (match, inv, inner) => {
+  // 2. Colunas
+  text = text.replace(/:{3}colunas(-invertidas)?\s*([\s\S]*?)\s*:{3}/g, (_, inv, inner) => {
     const partes = inner.split('|||');
     let esq = (partes[0] || '').trim();
     let dir = (partes[1] || '').trim();
-    if (inv) { [esq, dir] = [dir, esq]; }
-    const html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:1.5em 0"><div>${renderMd(esq)}</div><div>${renderMd(dir)}</div></div>`;
-    blocos.push(html);
-    return CHAVE + (blocos.length - 1) + '___';
+    if (inv) [esq, dir] = [dir, esq];
+    blocos.push(`<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:1.5em 0">
+      <div>${renderMd(esq)}</div><div>${renderMd(dir)}</div></div>`);
+    return `${CHAVE}${blocos.length - 1}`;
   });
 
-  // Spoilers
+  // 3. Spoilers
   text = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
-    const sid = 'spl_' + Math.random().toString(36).slice(2, 7);
-    blocos.push(`<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">🔒 Revelar Spoiler</button><div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`);
-    return CHAVE + (blocos.length - 1) + '___';
+    const sid = 'spl' + Math.random().toString(36).slice(2, 7);
+    blocos.push(`<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">Revelar Spoiler</button>
+      <div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`);
+    return `${CHAVE}${blocos.length - 1}`;
   });
 
- let html = renderMd(text);
-blocos.forEach((bloco, i) => {
-  html = html.split(`CHAVE${i}`).join(bloco);
-});
+  // 4. renderMd no texto restante
+  let html = renderMd(text);
 
-// Executa scripts injetados via :::html::: (TikTok, Twitter, etc)
-setTimeout(() => {
-  document.querySelectorAll('.post-embed script').forEach(old => {
-    const s = document.createElement('script');
-    [...old.attributes].forEach(a => s.setAttribute(a.name, a.value));
-    s.textContent = old.textContent;
-    old.parentNode.replaceChild(s, old);
+  // 5. Reinjeta os blocos — \x02 sobrevive ao renderMd intacto
+  blocos.forEach((bloco, i) => {
+    html = html.split(`${CHAVE}${i}`).join(bloco);
   });
-}, 100);
 
-return html;
+  // 6. Reexecuta scripts do TikTok/Twitter
+  setTimeout(() => {
+    document.querySelectorAll('.post-embed script').forEach(old => {
+      const s = document.createElement('script');
+      [...old.attributes].forEach(a => s.setAttribute(a.name, a.value));
+      s.textContent = old.textContent;
+      old.parentNode.replaceChild(s, old);
+    });
+  }, 100);
+
+  return html;
 }
 
 function renderMd(text) {
