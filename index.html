@@ -692,7 +692,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 /* Imagens e vídeos no corpo do post */
 .post-body img{width:100%;border-radius:var(--radius);margin:1.5em 0;border:1px solid var(--border);display:block}
-.post-body img.post-icon{width:auto !important;height:auto !important;display:inline-block !important;margin:0 4px !important;border:none !important;border-radius:0 !important;vertical-align:middle !important}
+.post-body img.post-icon{width:auto !important;height:auto !important;display:inline-block !important;margin:0 4px !important;border:none !important;border-radius:0 !important;vertical-align:middle !important;max-width:none !important}
 .post-body p:has(img.post-icon){margin-bottom:1em;line-height:2}
 .post-body .post-video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);margin:1.5em 0;border:1px solid var(--border)}
 .post-body .post-video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
@@ -4014,11 +4014,37 @@ async function renderPost(id) {
 }
 
 function renderPostBody(text) {
-  let html = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
-    const sid = 'spl_' + Math.random().toString(36).slice(2, 7);
-    return `<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">🔒 Revelar Spoiler</button><div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`;
+  const blocos = [];
+
+  // Colunas — extrair antes do renderMd
+  text = text.replace(/:::colunas(-invertidas)?\n([\s\S]*?):::/g, (match, inv, inner) => {
+    const partes = inner.split('|||');
+    let esq = (partes[0] || '').trim();
+    let dir = (partes[1] || '').trim();
+    if (inv) { [esq, dir] = [dir, esq]; }
+    const html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin:1.5em 0"><div>${renderMd(esq)}</div><div>${renderMd(dir)}</div></div>`;
+    const key = `\x00BLK${blocos.length}\x00`;
+    blocos.push(html);
+    return key;
   });
-  return renderMd(html);
+
+  // Spoilers — extrair antes do renderMd
+  text = text.replace(/---spoiler---([\s\S]*?)---fim-spoiler---/g, (_, inner) => {
+    const sid = 'spl_' + Math.random().toString(36).slice(2, 7);
+    const key = `\x00BLK${blocos.length}\x00`;
+    blocos.push(`<button class="post-spoiler-toggle" onclick="document.getElementById('${sid}').classList.toggle('open')">🔒 Revelar Spoiler</button><div class="post-spoiler-content" id="${sid}">${renderMd(inner.trim())}</div>`);
+    return key;
+  });
+
+  // Renderizar markdown
+  let html = renderMd(text);
+
+  // Restaurar blocos
+  blocos.forEach((bloco, i) => {
+    html = html.split(`\x00BLK${i}\x00`).join(bloco);
+  });
+
+  return html;
 }
 
 function renderMd(text) {
