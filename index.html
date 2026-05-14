@@ -2610,6 +2610,8 @@ function saveAatorBannerPos(){
   const y=document.getElementById('banner-pos-y')?.value||20;
   const pos=`${x}% ${y}%`;
   localStorage.setItem(`kdrama_atorbannerpos_${currentRecordId}`,pos);
+  const url = localStorage.getItem(`kdrama_atorbannerurl_${currentRecordId}`) || '';
+  bannerSalvarAirtable(currentRecordId, 'ator', { pos, url });
   showToast('Posição salva ✓');
 }
 
