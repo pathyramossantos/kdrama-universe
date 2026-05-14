@@ -5431,7 +5431,7 @@ function filterDirecao(q) {
   if (q !== undefined) dirSearchQuery = q.toLowerCase();
   const grid = document.getElementById('direcao-grid');
   if (!grid) return;
-  let filtered = [...allDirecao];
+  let filtered = [...allDirecao].sort((a, b) => (a.fields['Nome'] || '').localeCompare(b.fields['Nome'] || '', 'pt-BR'));
   if (dirTipoFilter) filtered = filtered.filter(d => (d.fields['Tipo'] || '') === dirTipoFilter);
   if (dirSearchQuery) filtered = filtered.filter(d => (d.fields['Nome'] || '').toLowerCase().includes(dirSearchQuery));
   if (!filtered.length) {
