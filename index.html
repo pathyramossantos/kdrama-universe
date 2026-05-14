@@ -2231,7 +2231,10 @@ function toggleEditMode(){
 }
 
 function applyEditModeToDOM() {
-  // Chamada após renderDorama/renderAtor para aplicar editMode ao DOM recém-criado
+  // Não interferir se um formulário estiver aberto
+  const formAberto = document.querySelector('.form-overlay.open, .blog-form-overlay.open');
+  if (formAberto) return;
+
   const bannerCtrl = document.getElementById('banner-controls');
   if (bannerCtrl) bannerCtrl.style.display = editMode ? 'flex' : 'none';
   const tmdb = document.getElementById('tmdb-box');
