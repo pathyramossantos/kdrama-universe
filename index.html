@@ -3,14 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-34CNL8HDEE"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-34CNL8HDEE');
-</script>
 <title>Meu Universo K-Drama</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+KR:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -5485,11 +5477,15 @@ async function renderDiretor(id) {
   const foto = Array.isArray(f['Foto']) ? f['Foto'][0]?.url : f['Foto'];
   const tipo = f['Tipo'] || '';
 
-  // Buscar doramas vinculados
-  if (!allSeries.length && apiKey) {
-    try { allSeries = await fetchTable(TABLES.series, {fields:['Nome','Capa','Ano Lançamento','Diretores','Roteiristas']}); } catch(_) {}
+  // Buscar doramas vinculados — sempre busca direto pra garantir campos Diretores/Roteiristas
+  let seriesComVinculo = allSeries.filter(s => 'Diretores' in s.fields || 'Roteiristas' in s.fields);
+  if (!seriesComVinculo.length && apiKey) {
+    try {
+      const fresh = await fetchTable(TABLES.series, {fields:['Nome','Capa','Ano Lançamento','Diretores','Roteiristas']});
+      seriesComVinculo = fresh;
+    } catch(_) {}
   }
-  const vinculados = allSeries.filter(s =>
+  const vinculados = seriesComVinculo.filter(s =>
     (s.fields['Diretores'] || []).includes(dir.id) ||
     (s.fields['Roteiristas'] || []).includes(dir.id)
   );
@@ -5573,8 +5569,7 @@ async function renderDiretor(id) {
       </div>
     </div>`;
 
-  setTimeout(() => applyEditModeToDOM(), 100);
-  setTimeout(() => applyEditModeToDOM(), 500);
+  applyEditModeToDOM();
 }
 
 
