@@ -2009,12 +2009,16 @@ async function renderDorama(id){
   content.innerHTML=`<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>`;
   try{
     let serie=allSeries.find(s=>s.id===id);
-    if(!serie){
+    if(!serie || !serie.fields){
       const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.series}/${id}`,{headers:{Authorization:`Bearer ${apiKey}`}});
       serie=await res.json();
     }
+    if(!serie || !serie.fields){
+      content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Dorama não encontrado.</p></div>`;
+      return;
+    }
     // Se a série não tem Diretores/Roteiristas, buscar direto do Airtable
-    if (serie.fields && !('Diretores' in serie.fields) && !('Roteiristas' in serie.fields) && apiKey) {
+    if(!('Diretores' in serie.fields) && !('Roteiristas' in serie.fields) && apiKey) {
       try {
         const res2 = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.series}/${id}`, {headers:{Authorization:`Bearer ${apiKey}`}});
         const fresh = await res2.json();
@@ -4538,12 +4542,11 @@ function renderCarouselBlog(id, tipo) {
 function renderCarouselDoramas() {
   const el = document.getElementById('carousel-doramas');
   if (!el) return;
-  const doramas = allSeries
-    .filter(s => s.fields['Data'])
-    .sort((a, b) => new Date(b.fields['Data'] || 0) - new Date(a.fields['Data'] || 0))
+  const doramas = [...allSeries]
+    .sort((a, b) => new Date(b.createdTime || 0) - new Date(a.createdTime || 0))
     .slice(0, 10);
   if (!doramas.length) {
-    el.innerHTML = `<div class="hc-carousel-empty">Nenhum dorama com data cadastrada ainda.</div>`;
+    el.innerHTML = `<div class="hc-carousel-empty">Nenhum dorama cadastrado ainda.</div>`;
     return;
   }
   el.innerHTML = doramas.map(s => {
@@ -4567,7 +4570,11 @@ function renderCarouselAtores() {
   if (!el) return;
   const atores = [...allAtores]
     .filter(a => a.fields['Data do cadastro'])
-    .sort((a, b) => new Date(b.fields['Data do cadastro'] || 0) - new Date(a.fields['Data do cadastro'] || 0))
+    .sort((a, b) => {
+      const da = new Date(b.fields['Data do cadastro'] || b.createdTime || 0);
+      const db = new Date(a.fields['Data do cadastro'] || a.createdTime || 0);
+      return da - db;
+    })
     .slice(0, 10);
   if (!atores.length) {
     el.innerHTML = `<div class="hc-carousel-empty">Nenhum ator com data cadastrada ainda.</div>`;
