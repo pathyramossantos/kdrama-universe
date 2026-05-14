@@ -1169,7 +1169,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <div class="blog-type-tabs">
         <button class="blog-tab active" data-btype="" onclick="setBlogFilter(this)">Todos</button>
         <button class="blog-tab" data-btype="Resenha" onclick="setBlogFilter(this)">Resenhas</button>
-        <button class="blog-tab" data-btype="Post livre" onclick="setBlogFilter(this)">Posts</button>
+        <button class="blog-tab" data-btype="Post livre" onclick="setBlogFilter(this)">Posts Livres</button>
         <button class="blog-tab" data-btype="Notícias" onclick="setBlogFilter(this)">Notícias</button>
       </div>
     </div>
@@ -1182,7 +1182,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <div id="blog-list"></div>
       </div>
       <aside class="blog-sidebar" id="blog-sidebar">
-        <div class="sidebar-card" id="sidebar-ranking-card" style="display:none">
+        <div class="sidebar-card" id="sidebar-ranking-card">
           <div class="sidebar-card-title">✨ Experiências</div>
           <div id="sidebar-ranking"></div>
         </div>
@@ -2716,6 +2716,7 @@ async function renderAtor(id){
     }
     currentAtor=ator;
     currentRecordId=id;
+    currentSerie=null; // garante que o tipo do banner será 'ator'
     currentRecordTable=TABLES.atores;
 
     // Atualiza botão Airtable
@@ -3956,9 +3957,6 @@ function setBlogFilter(btn) {
   document.querySelectorAll('.blog-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   blogFilter = btn.dataset.btype || '';
-  // Mostrar card de experiências só em Resenhas
-  const rankCard = document.getElementById('sidebar-ranking-card');
-  if (rankCard) rankCard.style.display = blogFilter === 'Resenha' ? '' : 'none';
   filterBlog();
 }
 
@@ -3997,7 +3995,7 @@ async function renderPost(id) {
       <h1 class="post-h1">${f['Título'] || 'Sem título'}</h1>
       <div class="post-meta">
         ${date ? `<span class="post-meta-date">${date}</span>` : ''}
-        ${f['Dorama'] ? `<span style="color:var(--text3);font-size:.78rem">· <span style="color:var(--gold);cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold-dim)" onclick="navegarParaDorama('${f['Dorama']}','${f['Dorama ID']||''}')">${f['Dorama']}</span></span>` : ''}
+        ${(f['Dorama'] && f['Dorama'] !== '— Selecione o dorama —') ? `<span style="color:var(--text3);font-size:.78rem">· <span style="color:var(--gold);cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold-dim)" onclick="navegarParaDorama('${f['Dorama']}','${f['Dorama ID']||''}')">${f['Dorama']}</span></span>` : ''}
         ${f['Autor'] ? `<span style="color:var(--text3);font-size:.78rem">· Escrito por <span style="color:var(--gold-dim)">${f['Autor']}</span></span>` : ''}
         ${f['Nota'] ? `<span style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end"><span class="post-nota-big">${parseFloat(f['Nota']).toFixed(1)}</span><span class="post-nota-label">nota / 10</span></span>` : ''}
         ${expBadge(f['Experiência'])}
