@@ -2429,7 +2429,7 @@ async function renderDorama(id){
               const ef=e.fields;
               const name=a?(a.fields['Nome']||''):'';
               const ph=a?getPhoto(a,'Foto'):null;
-              return`<div class="cast-card"${a?` onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')"`:''} >${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div></div>`;
+              return`<div class="cast-card" style="position:relative"${a?` onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')"`:''} >${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div>${isOwner()?`<button onclick="event.stopPropagation();editarElenco('${e.id}','${(ef['Personagem']||'').replace(/'/g,"\\'")}','${(ef['Tipo']||'').replace(/'/g,"\\'")}',event)" style="position:absolute;top:6px;right:6px;background:rgba(10,10,12,.75);border:1px solid var(--gold-dim);color:var(--gold);border-radius:6px;padding:3px 7px;font-size:.7rem;cursor:pointer;backdrop-filter:blur(6px);z-index:5" title="Editar personagem">✏️</button>`:''}</div>`;
             }).join('')}
           </div>`:''}
         ${dirDorama.length ? `
@@ -3584,6 +3584,33 @@ async function fdSalvarElenco(serieId, castData) {
   }
 }
 
+async function editarElenco(elencoId, personagemAtual, tipoAtual, evt) {
+  if (evt) evt.stopPropagation();
+  const tiposValidos = ['Principal','Suporte','Participação especial'];
+  const novoPersonagem = prompt('Personagem:', personagemAtual);
+  if (novoPersonagem === null) return; // cancelou
+  const tipoOpts = tiposValidos.map((t,i) => `${i+1}. ${t}`).join('\n');
+  const tipoAtualIdx = tiposValidos.indexOf(tipoAtual);
+  const tipoInput = prompt(`Tipo:\n${tipoOpts}\nDigite o número ou o nome (atual: ${tipoAtual || '—'}):`, tipoAtualIdx >= 0 ? String(tipoAtualIdx + 1) : tipoAtual);
+  if (tipoInput === null) return;
+  const tipoNum = parseInt(tipoInput);
+  const novoTipo = (!isNaN(tipoNum) && tiposValidos[tipoNum - 1]) ? tiposValidos[tipoNum - 1] : (tiposValidos.includes(tipoInput) ? tipoInput : tipoAtual);
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/elenco?id=eq.${elencoId}`, {
+      method: 'PATCH',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+      body: JSON.stringify({ personagem: novoPersonagem, tipo: novoTipo })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    showToast('✓ Elenco atualizado!');
+    // Recarregar a página do dorama atual para refletir a mudança
+    const hashMatch = location.hash.match(/^#dorama\/(.+)$/);
+    if (hashMatch) navigate('dorama', decodeURIComponent(hashMatch[1]));
+  } catch(e) {
+    showToast('Erro ao atualizar elenco: ' + e.message);
+  }
+}
+
 async function fdSalvarDirecao(serieId, dirData) {
   try {
     // Buscar UUID da série
@@ -4657,17 +4684,24 @@ if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
     const inline = t
       .replace(/\*@([\wÀ-ú][\wÀ-ú\/-]*(?:\s[\wÀ-ú][\wÀ-ú\/-]*){0,3})\*/g, '@$1').replace(/@([\wÀ-ú][\wÀ-ú\/-]*(?:\s[\wÀ-ú][\wÀ-ú\/-]*){0,3})/g, (match, captured) => {
         const words = captured.split(' ');
+        // Normalização para ignorar acentos e case
+        const normStr = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const normCapture = normStr(captured);
         for (let len = words.length; len >= 1; len--) {
           const nome = words.slice(0, len).join(' ');
           const resto = words.slice(len).join(' ');
           const sufixo = resto ? ' ' + resto : '';
-          // 1. Busca por nome do ator
-          const ator = (allAtores||[]).find(a => (a.fields['Nome']||'').toLowerCase() === nome.toLowerCase());
+          const normNome = normStr(nome);
+          // 1. Busca por nome do ator — match exato ou parcial (startsWith) sem acento
+          const ator = (allAtores||[]).find(a => {
+            const n = normStr(a.fields['Nome'] || '');
+            return n === normNome || n.startsWith(normNome) || normNome.startsWith(n.split(' ')[0]) && normNome.length >= 3;
+          });
           if (ator) {
             return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${ator.id}')">${nome}</a></em></strong>${sufixo}`;
           }
-          // 2. Fallback: busca por nome do personagem no elenco
-          const elencoRec = (allElenco||[]).find(e => (e.fields['Personagem']||'').toLowerCase() === nome.toLowerCase());
+          // 2. Fallback: busca por nome do personagem no elenco (match normalizado)
+          const elencoRec = (allElenco||[]).find(e => normStr(e.fields['Personagem']||'') === normNome);
           if (elencoRec) {
             const atorId = (elencoRec.fields['Atores']||[])[0];
             if (atorId) {
@@ -4764,6 +4798,10 @@ async function bfPopularSelectDoramas() {
   }
   const series = [...allSeries].sort((a,b) => (a.fields['Nome']||'').localeCompare(b.fields['Nome']||''));
   sel.innerHTML = '<option value="">— Selecione o dorama —</option>';
+  // Em edição: usar só o valor do post (já definido em `atual` antes de popular).
+  // Em novo post: usar o último dorama salvo no localStorage.
+  const ultimoId   = !bfEditId ? (localStorage.getItem('kdrama_blog_ultimo_dorama') || '') : '';
+  const ultimoNome = !bfEditId ? (localStorage.getItem('kdrama_blog_ultimo_dorama_nome') || '') : '';
   series.forEach(s => {
     const nome = s.fields['Nome'] || '';
     if (!nome) return;
@@ -4771,15 +4809,18 @@ async function bfPopularSelectDoramas() {
     opt.value = s.id;
     opt.dataset.nome = nome;
     opt.textContent = nome;
-    // Selecionar pelo valor atual do campo (editando) ou pelo último usado (novo post)
-    const usarUltimo = !bfEditId; // só usa localStorage em novo post
-    const ultimoId = usarUltimo ? (localStorage.getItem('kdrama_blog_ultimo_dorama') || '') : '';
-    const ultimoNome = usarUltimo ? (localStorage.getItem('kdrama_blog_ultimo_dorama_nome') || '') : '';
-    if (s.id === atual || nome === atual || s.id === ultimoId || nome === ultimoNome) opt.selected = true;
+    if (bfEditId) {
+      // Edição: seleciona apenas se bater com o valor do post
+      if (s.id === atual || nome === atual) opt.selected = true;
+    } else {
+      // Novo post: usa o último dorama salvo
+      if (s.id === ultimoId || nome === ultimoNome) opt.selected = true;
+    }
     sel.appendChild(opt);
   });
-  // Salvar no localStorage quando mudar
+  // onchange só salva no localStorage se for novo post
   sel.onchange = () => {
+    if (bfEditId) return; // edição: não contamina o localStorage
     const opt = sel.options[sel.selectedIndex];
     const nomeDorama = opt?.dataset.nome || opt?.textContent || '';
     if (nomeDorama && nomeDorama !== '— Selecione o dorama —') {
