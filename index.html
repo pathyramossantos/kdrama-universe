@@ -1143,10 +1143,10 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
   <!-- ATOR DETAIL -->
   <div class="page" id="page-ator">
-    <div style="position:absolute;z-index:10;display:flex;align-items:center;gap:8px;padding:16px clamp(16px,4vw,48px);">
+    <div style="position:absolute;z-index:10;display:flex;align-items:center;gap:8px;padding:16px clamp(16px,4vw,48px);flex-wrap:wrap">
       <button class="back-btn" style="margin:0;background:rgba(10,10,12,.6);backdrop-filter:blur(10px)" onclick="navigate('atores')">← Voltar para Atores</button>
-      <button class="edit-toggle" id="ator-edit-toggle" style="background:rgba(10,10,12,.6);backdrop-filter:blur(10px)" onclick="toggleEditMode()">✏️ Editar</button>
-      <button class="edit-toggle" onclick="editCurrentAtor()" style="background:var(--gold);color:#0a0a0c;border-color:var(--gold)">📝 Formulário</button>
+      <button class="edit-toggle" id="ator-edit-toggle" style="background:rgba(10,10,12,.6);backdrop-filter:blur(10px)" onclick="toggleEditMode()">🖼 Banner</button>
+      <button class="edit-toggle" onclick="editCurrentAtor()" style="background:var(--gold);color:#0a0a0c;border-color:var(--gold)">📝 Cadastro</button>
       <button class="edit-toggle" id="btn-excluir-ator" onclick="excluirAtorAtual()" style="display:none;background:rgba(180,40,40,.7);border-color:rgba(220,60,60,.5);color:#fff;backdrop-filter:blur(10px)">🗑 Excluir</button>
     </div>
     <div id="ator-content"></div>
