@@ -4146,7 +4146,6 @@ async function uploadToSupabase(file, pasta = 'fotos') {
       'apikey': SB_KEY,
       'Authorization': `Bearer ${SB_KEY}`,
       'Content-Type': file.type || 'image/jpeg',
-      'x-upsert': 'true'
     },
     body: file
   });
