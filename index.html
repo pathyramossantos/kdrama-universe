@@ -482,7 +482,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .fs{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a09880' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;background-color:var(--bg);cursor:pointer}
 
 /* Image upload */
-.img-zone{border:2px dashed var(--border);border-radius:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:80px}
+.img-zone{border:2px dashed var(--border);border-radius:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:80px}.img-zone.drag-over{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,var(--bg));transform:scale(1.02)}
 .img-zone:hover,.img-zone.drag{border-color:var(--gold-dim);background:var(--gold-glow)}
 .img-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .img-zone-icon{font-size:1.6rem;color:var(--text3);pointer-events:none}
@@ -1573,8 +1573,15 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           <div class="fg"><label class="fl">Nome Coreano</label><input class="fi" id="fdir-nome-kor" placeholder="김홍선"></div>
         </div>
         <div class="fg" style="margin-top:12px">
-          <label class="fl">Foto (URL)</label>
-          <input class="fi" id="fdir-foto" placeholder="https://...">
+          <label class="fl">Foto</label>
+          <div class="img-zone" id="fdir-foto-zone" style="aspect-ratio:3/4;max-width:140px" onclick="document.getElementById('fdir-foto-file').click()">
+            <input type="file" id="fdir-foto-file" accept="image/*" style="display:none" onchange="fdirPreviewFoto(this)">
+            <div class="img-zone-icon" id="fdir-foto-icon">🎬</div>
+            <div class="img-zone-txt" id="fdir-foto-txt">Clique ou arraste</div>
+            <img id="fdir-foto-img" class="img-zone-preview" style="display:none">
+            <button class="img-zone-del" id="fdir-foto-del" style="display:none" onclick="fdirRemoveFoto(event)">✕</button>
+          </div>
+          <input class="fi" id="fdir-foto-url" placeholder="ou cole URL…" style="margin-top:6px;font-size:.78rem" oninput="fdirPreviewFotoUrl(this.value)">
         </div>
         <div class="fg" style="margin-top:12px">
           <label class="fl">Função</label>
@@ -3509,14 +3516,20 @@ async function salvarMiniFormDir() {
   const nome = document.getElementById('fdir-nome').value.trim();
   if (!nome) { showToast('Nome é obrigatório'); return; }
   try {
+    showToast('Salvando…');
+    let fotoUrl = fdirFotoUrlFinal || document.getElementById('fdir-foto-url')?.value.trim() || '';
+    if (fdirFotoFile) {
+      try { fotoUrl = await uploadToSupabase(fdirFotoFile, 'diretores'); } catch(e) { showToast('Erro no upload: ' + e.message); return; }
+    }
     const fields = {
       'Nome': nome,
       'Nome Estrangeiro': document.getElementById('fdir-nome-kor').value.trim() || undefined,
-      'Foto': document.getElementById('fdir-foto').value.trim() || undefined,
+      'Foto': fotoUrl || undefined,
       'Tipo': document.getElementById('fdir-tipo').value
     };
     const record = await createRecord(TABLES.direcao, fields);
     allDirecao.push(record);
+    fdirClearFoto();
     if (_fdDirCallback) _fdDirCallback(record.id, nome);
     closeMiniFormDir();
     showToast(`✓ ${nome} criado!`);
@@ -3979,7 +3992,15 @@ async function fdSalvar(){
       if(fdRatings[r]) fields[r]=fdRatings[r];
     });
 
-    // Capa
+    // Capa — upload pro Supabase se tiver arquivo
+    if (fdCapaFile) {
+      try {
+        const uploadedUrl = await uploadToSupabase(fdCapaFile, 'doramas');
+        fdCapaUrlFinal = uploadedUrl;
+        document.getElementById('fd-capa-url').value = uploadedUrl;
+        fdCapaFile = null;
+      } catch(e) { showToast('Erro no upload da capa: ' + e.message); return; }
+    }
     const capaUrl = fdCapaUrlFinal || document.getElementById('fd-capa-url').value.trim();
     if(capaUrl) fields['Capa']=[{url:capaUrl}];
 
@@ -4108,6 +4129,104 @@ function faClearFoto(){
   faFotoFile=null; faFotoUrlFinal=null;
 }
 function faRemoveFoto(e){ e.stopPropagation(); faClearFoto(); document.getElementById('fa-foto-url').value=''; }
+// ── UPLOAD SUPABASE STORAGE ─────────────────────────────────────────
+async function uploadToSupabase(file, pasta = 'fotos') {
+  const ext = file.name.split('.').pop() || 'jpg';
+  const nome = `${pasta}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const res = await fetch(`${SB_URL}/storage/v1/object/imagens/${nome}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': file.type || 'image/jpeg',
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error('Upload falhou: ' + err);
+  }
+  return `${SB_URL}/storage/v1/object/public/imagens/${nome}`;
+}
+
+// ── DRAG AND DROP GENÉRICO ───────────────────────────────────────────
+function setupImgZoneDrop(zoneId, onFile) {
+  const zone = document.getElementById(zoneId);
+  if (!zone) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) onFile(file);
+  });
+}
+
+// ── INIT DRAG AND DROP (chamado após DOMContentLoaded) ───────────────
+function initImgZoneDrops() {
+  // Ator - foto
+  setupImgZoneDrop('fa-foto-zone', file => {
+    faFotoFile = file; faFotoUrlFinal = null;
+    document.getElementById('fa-foto-url').value = '';
+    faShowFoto(URL.createObjectURL(file));
+  });
+  // Dorama - capa
+  setupImgZoneDrop('fd-capa-zone', file => {
+    fdCapaFile = file; fdCapaUrlFinal = null;
+    document.getElementById('fd-capa-url').value = '';
+    const img = document.getElementById('fd-capa-img');
+    img.src = URL.createObjectURL(file); img.style.display = 'block';
+    document.getElementById('fd-capa-icon').style.display = 'none';
+    document.getElementById('fd-capa-txt').style.display = 'none';
+    document.getElementById('fd-capa-del').style.display = 'flex';
+  });
+  // Diretor - foto
+  setupImgZoneDrop('fdir-foto-zone', file => {
+    fdirFotoFile = file; fdirFotoUrlFinal = null;
+    document.getElementById('fdir-foto-url').value = '';
+    fdirShowFoto(URL.createObjectURL(file));
+  });
+}
+
+// ── FUNÇÕES DIRETOR ──────────────────────────────────────────────────
+let fdirFotoFile = null, fdirFotoUrlFinal = null;
+
+function fdirShowFoto(src) {
+  const img = document.getElementById('fdir-foto-img');
+  if (!img) return;
+  img.src = src; img.style.display = 'block';
+  document.getElementById('fdir-foto-icon').style.display = 'none';
+  document.getElementById('fdir-foto-txt').style.display = 'none';
+  document.getElementById('fdir-foto-del').style.display = 'flex';
+}
+function fdirClearFoto() {
+  const img = document.getElementById('fdir-foto-img');
+  if (!img) return;
+  img.src = ''; img.style.display = 'none';
+  document.getElementById('fdir-foto-icon').style.display = '';
+  document.getElementById('fdir-foto-txt').style.display = '';
+  document.getElementById('fdir-foto-del').style.display = 'none';
+  fdirFotoFile = null; fdirFotoUrlFinal = null;
+}
+function fdirPreviewFoto(input) {
+  const file = input.files[0]; if (!file) return;
+  fdirFotoFile = file; fdirFotoUrlFinal = null;
+  document.getElementById('fdir-foto-url').value = '';
+  fdirShowFoto(URL.createObjectURL(file));
+}
+function fdirPreviewFotoUrl(url) {
+  if (!url) return;
+  fdirFotoFile = null; fdirFotoUrlFinal = url;
+  fdirShowFoto(url);
+}
+function fdirRemoveFoto(e) {
+  e.stopPropagation();
+  fdirClearFoto();
+  document.getElementById('fdir-foto-url').value = '';
+}
+
 function faPreviewFoto(input){
   const file=input.files[0]; if(!file) return;
   faFotoFile=file; faFotoUrlFinal=null;
@@ -4279,6 +4398,16 @@ async function faSalvar(){
   status.textContent='Salvando…'; prog.style.display='block'; bar.style.width='30%';
 
   try{
+    // Upload da foto pro Supabase Storage se tiver arquivo selecionado
+    if (faFotoFile) {
+      try {
+        bar.style.width = '20%';
+        const uploadedUrl = await uploadToSupabase(faFotoFile, 'atores');
+        faFotoUrlFinal = uploadedUrl;
+        document.getElementById('fa-foto-url').value = uploadedUrl;
+        faFotoFile = null;
+      } catch(e) { showToast('Erro no upload da foto: ' + e.message); return; }
+    }
     const fotoUrl=faFotoUrlFinal||document.getElementById('fa-foto-url').value.trim();
     const bannerUrl=document.getElementById('fa-banner-url-preview')?.value.trim();
     const fields={
@@ -6987,6 +7116,15 @@ function cardContextMenu(e, page, id) {
     <audio id="radio-audio" preload="none"></audio>
   </div>
 </div>
+
+<script>
+// Inicializar drag and drop nas img-zones após DOM pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initImgZoneDrops);
+} else {
+  initImgZoneDrops();
+}
+</script>
 
 </body>
 
