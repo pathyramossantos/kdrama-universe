@@ -5651,14 +5651,6 @@ document.addEventListener('click', e => {
 
 // ── BLOG BUSCA ────────────────────────────────────────────
 let blogSearchQuery = '';
-
-function filtrarBlogPorBusca(q) {
-  blogSearchQuery = q.toLowerCase();
-  filtrarBlog();
-}
-
-// Patch no filtrarBlog para incluir busca
-const _filtrarBlogOrig = filterBlog;
 let blogExpFilter = '';
 let _blogTagFilter = '';
 
@@ -5748,7 +5740,7 @@ function renderBlogSidebar() {
   });
   const tagsEl = document.getElementById('sidebar-tags');
   if (tagsEl) {
-    const sorted = Object.entries(tagMap).sort((a, b) => b[1] - a[1]);
+    const sorted = Object.entries(tagMap).sort((a, b) => a[0].localeCompare(b[0], 'pt-BR', {sensitivity: 'base'}));
     tagsEl.innerHTML = sorted.map(([tag, count]) =>
       `<button class="sidebar-tag ${_blogTagFilter === tag ? 'active' : ''}" onclick="setSidebarTag('${tag}')">${tag} <span class="sidebar-tag-count">${count}</span></button>`
     ).join('') || '<span style="color:var(--text3);font-size:.82rem">Nenhuma tag ainda</span>';
