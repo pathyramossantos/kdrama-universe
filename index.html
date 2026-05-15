@@ -2424,11 +2424,10 @@ async function renderDorama(id){
       const sbSeries = await sbSerieRes.json();
       const sbSerieId = sbSeries[0]?.id;
       if(sbSerieId){
-        const elencoRes = await fetch(`${SB_URL}/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,foto,data_nascimento)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const elencoRes = await fetch(`${SB_URL}/rest/v1/elenco?select=*,atores:ator_id(airtable_id,nome,foto,data_nascimento)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
         const elencoRows = await elencoRes.json();
         castRecords = elencoRows.map(row => {
-          const atorRaw = row.atores ? {...row.atores, airtable_id: row.atores.airtable_id || row.atores.id} : null;
-          const ator = atorRaw ? sbToAt(atorRaw, 'atores') : null;
+          const ator = row.atores ? sbToAt(row.atores, 'atores') : null;
           const elenco = sbToAt(row, 'elenco');
           return {elenco, ator};
         });
@@ -3098,17 +3097,6 @@ async function renderAtor(id){
       const recs = await fetchTable(TABLES.atores, {formula:`RECORD_ID()='${id}'`});
       ator = recs[0] || null;
     }
-    // Fallback: buscar por UUID do Supabase (atores criados sem airtable_id)
-    if(!ator || !ator.fields){
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(id);
-      if(isUUID){
-        try{
-          const res = await fetch(`${SB_URL}/rest/v1/atores?id=eq.${id}&select=*`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
-          const rows = await res.json();
-          if(rows[0]) ator = sbToAt({...rows[0], airtable_id: rows[0].airtable_id || rows[0].id}, 'atores');
-        }catch(_){}
-      }
-    }
     if(!ator || !ator.fields){
       content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Ator não encontrado.</p></div>`;
       return;
@@ -3158,14 +3146,20 @@ async function renderAtor(id){
           return sbToAt(row, 'elenco');
         });
         // Adicionar info da série direto
-        filmografia = rows.map(row => ({
-          serieId: row.series?.airtable_id || null,
-          serieName: row.series?.nome || '—',
-          serieAno: row.series?.ano_lancamento || '',
-          seriePoster: row.series?.capa || null,
-          personagem: row.personagem || '',
-          tipo: row.tipo || ''
-        }));
+        filmografia = rows.map(row => {
+          let capa = row.series?.capa || null;
+          if (capa && typeof capa === 'string' && capa.trim().startsWith('[')) {
+            try { const arr = JSON.parse(capa); capa = arr[0]?.url || arr[0] || capa; } catch(_) {}
+          }
+          return {
+            serieId: row.series?.airtable_id || null,
+            serieName: row.series?.nome || '—',
+            serieAno: row.series?.ano_lancamento || '',
+            seriePoster: capa,
+            personagem: row.personagem || '',
+            tipo: row.tipo || ''
+          };
+        });
       }catch(_){}
     }
 
@@ -3444,7 +3438,7 @@ async function acBuscar(id, q) {
       try {
         list.innerHTML = '<div class="ac-item" style="color:var(--text3);pointer-events:none">Buscando…</div>';
         list.classList.add('open');
-        const res = await fetch(`${SB_URL}/rest/v1/atores?nome=ilike.*${encodeURIComponent(q2)}*&select=id,airtable_id,nome,foto,data_nascimento&limit=8`, {
+        const res = await fetch(`${SB_URL}/rest/v1/atores?nome=ilike.*${encodeURIComponent(q2)}*&select=airtable_id,nome,foto,data_nascimento&limit=8`, {
           headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
         });
         const rows = await res.json();
@@ -4086,7 +4080,7 @@ async function openFormDoramaEdit(serie){
       // Elenco
       const loadingEl = document.getElementById('fd-cast-loading');
       if (loadingEl) loadingEl.style.display = '';
-      const ecRes = await fetch(`${SB_URL}/rest/v1/elenco?serie_id=eq.${sbSerieId}&select=id,personagem,tipo,atores:ator_id(id,airtable_id,nome)&order=tipo.asc`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const ecRes = await fetch(`${SB_URL}/rest/v1/elenco?serie_id=eq.${sbSerieId}&select=id,personagem,tipo,atores:ator_id(airtable_id,nome)&order=tipo.asc`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
       const ecRows = await ecRes.json();
       if (loadingEl) loadingEl.style.display = 'none';
       ecRows.forEach(row => {
