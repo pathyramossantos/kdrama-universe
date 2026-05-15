@@ -1463,69 +1463,9 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       </div>
 
 
-      <!-- Avaliação e Experiência -->
-      <div class="form-sect">
-        <div class="form-sect-title">Avaliação Pessoal</div>
-        <div class="form-row cols-2" style="margin:0">
-          <div class="fg"><label class="fl">Avaliação</label><input class="fi" id="fd-aval" placeholder="Ex: Excelente, Bom, Ruim"></div>
-          <div class="fg"><label class="fl">Experiência</label><select class="fs" id="fd-exp"><option value="">—</option><option>Obra de Arte</option><option>Perfeito</option><option>Na Medida</option><option>Valeu a Pena</option><option>Faltou Algo</option><option>Não Recomendo</option><option>Aguardando</option></select></div>
-        </div>
-      </div>
 
-      <!-- Ratings com Estrelas -->
-      <div class="form-sect">
-        <div class="form-sect-title">Avaliações por Categoria</div>
-        <div id="fd-ratings" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px">
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Romance</label>
-            <div class="stars" data-field="Romance" onclick="fdSetRating('Romance',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Comédia</label>
-            <div class="stars" data-field="Comédia" onclick="fdSetRating('Comédia',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Drama</label>
-            <div class="stars" data-field="Drama" onclick="fdSetRating('Drama',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Fantasia</label>
-            <div class="stars" data-field="Fantasia" onclick="fdSetRating('Fantasia',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Química do Casal</label>
-            <div class="stars" data-field="Química do Casal" onclick="fdSetRating('Química do Casal',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Ação</label>
-            <div class="stars" data-field="Ação" onclick="fdSetRating('Ação',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Roteiro</label>
-            <div class="stars" data-field="Roteiro" onclick="fdSetRating('Roteiro',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">OST</label>
-            <div class="stars" data-field="OST" onclick="fdSetRating('OST',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-        </div>
-      </div>
+
+
 
       <!-- Sinopse -->
       <div class="form-sect">
@@ -2050,7 +1990,6 @@ function atToSb(fields, tabela) {
     capa: fields['Capa'], sinopse: fields['Sinopse'],
     ano_lancamento: fields['Ano Lançamento'], episodios: fields['Episódios'],
     pais: fields['País'], status: fields['Status'], nota: fields['Nota'],
-    avaliacao: fields['Avaliação'], experiencia: fields['Experiência'],
     generos: fields['Gêneros'], galeria: fields['Galeria'],
     plataformas: fields['Plataformas'],
     romance: fields['Romance'], comedia: fields['Comédia'],
@@ -4033,8 +3972,6 @@ function openFormDorama(data={}, editId=null){
   setVal('fd-eps', data.eps||'');
   setVal('fd-nota', data.nota||'');
   setVal('fd-sinopse', data.sinopse||'');
-  setVal('fd-aval', data.avaliacao||'');
-  setVal('fd-exp', data.experiencia||'');
   setVal('fd-hancinema', data.hancinema||'');
   setVal('fd-capa-url', data.capaUrl||'');
   document.getElementById('fd-galeria-preview').innerHTML = '';
@@ -4212,8 +4149,6 @@ async function fdSalvar(){
       'Status': document.getElementById('fd-status').value||undefined,
       'País': document.getElementById('fd-pais').value||undefined,
       'Sinopse': document.getElementById('fd-sinopse').value.trim()||undefined,
-      'Avaliação': document.getElementById('fd-aval').value.trim()||undefined,
-      'Experiência': document.getElementById('fd-exp').value||undefined,
       'Url Hancinema': document.getElementById('fd-hancinema').value.trim()||undefined,
     };
 
@@ -5239,7 +5174,7 @@ async function bfPopularSelectDoramas() {
   // Buscar do Airtable se allSeries estiver vazio
   if (!allSeries.length && TABLES.series && apiKey) {
     try {
-      allSeries = await fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas']});
+      allSeries = await fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Diretores','Roteiristas']});
     } catch(_){}
   }
   const series = [...allSeries].sort((a,b) => (a.fields['Nome']||'').localeCompare(b.fields['Nome']||''));
