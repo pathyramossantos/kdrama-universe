@@ -3478,7 +3478,7 @@ function fdAddCastRow(data={}) {
       <div class="ac-wrap" style="position:relative">
         <input class="fi" id="cast-nome-${id}" placeholder="Nome do ator" value="${data.nome||''}" 
           style="font-size:.82rem;padding:6px 10px"
-          oninput="acBuscar(${id}, this.value)" onpaste="setTimeout(()=>acBuscar(${id}, this.value),50)" onblur="setTimeout(()=>acFechar(${id}),200)" autocomplete="off">
+          oninput="document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)" onpaste="setTimeout(()=>{document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)},50)" onblur="setTimeout(()=>acFechar(${id}),200)" autocomplete="off">
         <div class="ac-list" id="ac-list-${id}"></div>
       </div>
     </td>
@@ -3681,13 +3681,14 @@ function fdGetCastData() {
 }
 
 async function fdSalvarElenco(serieId, castData) {
+  // Buscar UUID da série uma única vez
+  const sbSerieRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serieId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+  const sbSeries = await sbSerieRes.json();
+  const sbSerieId = sbSeries[0]?.id;
+  if(!sbSerieId) { console.warn('Série não encontrada no Supabase:', serieId); return; }
+
   for (const membro of castData) {
     try {
-      // Buscar UUID da série
-      const sbSerieRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serieId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
-      const sbSeries = await sbSerieRes.json();
-      const sbSerieId = sbSeries[0]?.id;
-      if(!sbSerieId) continue;
 
       // Buscar ator no Supabase pelo nome
       let atorUUID = null;
@@ -4153,21 +4154,17 @@ async function fdSalvar(){
       allSeries.unshift(record);
     }
 
-    // Salva elenco se tiver membros
+    // Salva elenco e direção — aguarda ambos antes de fechar
+    const serieId = fdEditId || record.id;
     const castData = fdGetCastData();
-    if(castData.length){
-      const serieId = fdEditId || record.id;
-      fdSalvarElenco(serieId, castData).then(()=>{
-        localStorage.removeItem('kdrama_cache');
-      });
-    }
-
-    // Salva direção
     const dirData = fdGetDirData();
-    if(dirData.length){
-      const serieId = fdEditId || record.id;
-      fdSalvarDirecao(serieId, dirData);
-    }
+
+    const promises = [];
+    if(castData.length) promises.push(fdSalvarElenco(serieId, castData));
+    if(dirData.length)  promises.push(fdSalvarDirecao(serieId, dirData));
+
+    if(promises.length) await Promise.all(promises);
+    localStorage.removeItem('kdrama_cache');
 
     showToast(fdEditId?`✓ "${nome}" atualizado!`:`✓ "${nome}" cadastrado!`);
     closeFormDorama();
