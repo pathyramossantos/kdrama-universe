@@ -1725,51 +1725,209 @@ function parseHash(){
 window.addEventListener('popstate',parseHash);
 
 // ── AIRTABLE API ──────────────────────────────────────────
-async function fetchTable(tableId,options={}){
-  if(!apiKey){navigate('config');showToast('Configure sua API Key primeiro');return[];}
-  const params=new URLSearchParams();
-  if(options.fields) options.fields.forEach(f=>params.append('fields[]',f));
-  if(options.formula) params.set('filterByFormula',options.formula);
-  params.set('pageSize','100');
-  let records=[],offset;
-  do{
-    if(offset) params.set('offset',offset);
-    const url=`https://api.airtable.com/v0/${BASE_ID}/${tableId}?${params}`;
-    const res=await fetch(url,{headers:{Authorization:`Bearer ${apiKey}`}});
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${res.status}`);}
-    const data=await res.json();
-    records=records.concat(data.records||[]);
-    offset=data.offset;
-  }while(offset);
-  return records;
+// ── SUPABASE CONFIG ────────────────────────────────────────
+const SB_URL = 'https://yvjjjgsqrewlowlaxhlu.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ampqZ3NxcmV3bG93bGF4aGx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5OTExMTEsImV4cCI6MjA5MzU2NzExMX0.iaiyuuuvbrnYKroL6UB4fKYboyv5gnSlEcZNE0nG-RM';
+const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+const SB_TABLE_MAP = {
+  [TABLES.series]:     'series',
+  [TABLES.atores]:     'atores',
+  [TABLES.elenco]:     'elenco',
+  [TABLES.plataformas]:'plataformas',
+  [TABLES.direcao]:    'direcao',
+  [TABLES.blog]:       'blog',
+  [TABLES.ost]:        'ost'
+};
+
+function sbToAt(row, tabela) {
+  const id = row.airtable_id || row.id;
+  const createdTime = row.created_at;
+  let fields = {};
+  if (tabela === 'series') {
+    fields = {
+      'Nome': row.nome, 'Título Original': row.titulo_original,
+      'Capa': row.capa, 'Sinopse': row.sinopse,
+      'Ano Lançamento': row.ano_lancamento, 'Episódios': row.episodios,
+      'País': row.pais, 'Status': row.status, 'Nota': row.nota,
+      'Avaliação': row.avaliacao, 'Experiência': row.experiencia,
+      'Gêneros': row.generos || [], 'Galeria': row.galeria || [],
+      'Romance': row.romance, 'Comédia': row.comedia,
+      'Fantasia': row.fantasia, 'Química do Casal': row.quimica_casal,
+      'OST': row.ost_nota, 'Ação': row.acao, 'Drama': row.drama,
+      'Roteiro': row.roteiro, 'Banner_Position': row.banner_position,
+      'Banner_Url': row.banner_url, 'Data': row.data,
+      'Elenco': row.elenco_ids || [], 'Plataformas': row.plataformas_ids || [],
+      'Diretores': row.diretores_ids || [], 'Roteiristas': row.roteiristas_ids || []
+    };
+  } else if (tabela === 'atores') {
+    fields = {
+      'Nome': row.nome, 'Nome Estrangeiro': row.nome_estrangeiro,
+      'Foto': row.foto, 'Data de Nascimento': row.data_nascimento,
+      'Biografia': row.biografia, 'Instagram': row.instagram,
+      'Site': row.site, 'Url Hancinema': row.url_hancinema,
+      'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url,
+      'Data do cadastro': row.data_cadastro, 'Elenco': row.elenco_ids || []
+    };
+  } else if (tabela === 'elenco') {
+    fields = {
+      'Personagem': row.personagem, 'Tipo': row.tipo,
+      'Séries': row.serie_airtable_id ? [row.serie_airtable_id] : [],
+      'Atores': row.ator_airtable_id ? [row.ator_airtable_id] : []
+    };
+  } else if (tabela === 'plataformas') {
+    fields = { 'Nome': row.nome, 'Logo': row.logo };
+  } else if (tabela === 'direcao') {
+    fields = {
+      'Nome': row.nome, 'Nome Estrangeiro': row.nome_estrangeiro,
+      'Foto': row.foto, 'Tipo': row.tipo,
+      'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url
+    };
+  } else if (tabela === 'blog') {
+    fields = {
+      'Título': row.titulo, 'Tipo': row.tipo, 'Status': row.status,
+      'Kicker': row.kicker, 'Conteúdo': row.conteudo, 'Capa': row.capa,
+      'Tags': row.tags || [], 'Nota': row.nota, 'Experiência': row.experiencia,
+      'Autor': row.autor, 'Data': row.data,
+      'Dorama ID': row.serie_airtable_id ? [row.serie_airtable_id] : [],
+      'Dorama': row.serie_nome ? [row.serie_nome] : []
+    };
+  } else if (tabela === 'ost') {
+    fields = {
+      'Nome': row.nome, 'Artista': row.artista,
+      'URL YouTube': row.youtube_url, 'Letra': row.letra,
+      'Séries': row.serie_airtable_id ? [row.serie_airtable_id] : []
+    };
+  }
+  return { id, fields, createdTime };
 }
 
-async function patchRecord(tableId,recordId,fields){
-  const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tableId}/${recordId}`,{
-    method:'PATCH',
-    headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-    body:JSON.stringify({fields})
+function atToSb(fields, tabela) {
+  if (tabela === 'series') return {
+    nome: fields['Nome'], titulo_original: fields['Título Original'],
+    capa: fields['Capa'], sinopse: fields['Sinopse'],
+    ano_lancamento: fields['Ano Lançamento'], episodios: fields['Episódios'],
+    pais: fields['País'], status: fields['Status'], nota: fields['Nota'],
+    avaliacao: fields['Avaliação'], experiencia: fields['Experiência'],
+    generos: fields['Gêneros'], galeria: fields['Galeria'],
+    romance: fields['Romance'], comedia: fields['Comédia'],
+    fantasia: fields['Fantasia'], quimica_casal: fields['Química do Casal'],
+    ost_nota: fields['OST'], acao: fields['Ação'], drama: fields['Drama'],
+    roteiro: fields['Roteiro'], banner_position: fields['Banner_Position'],
+    banner_url: fields['Banner_Url'], data: fields['Data'] || null
+  };
+  if (tabela === 'atores') return {
+    nome: fields['Nome'], nome_estrangeiro: fields['Nome Estrangeiro'],
+    foto: fields['Foto'], data_nascimento: fields['Data de Nascimento'],
+    biografia: fields['Biografia'], instagram: fields['Instagram'],
+    site: fields['Site'], url_hancinema: fields['Url Hancinema'],
+    banner_position: fields['Banner_Position'], banner_url: fields['Banner_Url'],
+    data_cadastro: fields['Data do cadastro'] || null
+  };
+  if (tabela === 'direcao') return {
+    nome: fields['Nome'], nome_estrangeiro: fields['Nome Estrangeiro'],
+    foto: fields['Foto'], tipo: fields['Tipo'],
+    banner_position: fields['Banner_Position'], banner_url: fields['Banner_Url']
+  };
+  if (tabela === 'blog') return {
+    titulo: fields['Título'], tipo: fields['Tipo'], status: fields['Status'],
+    kicker: fields['Kicker'], conteudo: fields['Conteúdo'], capa: fields['Capa'],
+    tags: Array.isArray(fields['Tags']) ? fields['Tags'] : (fields['Tags'] ? String(fields['Tags']).split(',').map(t=>t.trim()) : []),
+    nota: fields['Nota'], experiencia: fields['Experiência'],
+    autor: fields['Autor'], data: fields['Data'] || null
+  };
+  if (tabela === 'ost') return {
+    nome: fields['Nome'], artista: fields['Artista'],
+    youtube_url: fields['URL YouTube'], letra: fields['Letra']
+  };
+  if (tabela === 'elenco') return {
+    personagem: fields['Personagem'], tipo: fields['Tipo']
+  };
+  return fields;
+}
+
+async function fetchTable(tableId, options={}) {
+  const tabela = SB_TABLE_MAP[tableId];
+  if (!tabela) { console.warn('Tabela não mapeada:', tableId); return []; }
+
+  let url = `${SB_URL}/rest/v1/${tabela}?select=*`;
+  if (tabela === 'elenco') url = `${SB_URL}/rest/v1/elenco?select=*,series:serie_id(airtable_id),atores:ator_id(airtable_id)`;
+  if (tabela === 'blog')   url = `${SB_URL}/rest/v1/blog?select=*,series:serie_id(airtable_id,nome)`;
+
+  if (options.formula) {
+    const ids = [...options.formula.matchAll(/RECORD_ID\(\)='([^']+)'/g)].map(m=>m[1]);
+    if (ids.length === 1) url += `&airtable_id=eq.${ids[0]}`;
+    else if (ids.length > 1) url += `&airtable_id=in.(${ids.join(',')})`;
+  }
+
+  url += '&limit=2000';
+  const res = await fetch(url, { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } });
+  if (!res.ok) throw new Error(`Supabase ${tabela}: HTTP ${res.status}`);
+  const rows = await res.json();
+
+  return rows.map(row => {
+    if (tabela === 'elenco') {
+      row.serie_airtable_id = row.series?.airtable_id;
+      row.ator_airtable_id  = row.atores?.airtable_id;
+    }
+    if (tabela === 'blog') {
+      row.serie_airtable_id = row.series?.airtable_id;
+      row.serie_nome        = row.series?.nome;
+    }
+    return sbToAt(row, tabela);
   });
-  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${res.status}`);}
-  return res.json();
 }
 
-async function createRecord(tableId,fields){
-  const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tableId}`,{
-    method:'POST',
-    headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-    body:JSON.stringify({fields,typecast:true})
+async function patchRecord(tableId, recordId, fields) {
+  const tabela = SB_TABLE_MAP[tableId];
+  if (!tabela) throw new Error('Tabela não mapeada: ' + tableId);
+  const row = atToSb(fields, tabela);
+  // Remover campos undefined
+  Object.keys(row).forEach(k => row[k] === undefined && delete row[k]);
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/.test(recordId);
+  const filtro = isUUID ? `id=eq.${recordId}` : `airtable_id=eq.${recordId}`;
+  const res = await fetch(`${SB_URL}/rest/v1/${tabela}?${filtro}`, {
+    method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify(row)
   });
-  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${res.status}`);}
-  return res.json();
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const updated = await res.json();
+  return updated[0] ? sbToAt(updated[0], tabela) : null;
 }
 
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas
-const CACHE_VERSION = 'v7'; // Incrementar quando fields mudarem
+async function createRecord(tableId, fields) {
+  const tabela = SB_TABLE_MAP[tableId];
+  if (!tabela) throw new Error('Tabela não mapeada: ' + tableId);
+  const row = atToSb(fields, tabela);
+  Object.keys(row).forEach(k => row[k] === undefined && delete row[k]);
+  const res = await fetch(`${SB_URL}/rest/v1/${tabela}`, {
+    method: 'POST', headers: SB_HEADERS, body: JSON.stringify(row)
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const created = await res.json();
+  return created[0] ? sbToAt(created[0], tabela) : null;
+}
+
+async function bannerSalvarAirtable(id, tipo, { pos, url }) {
+  let tabela;
+  if (tipo === 'dorama') tabela = 'series';
+  else if (tipo === 'diretor') tabela = 'direcao';
+  else tabela = 'atores';
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/.test(id);
+  const filtro = isUUID ? `id=eq.${id}` : `airtable_id=eq.${id}`;
+  const row = {};
+  if (pos) row.banner_position = pos;
+  if (url) row.banner_url = url;
+  try {
+    await fetch(`${SB_URL}/rest/v1/${tabela}?${filtro}`, {
+      method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify(row)
+    });
+  } catch(e) { console.warn('Erro ao salvar banner:', e); }
+}
+
+const CACHE_TTL = 48 * 60 * 60 * 1000; // 48 horas
+const CACHE_VERSION = 'v9'; // Supabase
 
 async function loadAllData(){
-  if(!apiKey) return;
-
   // Tenta carregar do cache primeiro
   try{
     const cached = localStorage.getItem('kdrama_cache');
@@ -1781,54 +1939,37 @@ async function loadAllData(){
         populatePlatformFilter();
         renderStats();
         renderHome();
-        // Atualiza em segundo plano silenciosamente
+        // Atualiza em segundo plano
         setTimeout(async () => {
           try {
             const [s,a,e,p] = await Promise.all([
-              fetchTable(TABLES.series, {fields:['Nome','Título Original','Capa','Nota','Status','Experiência','Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País','Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro','Diretores','Roteiristas','Data','Banner_Position','Banner_Url']}),
-              fetchTable(TABLES.atores, {fields:['Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco','Biografia','Instagram','Site','Url Hancinema','Data do cadastro','Banner_Position','Banner_Url']}),
-              fetchTable(TABLES.elenco, {fields:['Personagem','Tipo','Séries','Atores']}),
-              fetchTable(TABLES.plataformas, {fields:['Nome','Logo','Séries']})
+              fetchTable(TABLES.series),
+              fetchTable(TABLES.atores),
+              fetchTable(TABLES.elenco),
+              fetchTable(TABLES.plataformas)
             ]);
             allSeries=s; allAtores=a; allElenco=e; allPlataformas=p;
-            localStorage.setItem('kdrama_cache', JSON.stringify({v:CACHE_VERSION,data:{series:s,atores:a,elenco:e,plataformas:p},ts:Date.now(),v:CACHE_VERSION}));
+            localStorage.setItem('kdrama_cache', JSON.stringify({v:CACHE_VERSION,data:{series:s,atores:a,elenco:e,plataformas:p},ts:Date.now()}));
           } catch(_){}
-        }, 3000);
+        }, 5000);
         return;
       }
     }
   }catch(_){}
 
-  // Busca só os campos necessários para as listagens
   try{
     const[series,atores,elenco,plataformas]=await Promise.all([
-      fetchTable(TABLES.series, {fields:[
-        'Nome','Título Original','Capa','Nota','Status','Experiência',
-        'Gêneros','Plataformas','Sinopse','Ano Lançamento','Episódios','País',
-        'Avaliação','Galeria','Elenco','Romance','Comédia','Fantasia',
-        'Química do Casal','OST','Ação','Drama','Roteiro','Data'
-      ]}),
-      fetchTable(TABLES.atores, {fields:[
-        'Nome','Nome Estrangeiro','Foto','Data de Nascimento','Elenco',
-        'Biografia','Instagram','Site','Url Hancinema','Data do cadastro'
-      ]}),
-      fetchTable(TABLES.elenco, {fields:[
-        'Personagem','Tipo','Séries','Atores'
-      ]}),
-      fetchTable(TABLES.plataformas, {fields:[
-        'Nome','Logo','Séries'
-      ]})
+      fetchTable(TABLES.series),
+      fetchTable(TABLES.atores),
+      fetchTable(TABLES.elenco),
+      fetchTable(TABLES.plataformas)
     ]);
     allSeries=series;allAtores=atores;allElenco=elenco;allPlataformas=plataformas;
-
-    // Salva no cache
     try{
       localStorage.setItem('kdrama_cache', JSON.stringify({
-        data:{series,atores,elenco,plataformas},
-        ts: Date.now()
+        v:CACHE_VERSION, data:{series,atores,elenco,plataformas}, ts:Date.now()
       }));
-    }catch(_){ /* localStorage cheio, ignora */ }
-
+    }catch(_){}
     populatePlatformFilter();
     renderStats();
   }catch(e){showToast('Erro ao carregar: '+e.message);}
@@ -2010,20 +2151,12 @@ async function renderDorama(id){
   try{
     let serie=allSeries.find(s=>s.id===id);
     if(!serie || !serie.fields){
-      const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.series}/${id}`,{headers:{Authorization:`Bearer ${apiKey}`}});
-      serie=await res.json();
+      const recs = await fetchTable(TABLES.series, {formula:`RECORD_ID()='${id}'`});
+      serie = recs[0] || null;
     }
     if(!serie || !serie.fields){
       content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Dorama não encontrado.</p></div>`;
       return;
-    }
-    // Se a série não tem Diretores/Roteiristas, buscar direto do Airtable
-    if(!('Diretores' in serie.fields) && !('Roteiristas' in serie.fields) && apiKey) {
-      try {
-        const res2 = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.series}/${id}`, {headers:{Authorization:`Bearer ${apiKey}`}});
-        const fresh = await res2.json();
-        if (fresh && fresh.fields) serie = fresh;
-      } catch(_) {}
     }
     currentSerie=serie;
     currentRecordId=id;
@@ -2041,7 +2174,10 @@ async function renderDorama(id){
         const atorIds=e.fields['Atores']||[];
         let ator=atorIds.length?(allAtores.find(a=>a.id===atorIds[0])||null):null;
         if(!ator&&atorIds.length){
-          try{const r=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.atores}/${atorIds[0]}`,{headers:{Authorization:`Bearer ${apiKey}`}});ator=await r.json();}catch(_){}
+          try{
+            const recs = await fetchTable(TABLES.atores, {formula:`RECORD_ID()='${atorIds[0]}'`});
+            ator = recs[0] || null;
+          }catch(_){}
         }
         return{elenco:e,ator};
       }));
@@ -2313,24 +2449,6 @@ function saveBannerPos(){
   showToast('Posição salva ✓');
 }
 
-async function bannerSalvarAirtable(id, tipo, { pos, url }) {
-  if (!apiKey || !id) return;
-  let tableId;
-  if (tipo === 'dorama') tableId = TABLES.series;
-  else if (tipo === 'diretor') tableId = TABLES.direcao;
-  else tableId = TABLES.atores;
-  if (!tableId) return;
-  try {
-    const fields = {};
-    if (pos) fields['Banner_Position'] = pos;
-    if (url) fields['Banner_Url'] = url;
-    await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tableId}/${id}`, {
-      method: 'PATCH',
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields })
-    });
-  } catch(e) { console.warn('Erro ao salvar banner:', e); }
-}
 
 async function changeBannerUrl(){
   const url=document.getElementById('banner-url-input')?.value.trim();
@@ -2680,7 +2798,7 @@ document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===d
 async function renderAtores(){
   renderAniversarios();
   const grid=document.getElementById('actors-grid');
-  if(!apiKey){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔑</div><p>Configure a API Key primeiro.</p></div>`;return;}
+  if(!allAtores.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="icon">⏳</div><p>Carregando atores…</p></div>`;return;}
   if(!allAtores.length){grid.innerHTML=skeletons(12,'3/4');try{await loadAllData();}catch(e){}}
   filterAtores();
 }
@@ -2724,8 +2842,8 @@ async function renderAtor(id){
   try{
     let ator=allAtores.find(a=>a.id===id);
     if(!ator || !ator.fields){
-      const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.atores}/${id}`,{headers:{Authorization:`Bearer ${apiKey}`}});
-      ator=await res.json();
+      const recs = await fetchTable(TABLES.atores, {formula:`RECORD_ID()='${id}'`});
+      ator = recs[0] || null;
     }
     if(!ator || !ator.fields){
       content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Ator não encontrado.</p></div>`;
@@ -2772,8 +2890,8 @@ async function renderAtor(id){
         let serie = serieIds.length ? allSeries.find(s=>s.id===serieIds[0]) : null;
         if(!serie && serieIds.length){
           try{
-            const r=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.series}/${serieIds[0]}`,{headers:{Authorization:`Bearer ${apiKey}`}});
-            serie=await r.json();
+            const recs = await fetchTable(TABLES.series, {formula:`RECORD_ID()='${serieIds[0]}'`});
+            serie = recs[0] || null;
           }catch(_){}
         }
         return{
@@ -2966,12 +3084,11 @@ function importBannerSettings(event){
 async function saveConfig(){
   const key=document.getElementById('api-key-input').value.trim();
   const status=document.getElementById('config-status');
-  if(!key){status.className='config-status err';status.textContent='Cole o token primeiro.';return;}
   status.className='config-status';status.textContent='Testando…';status.style.display='block';
   try{
-    const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.series}?pageSize=1`,{headers:{Authorization:`Bearer ${key}`}});
+    const res=await fetch(`${SB_URL}/rest/v1/series?limit=1`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
     if(!res.ok) throw new Error(`Status ${res.status}`);
-    apiKey=key;localStorage.setItem('kdrama_apikey',key);
+    if(key){ apiKey=key; localStorage.setItem('kdrama_apikey',key); }
     localStorage.removeItem('kdrama_cache');
     status.className='config-status ok';status.textContent='✓ Conexão bem-sucedida! Redirecionando…';
     allSeries=[];allAtores=[];allElenco=[];allPlataformas=[];
@@ -3060,17 +3177,16 @@ async function acBuscar(id, q) {
       (a.fields['Nome'] || '').toLowerCase().includes(q2)
     );
 
-    // Se não achou no cache, busca direto no Airtable
-    if (matches.length === 0 && apiKey) {
+    // Se não achou no cache, busca direto no Supabase
+    if (matches.length === 0) {
       try {
         list.innerHTML = '<div class="ac-item" style="color:var(--text3);pointer-events:none">Buscando…</div>';
         list.classList.add('open');
-        const formula = encodeURIComponent(`SEARCH("${q2.toLowerCase()}",LOWER({Nome}))>0`);
-        const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.atores}?filterByFormula=${formula}&fields[]=Nome&fields[]=Foto&fields[]=Data%20de%20Nascimento&pageSize=8`, {
-          headers: { Authorization: `Bearer ${apiKey}` }
+        const res = await fetch(`${SB_URL}/rest/v1/atores?nome=ilike.*${encodeURIComponent(q2)}*&select=airtable_id,nome,foto,data_nascimento&limit=8`, {
+          headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
         });
-        const data = await res.json();
-        matches = data.records || [];
+        const rows = await res.json();
+        matches = rows.map(r => sbToAt(r, 'atores'));
       } catch(e) { matches = []; }
     }
 
@@ -3175,17 +3291,18 @@ function fdGetCastData() {
 async function fdSalvarElenco(serieId, castData) {
   for (const membro of castData) {
     try {
-      // Busca se ator já existe pelo nome
-      const busca = await fetch(
-        `https://api.airtable.com/v0/${BASE_ID}/${TABLES.atores}?filterByFormula=${encodeURIComponent(`{Nome}="${membro.nome}"`)}`,
-        { headers: { Authorization: `Bearer ${apiKey}` } }
+      // Busca se ator já existe pelo nome no Supabase
+      const res = await fetch(
+        `${SB_URL}/rest/v1/atores?nome=eq.${encodeURIComponent(membro.nome)}&select=airtable_id,nome&limit=1`,
+        { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
       );
-      const buscaData = await busca.json();
+      const rows = await res.json();
+      const atores = rows.map(r => sbToAt(r, 'atores'));
       
       let atorId = membro.atorId || null;
       if (!atorId) {
-        if (buscaData.records?.length) {
-          atorId = buscaData.records[0].id;
+        if (atores.length) {
+          atorId = atores[0].id;
         } else {
           const novoAtor = await createRecord(TABLES.atores, { 'Nome': membro.nome });
           atorId = novoAtor.id;
@@ -3996,11 +4113,10 @@ async function renderPost(id) {
   try {
     let post = allPosts.find(p => p.id === id);
     if (!post) {
-      const tbl = getBlogTableId();
-      if (!tbl) throw new Error('Tabela Blog não configurada');
-      const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${tbl}/${id}`, { headers: { Authorization: `Bearer ${apiKey}` } });
-      post = await res.json();
+      const recs = await fetchTable(TABLES.blog, {formula:`RECORD_ID()='${id}'`});
+      post = recs[0] || null;
     }
+    if (!post) throw new Error('Post não encontrado');
     currentPost = post;
     const f = post.fields;
     const tipo = f['Tipo'] || 'Post';
@@ -4450,8 +4566,6 @@ async function renderInicio() {
   _bdayAno = new Date().getFullYear();
   renderBdayCal();
 
-  if (!apiKey) return;
-
   // Mostrar skeletons
   ['carousel-noticias','carousel-resenhas','carousel-doramas','carousel-atores','carousel-posts'].forEach(id => {
     const el = document.getElementById(id);
@@ -4624,14 +4738,7 @@ function bfInsertVideo() {
 
 // ── COMENTÁRIOS ───────────────────────────────────────────
 async function carregarComentarios(postTitulo) {
-  const tbl = TABLES.comentarios;
-  if (!tbl || !apiKey) return [];
-  try {
-    const url = `https://api.airtable.com/v0/${BASE_ID}/${tbl}?filterByFormula=AND({Status}='Aprovado',{Post}='${encodeURIComponent(postTitulo)}')&sort[0][field]=Data&sort[0][direction]=asc`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const data = await res.json();
-    return data.records || [];
-  } catch(e) { return []; }
+  return []; // Comentários serão migrados para Supabase em breve
 }
 
 function renderComentarios(comentarios, postTitulo, postId) {
@@ -4673,26 +4780,8 @@ async function enviarComentario(postId, postTitulo) {
   const status = document.getElementById(`cstatus-${postId}`);
   if (!nome) { if(status) status.textContent = 'Preencha seu nome.'; return; }
   if (!texto) { if(status) status.textContent = 'Escreva um comentário.'; return; }
-  if (!apiKey) { if(status) status.textContent = 'API Key não configurada.'; return; }
-  if(status) status.textContent = 'Enviando…';
-  try {
-    // Usar token de escrita específico para comentários
-    const commentFields = {
-      'Nome': nome,
-      'Comentário': texto,
-      'Post': postTitulo,
-      'Data': new Date().toISOString().slice(0, 10),
-      'Status': 'Pendente',
-    };
-    await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.comentarios}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${PUBLIC_WRITE_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields: commentFields })
-    });
-    if(status) status.textContent = '✓ Comentário enviado! Aguarda aprovação.';
-    document.getElementById(`cnome-${postId}`).value = '';
-    document.getElementById(`ctexto-${postId}`).value = '';
-  } catch(e) {
+  if(status) status.textContent = 'Comentários em manutenção. Em breve de volta!';
+  return;
     if(status) status.textContent = 'Erro ao enviar: ' + e.message;
   }
 }
