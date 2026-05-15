@@ -1621,7 +1621,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
               <img id="fa-foto-img" class="img-zone-preview" style="display:none">
               <button class="img-zone-del" id="fa-foto-del" style="display:none" onclick="faRemoveFoto(event)">✕</button>
             </div>
-            <input class="fi" id="fa-foto-url" placeholder="ou cole URL…" style="margin-top:6px;font-size:.78rem" oninput="faPreviewFotoUrl(this.value)">
+            <input class="fi" id="fa-foto-url" type="hidden">
           </div>
           <div style="display:flex;flex-direction:column;gap:12px">
             <div class="fg">
@@ -1676,11 +1676,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <div class="form-sect">
         <div class="form-sect-title">Preview do Banner</div>
         <div class="fg">
-          <label class="fl" style="margin-bottom:6px">URL da imagem do banner</label>
-          <div style="display:flex;gap:8px">
-            <input class="fi" id="fa-banner-url-preview" placeholder="Cole URL para preview…" style="flex:1" oninput="faPreviewBanner(this.value)">
-            <button class="btn-ai" onclick="faUsarFotoComoBanner()">Usar foto</button>
-          </div>
+          <input type="hidden" id="fa-banner-url-preview">
           <div id="fa-banner-preview-wrap" style="display:none;margin-top:10px;border-radius:10px;overflow:hidden;position:relative;height:180px">
             <img id="fa-banner-preview-img" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%">
             <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 60%)"></div>
@@ -4126,6 +4122,16 @@ function faShowFoto(url){
   document.getElementById('fa-foto-icon').style.display='none';
   document.getElementById('fa-foto-txt').style.display='none';
   document.getElementById('fa-foto-del').style.display='flex';
+  
+  // Atualiza o preview do banner automaticamente
+  const bannerWrap = document.getElementById('fa-banner-preview-wrap');
+  const bannerImg = document.getElementById('fa-banner-preview-img');
+  const bannerInput = document.getElementById('fa-banner-url-preview');
+  if (bannerImg && bannerWrap) {
+    bannerImg.src = url;
+    bannerWrap.style.display = 'block';
+    if (bannerInput) bannerInput.value = url;
+  }
 }
 function faClearFoto(){
   const img=document.getElementById('fa-foto-img');
@@ -4134,6 +4140,14 @@ function faClearFoto(){
   document.getElementById('fa-foto-txt').style.display='';
   document.getElementById('fa-foto-del').style.display='none';
   faFotoFile=null; faFotoUrlFinal=null;
+  
+  // Limpa o preview do banner
+  const bannerWrap = document.getElementById('fa-banner-preview-wrap');
+  const bannerImg = document.getElementById('fa-banner-preview-img');
+  const bannerInput = document.getElementById('fa-banner-url-preview');
+  if (bannerWrap) bannerWrap.style.display = 'none';
+  if (bannerImg) bannerImg.src = '';
+  if (bannerInput) bannerInput.value = '';
 }
 function faRemoveFoto(e){ e.stopPropagation(); faClearFoto(); document.getElementById('fa-foto-url').value=''; }
 // ── UPLOAD SUPABASE STORAGE ─────────────────────────────────────────
