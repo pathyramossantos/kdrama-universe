@@ -4665,7 +4665,9 @@ async function faSalvar(){
       'Data do cadastro': document.getElementById('fa-data-cadastro')?.value||undefined,
     };
     if(fotoUrl) fields['Foto']=fotoUrl;
-    if(bannerUrl) fields['Banner_Url']=bannerUrl;
+    // Se não tiver banner definido, usa a foto como banner automaticamente
+    const bannerFinal = bannerUrl || fotoUrl;
+    if(bannerFinal) fields['Banner_Url']=bannerFinal;
 
     bar.style.width='70%';
     let record;
