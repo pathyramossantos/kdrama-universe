@@ -5629,8 +5629,8 @@ function renderOstTracks() {
   const el = document.getElementById('ost-page-tracks');
   if (!el) return;
 
-  // Botão adicionar (só em edit mode)
-  const btnAdicionar = editMode ? `
+  // Botão adicionar (visível pra owner, não precisa de editMode)
+  const btnAdicionar = isOwner() ? `
     <button onclick="ostAbrirFormAdd()" style="width:100%;padding:10px;margin-bottom:8px;background:var(--surface);border:1px dashed var(--gold-dim);border-radius:8px;color:var(--gold);font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
       <span style="font-size:1.1rem">+</span> Adicionar faixa OST
     </button>` : '';
@@ -5652,7 +5652,7 @@ function renderOstTracks() {
           ${editMode && url ? `<div style="font-size:.65rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;cursor:text" onclick="event.stopPropagation()" title="${url}">${url}</div>` : ''}
         </div>
       </div>
-      ${editMode ? `<div style="display:flex;gap:4px;padding-right:8px;align-items:center">
+      ${isOwner() ? `<div style="display:flex;gap:4px;padding-right:8px;align-items:center">
         ${url ? `<button onclick="event.stopPropagation();navigator.clipboard.writeText('${url.replace(/'/g,"\\'")}');showToast('URL copiada!')" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--text3);cursor:pointer;padding:3px 6px;font-size:.65rem" title="Copiar URL">📋</button>` : ''}
         <button onclick="event.stopPropagation();ostEditarFaixa('${r._uuid||r.id}',${i})" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--text3);cursor:pointer;padding:3px 6px;font-size:.65rem">✏️</button>
         <button onclick="event.stopPropagation();ostDeletarFaixa('${r._uuid||r.id}',${i})" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--text3);cursor:pointer;padding:3px 6px;font-size:.65rem">✕</button>
