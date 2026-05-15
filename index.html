@@ -2009,16 +2009,20 @@ async function renderDorama(id){
   content.innerHTML=`<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>`;
   try{
     let serie=allSeries.find(s=>s.id===id);
-    if(!serie){
+    if(!serie || !serie.fields){
       const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.series}/${id}`,{headers:{Authorization:`Bearer ${apiKey}`}});
       serie=await res.json();
     }
+    if(!serie || !serie.fields){
+      content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Dorama não encontrado.</p></div>`;
+      return;
+    }
     // Se a série não tem Diretores/Roteiristas, buscar direto do Airtable
-    if (serie.fields && !('Diretores' in serie.fields) && !('Roteiristas' in serie.fields) && apiKey) {
+    if(!('Diretores' in serie.fields) && !('Roteiristas' in serie.fields) && apiKey) {
       try {
         const res2 = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.series}/${id}`, {headers:{Authorization:`Bearer ${apiKey}`}});
         const fresh = await res2.json();
-        if (fresh.fields) serie = fresh;
+        if (fresh && fresh.fields) serie = fresh;
       } catch(_) {}
     }
     currentSerie=serie;
@@ -2719,9 +2723,13 @@ async function renderAtor(id){
   content.innerHTML=`<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>`;
   try{
     let ator=allAtores.find(a=>a.id===id);
-    if(!ator){
+    if(!ator || !ator.fields){
       const res=await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLES.atores}/${id}`,{headers:{Authorization:`Bearer ${apiKey}`}});
       ator=await res.json();
+    }
+    if(!ator || !ator.fields){
+      content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Ator não encontrado.</p></div>`;
+      return;
     }
     currentAtor=ator;
     currentRecordId=id;
