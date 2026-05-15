@@ -2176,39 +2176,40 @@ async function renderDorama(id){
     const photo=getPhoto(serie);
     const gallery=getAllPhotos(serie,'Galeria');
 
-    // Load cast
-    const castIds=f['Elenco']||[];
+    // Load cast — buscar direto no Supabase pelo serie airtable_id
     let castRecords=[];
-    if(castIds.length){
-      const elencoRecs=allElenco.length?allElenco.filter(e=>castIds.includes(e.id)):await fetchTable(TABLES.elenco,{formula:`OR(${castIds.map(i=>`RECORD_ID()='${i}'`).join(',')})`});
-      castRecords=await Promise.all(elencoRecs.map(async e=>{
-        const atorIds=e.fields['Atores']||[];
-        let ator=atorIds.length?(allAtores.find(a=>a.id===atorIds[0])||null):null;
-        if(!ator&&atorIds.length){
-          try{
-            const recs = await fetchTable(TABLES.atores, {formula:`RECORD_ID()='${atorIds[0]}'`});
-            ator = recs[0] || null;
-          }catch(_){}
-        }
-        return{elenco:e,ator};
-      }));
-    }
+    try{
+      const serieAtId = serie.id; // airtable_id da série
+      const sbSerieRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serieAtId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const sbSeries = await sbSerieRes.json();
+      const sbSerieId = sbSeries[0]?.id;
+      if(sbSerieId){
+        const elencoRes = await fetch(`${SB_URL}/rest/v1/elenco?select=*,atores:ator_id(airtable_id,nome,foto,data_nascimento)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const elencoRows = await elencoRes.json();
+        castRecords = elencoRows.map(row => {
+          const ator = row.atores ? sbToAt(row.atores, 'atores') : null;
+          const elenco = sbToAt(row, 'elenco');
+          return {elenco, ator};
+        });
+      }
+    }catch(_){}
 
-    // Buscar direção relacionada ao dorama
-    // Diretores e Roteiristas vêm dos campos linkados na série
-    const dirIds = f['Diretores'] || [];
-    const rotIds = f['Roteiristas'] || [];
+    // Buscar direção relacionada ao dorama via serie_direcao
     let dirDorama = [];
-    if ((dirIds.length || rotIds.length) && TABLES.direcao && apiKey) {
-      try {
-        // Sempre buscar direcao fresh pra garantir campos corretos
-        allDirecao = await fetchTable(TABLES.direcao, { fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Tipo'] });
-        const dirs = allDirecao.filter(d => dirIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'DIRETOR'}));
-        const rots = allDirecao.filter(d => rotIds.includes(d.id)).map(d => ({...d, _tipoDisplay: 'ROTEIRISTA'}));
-        dirDorama = [...dirs, ...rots];
-
-      } catch(e) { console.warn('dirDorama error:', e); }
-    }
+    try{
+      const serieAtId = serie.id;
+      const sbSerieRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serieAtId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const sbSeries = await sbSerieRes.json();
+      const sbSerieId = sbSeries[0]?.id;
+      if(sbSerieId){
+        const dirRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?select=papel,direcao:direcao_id(airtable_id,nome,nome_estrangeiro,foto,tipo)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const dirRows = await dirRes.json();
+        dirDorama = dirRows.map(row => ({
+          ...sbToAt(row.direcao, 'direcao'),
+          _tipoDisplay: row.papel === 'Roteirista' ? 'ROTEIRISTA' : 'DIRETOR'
+        }));
+      }
+    }catch(e){ console.warn('dirDorama error:', e); }
 
     // Buscar resenha do blog para este dorama
     const nomeDorama = f['Nome'] || '';
@@ -4131,7 +4132,7 @@ async function renderPost(id) {
     const tipo = f['Tipo'] || 'Post';
     const date = f['Data'] ? new Date(f['Data']).toLocaleDateString('pt-BR', {day:'numeric',month:'long',year:'numeric'}) : '';
     const capaUrl = Array.isArray(f['Capa']) ? f['Capa'][0]?.url : f['Capa'];
-    const tags = Array.isArray(f['Tags']) ? f['Tags'] : (f['Tags'] || '').split(/[,;]/).map(t => t.trim()).filter(Boolean);
+    const tags = Array.isArray(f['Tags']) ? f['Tags'] : Array.isArray(f['Tags']) ? f['Tags'] : (f['Tags'] || '').split(/[,;]/).map(t=>t.trim()).filter(Boolean).map(t => t.trim()).filter(Boolean);
     content.innerHTML = `
       <span class="post-type-badge blog-type-badge blog-type-${tipo === 'Resenha' ? 'resenha' : 'post'}">${tipo}</span>
       ${f['Kicker'] ? `<div class="post-kicker">${f['Kicker']}</div>` : ''}
@@ -5038,7 +5039,7 @@ function filterBlog() {
     const f = p.fields;
     const tipo = f['Tipo'] || 'Post';
     const date = f['Data'] ? new Date(f['Data']).toLocaleDateString('pt-BR', {day:'numeric',month:'long',year:'numeric'}) : '';
-    const tags = (f['Tags'] || '').split(',').map(t => t.trim()).filter(Boolean);
+    const tags = Array.isArray(f['Tags']) ? f['Tags'] : (f['Tags'] || '').split(',').map(t => t.trim()).filter(Boolean);
     const excerpt = '';
     const capaUrl = Array.isArray(f['Capa']) ? f['Capa'][0]?.url : f['Capa'];
     return `<div class="blog-card" onclick="navigate('post','${p.id}')" oncontextmenu="cardContextMenu(event,'post','${p.id}')" style="animation-delay:${i * .05}s">
@@ -5068,7 +5069,7 @@ function renderBlogSidebar() {
   // Tags
   const tagMap = {};
   allPosts.filter(p => p.fields['Status'] === 'Publicado').forEach(p => {
-    (p.fields['Tags'] || '').split(/[,;]/).map(t => t.trim()).filter(Boolean).forEach(t => {
+    (Array.isArray(p.fields['Tags']) ? p.fields['Tags'] : (p.fields['Tags'] || '').split(/[,;]/).map(t => t.trim()).filter(Boolean)).forEach(t => {
       tagMap[t] = (tagMap[t] || 0) + 1;
     });
   });
@@ -5579,17 +5580,21 @@ async function renderDiretor(id) {
   const tipo = f['Tipo'] || '';
 
   // Buscar doramas vinculados — sempre busca direto pra garantir campos Diretores/Roteiristas
-  let seriesComVinculo = allSeries.filter(s => 'Diretores' in s.fields || 'Roteiristas' in s.fields);
-  if (!seriesComVinculo.length && apiKey) {
-    try {
-      const fresh = await fetchTable(TABLES.series, {fields:['Nome','Capa','Ano Lançamento','Diretores','Roteiristas']});
-      seriesComVinculo = fresh;
-    } catch(_) {}
-  }
-  const vinculados = seriesComVinculo.filter(s =>
-    (s.fields['Diretores'] || []).includes(dir.id) ||
-    (s.fields['Roteiristas'] || []).includes(dir.id)
-  );
+  // Buscar séries vinculadas via tabela serie_direcao no Supabase
+  let vinculados = [];
+  try {
+    const dirRes = await fetch(`${SB_URL}/rest/v1/direcao?airtable_id=eq.${dir.id}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const dirRows = await dirRes.json();
+    const dirUUID = dirRows[0]?.id;
+    if(dirUUID){
+      const sdRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?direcao_id=eq.${dirUUID}&select=papel,series:serie_id(airtable_id,nome,capa,ano_lancamento)`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const sdRows = await sdRes.json();
+      vinculados = sdRows.map(row => ({
+        ...sbToAt(row.series, 'series'),
+        _papel: row.papel
+      }));
+    }
+  } catch(_) {}
 
   const filmografiaHTML = vinculados.length ? `
     <div class="actor-detail-section">
@@ -5598,7 +5603,7 @@ async function renderDiretor(id) {
         ${vinculados.map(s => {
           const sf = s.fields;
           const capa = getPhoto(s);
-          const papel = (s.fields['Diretores']||[]).includes(dir.id) ? 'Diretor' : 'Roteirista';
+          const papel = s._papel || 'Diretor';
           return `<div class="filmografia-card" onclick="navigate('dorama','${s.id}')" style="cursor:pointer">
             <div class="filmografia-poster">
               ${capa ? `<img src="${capa}" alt="${sf['Nome']||''}" loading="lazy">` : `<div class="cast-photo-placeholder" style="font-size:1.2rem;aspect-ratio:2/3">드</div>`}
