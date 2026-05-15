@@ -5729,6 +5729,8 @@ async function ostDeletarFaixa(uuid, idx) {
     renderOstPage(ostCurrentSerieId);
   } catch(e) { showToast('Erro: '+e.message); }
 }
+
+function ostPageTocar(idx) {
   ostPageIdx = idx;
   const f = ostPagePlaylist[idx].fields;
   const url = f['URL do Youtube'] || '';
