@@ -1794,9 +1794,10 @@ function sbToAt(row, tabela) {
     };
   } else if (tabela === 'ost') {
     fields = {
-      'Nome': row.nome, 'Artista': row.artista,
-      'URL YouTube': row.youtube_url, 'Letra': row.letra,
-      'Séries': row.serie_airtable_id ? [row.serie_airtable_id] : []
+      'Nome da Faixa': row.nome_faixa, 'Artista': row.artista,
+      'URL do Youtube': row.youtube_url, 'Letra': row.letra,
+      'Ordem': row.ordem,
+      'Dorama': row.serie_airtable_id ? [row.serie_airtable_id] : []
     };
   }
   return { id, fields, createdTime };
@@ -1837,8 +1838,9 @@ function atToSb(fields, tabela) {
     autor: fields['Autor'], data: fields['Data'] || null
   };
   if (tabela === 'ost') return {
-    nome: fields['Nome'], artista: fields['Artista'],
-    youtube_url: fields['URL YouTube'], letra: fields['Letra']
+    nome_faixa: fields['Nome da Faixa'], artista: fields['Artista'],
+    youtube_url: fields['URL do Youtube'], letra: fields['Letra'],
+    ordem: fields['Ordem']
   };
   if (tabela === 'elenco') return {
     personagem: fields['Personagem'], tipo: fields['Tipo']
@@ -1853,6 +1855,7 @@ async function fetchTable(tableId, options={}) {
   let url = `${SB_URL}/rest/v1/${tabela}?select=*`;
   if (tabela === 'elenco') url = `${SB_URL}/rest/v1/elenco?select=*,series:serie_id(airtable_id),atores:ator_id(airtable_id)`;
   if (tabela === 'blog')   url = `${SB_URL}/rest/v1/blog?select=*,series:serie_id(airtable_id,nome)`;
+  if (tabela === 'ost')    url = `${SB_URL}/rest/v1/ost?select=*,series:serie_id(airtable_id)`;
 
   if (options.formula) {
     const ids = [...options.formula.matchAll(/RECORD_ID\(\)='([^']+)'/g)].map(m=>m[1]);
@@ -1873,6 +1876,9 @@ async function fetchTable(tableId, options={}) {
     if (tabela === 'blog') {
       row.serie_airtable_id = row.series?.airtable_id;
       row.serie_nome        = row.series?.nome;
+    }
+    if (tabela === 'ost') {
+      row.serie_airtable_id = row.series?.airtable_id;
     }
     return sbToAt(row, tabela);
   });
@@ -4775,15 +4781,8 @@ function renderComentarios(comentarios, postTitulo, postId) {
 }
 
 async function enviarComentario(postId, postTitulo) {
-  const nome = document.getElementById(`cnome-${postId}`)?.value.trim();
-  const texto = document.getElementById(`ctexto-${postId}`)?.value.trim();
   const status = document.getElementById(`cstatus-${postId}`);
-  if (!nome) { if(status) status.textContent = 'Preencha seu nome.'; return; }
-  if (!texto) { if(status) status.textContent = 'Escreva um comentário.'; return; }
   if(status) status.textContent = 'Comentários em manutenção. Em breve de volta!';
-  return;
-    if(status) status.textContent = 'Erro ao enviar: ' + e.message;
-  }
 }
 
 
