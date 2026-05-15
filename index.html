@@ -4716,9 +4716,14 @@ function openBlogForm(editId) {
       bfSet('bf-kicker', f['Kicker'] || '');
       bfSet('bf-autor', f['Autor'] || '');
       bfSet('bf-capa', capaUrl);
-      bfSet('bf-tags', f['Tags'] || '');
-      // nota calculada automaticamente
-      bfSet('bf-dorama-nome', f['Dorama'] || '');
+      bfSet('bf-tags', Array.isArray(f['Tags']) ? f['Tags'].join(', ') : (f['Tags'] || ''));
+      // Dorama — pode vir como array de IDs (Dorama ID) ou array de nomes (Dorama)
+      const doramaId = Array.isArray(f['Dorama ID']) ? f['Dorama ID'][0] : (f['Dorama ID'] || '');
+      const doramaNome = Array.isArray(f['Dorama']) ? f['Dorama'][0] : (f['Dorama'] || '');
+      // Salvar no localStorage para persistir
+      if (doramaId) localStorage.setItem('kdrama_blog_ultimo_dorama', doramaId);
+      if (doramaNome) localStorage.setItem('kdrama_blog_ultimo_dorama_nome', doramaNome);
+      bfSet('bf-dorama-nome', doramaId || doramaNome);
       bfSet('bf-conteudo', f['Conteúdo'] || '');
       bfSet('bf-exp', f['Experiência'] || '');
       bfClearStars();
@@ -4765,10 +4770,13 @@ async function bfPopularSelectDoramas() {
     const nome = s.fields['Nome'] || '';
     if (!nome) return;
     const opt = document.createElement('option');
-    opt.value = s.id; // salva o ID do Airtable
+    opt.value = s.id;
     opt.dataset.nome = nome;
     opt.textContent = nome;
-    if (s.id === atual || nome === atual) opt.selected = true;
+    // Selecionar pelo ID, pelo airtable_id ou pelo nome
+    const ultimoId = localStorage.getItem('kdrama_blog_ultimo_dorama') || '';
+    const ultimoNome = localStorage.getItem('kdrama_blog_ultimo_dorama_nome') || '';
+    if (s.id === atual || s.id === ultimoId || nome === atual || nome === ultimoNome) opt.selected = true;
     sel.appendChild(opt);
   });
   // Salvar no localStorage quando mudar
