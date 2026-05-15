@@ -4725,10 +4725,13 @@ function openBlogForm(editId) {
       bfLoadStars(f);
     }
   } else {
-    ['bf-titulo','bf-kicker','bf-autor','bf-capa','bf-tags','bf-dorama-nome','bf-conteudo','bf-exp'].forEach(id => bfSet(id, ''));
+    ['bf-titulo','bf-kicker','bf-autor','bf-capa','bf-tags','bf-conteudo','bf-exp'].forEach(id => bfSet(id, ''));
     bfSet('bf-tipo', 'Resenha');
     bfSet('bf-status-select', 'Publicado');
     bfClearStars();
+    // Restaurar último dorama usado
+    const ultimoDorama = localStorage.getItem('kdrama_blog_ultimo_dorama') || '';
+    bfSet('bf-dorama-nome', ultimoDorama);
   }
   bfToggleDoramaRow();
 }
@@ -4768,6 +4771,15 @@ async function bfPopularSelectDoramas() {
     if (s.id === atual || nome === atual) opt.selected = true;
     sel.appendChild(opt);
   });
+  // Salvar no localStorage quando mudar
+  sel.onchange = () => {
+    const opt = sel.options[sel.selectedIndex];
+    const nomeDorama = opt?.dataset.nome || opt?.textContent || '';
+    if (nomeDorama && nomeDorama !== '— Selecione o dorama —') {
+      localStorage.setItem('kdrama_blog_ultimo_dorama', sel.value);
+      localStorage.setItem('kdrama_blog_ultimo_dorama_nome', nomeDorama);
+    }
+  };
 }
 
 function bfSetStar(field, val) {
