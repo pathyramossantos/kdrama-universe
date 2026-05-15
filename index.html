@@ -2916,9 +2916,6 @@ async function renderAtor(id){
         }));
       }catch(_){}
     }
-          serieName: serie?(serie.fields['Nome']||'—'):'—',
-      filmografia.sort((a,b)=>(b.serieAno||0)-(a.serieAno||0));
-    }
 
     const filmografiaHTML = filmografia.length ? `
       <div class="actor-detail-section">
