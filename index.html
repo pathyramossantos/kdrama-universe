@@ -1522,6 +1522,31 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           Adicionar ator
         </button>
       </div>
+
+      <!-- Direção -->
+      <div class="form-sect">
+        <div class="form-sect-title">Direção &amp; Roteiro</div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:4px 6px;text-transform:uppercase;letter-spacing:.06em">Nome</th>
+              <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:4px 6px;text-transform:uppercase;letter-spacing:.06em">Função</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="fd-dir-list"></tbody>
+        </table>
+        <div style="display:flex;gap:8px">
+          <button class="btn-add-cast" onclick="fdAddDirRow('Diretor')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Diretor
+          </button>
+          <button class="btn-add-cast" onclick="fdAddDirRow('Roteirista')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Roteirista
+          </button>
+        </div>
+      </div>
     </div>
     <div class="form-foot">
       <div style="flex:1">
@@ -1530,6 +1555,39 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       </div>
       <button class="btn-outline" onclick="closeFormDorama()">Cancelar</button>
       <button class="btn-gold" onclick="fdSalvar()" id="fd-btn-salvar">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MINI FORMULÁRIO DIRETOR/ROTEIRISTA -->
+<div class="form-overlay" id="form-dir-overlay" style="z-index:500">
+  <div class="form-panel" style="max-width:480px">
+    <div class="form-head">
+      <h2 id="form-dir-titulo">✦ Novo Diretor</h2>
+      <button class="form-x" onclick="closeMiniFormDir()">✕</button>
+    </div>
+    <div class="form-body">
+      <div class="form-sect">
+        <div class="form-row cols-2" style="margin:0;gap:12px">
+          <div class="fg"><label class="fl">Nome (Romanizado)</label><input class="fi" id="fdir-nome" placeholder="Kim Hong-sun"></div>
+          <div class="fg"><label class="fl">Nome Coreano</label><input class="fi" id="fdir-nome-kor" placeholder="김홍선"></div>
+        </div>
+        <div class="fg" style="margin-top:12px">
+          <label class="fl">Foto (URL)</label>
+          <input class="fi" id="fdir-foto" placeholder="https://...">
+        </div>
+        <div class="fg" style="margin-top:12px">
+          <label class="fl">Função</label>
+          <select class="fs" id="fdir-tipo">
+            <option value="Diretor">Diretor</option>
+            <option value="Roteirista">Roteirista</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="form-foot">
+      <button class="btn-outline" onclick="closeMiniFormDir()">Cancelar</button>
+      <button class="btn-gold" onclick="salvarMiniFormDir()">💾 Criar e Adicionar</button>
     </div>
   </div>
 </div>
@@ -3328,10 +3386,130 @@ function fdAddCastRow(data={}) {
   document.getElementById('fd-cast-list').appendChild(row);
 }
 
-function fdRemoveCastRow(id) {
-  const row = document.getElementById(`cast-row-${id}`);
-  if(row) row.remove();
-  fdCastRows = fdCastRows.filter(r => r !== id);
+// ── DIREÇÃO NO FORMULÁRIO DE DORAMA ──────────────────────
+let fdDirRows = [], fdDirCounter = 0;
+let _fdDirCallback = null; // callback ao criar novo
+
+function fdAddDirRow(tipo='Diretor', data={}) {
+  const id = ++fdDirCounter;
+  fdDirRows.push(id);
+  const row = document.createElement('tr');
+  row.id = `dir-row-${id}`;
+  row.style.cssText = 'border-bottom:1px solid var(--border)';
+  row.dataset.dirId = data.dirId || '';
+  row.innerHTML = `
+    <td style="padding:4px 6px">
+      <div style="position:relative">
+        <input class="fi" id="dir-nome-${id}" placeholder="Nome do diretor/roteirista" value="${data.nome||''}"
+          style="font-size:.82rem;padding:6px 10px"
+          oninput="fdDirBuscar(${id},this.value)" onblur="setTimeout(()=>fdDirFechar(${id}),200)" autocomplete="off">
+        <div id="dir-ac-${id}" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;z-index:100;max-height:200px;overflow-y:auto"></div>
+      </div>
+    </td>
+    <td style="padding:4px 6px">
+      <select id="dir-tipo-${id}" class="fs" style="font-size:.82rem;padding:6px 10px">
+        <option value="Diretor"${tipo==='Diretor'?' selected':''}>Diretor</option>
+        <option value="Roteirista"${tipo==='Roteirista'?' selected':''}>Roteirista</option>
+      </select>
+    </td>
+    <td style="padding:4px 6px;text-align:center">
+      <button onclick="fdRemoveDirRow(${id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem">✕</button>
+    </td>`;
+  document.getElementById('fd-dir-list').appendChild(row);
+}
+
+function fdRemoveDirRow(id) {
+  document.getElementById(`dir-row-${id}`)?.remove();
+  fdDirRows = fdDirRows.filter(r => r !== id);
+}
+
+async function fdDirBuscar(id, q) {
+  const ac = document.getElementById(`dir-ac-${id}`);
+  if (!q || q.length < 2) { ac.style.display='none'; return; }
+  const q2 = q.toLowerCase();
+  let matches = allDirecao.filter(d =>
+    (d.fields['Nome']||'').toLowerCase().includes(q2)
+  ).slice(0, 8);
+
+  if (!matches.length) {
+    try {
+      const res = await fetch(`${SB_URL}/rest/v1/direcao?nome=ilike.*${encodeURIComponent(q2)}*&select=airtable_id,nome,nome_estrangeiro,foto&limit=8`, {
+        headers: {'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`}
+      });
+      const rows = await res.json();
+      matches = rows.map(r => sbToAt(r, 'direcao'));
+    } catch(_) {}
+  }
+
+  const tipo = document.getElementById(`dir-tipo-${id}`)?.value || 'Diretor';
+  let html = matches.map(d => `
+    <div class="ac-item" onclick="fdDirSelecionar(${id},'${d.id}','${(d.fields['Nome']||'').replace(/'/g,"\\'")}')">
+      ${d.fields['Foto'] ? `<img src="${d.fields['Foto']}" style="width:28px;height:36px;object-fit:cover;border-radius:4px;flex-shrink:0">` : '<div style="width:28px;height:36px;background:var(--bg3);border-radius:4px;flex-shrink:0"></div>'}
+      <div><div style="font-size:.82rem">${d.fields['Nome']||''}</div><div style="font-size:.7rem;color:var(--text3)">${d.fields['Nome Estrangeiro']||''}</div></div>
+    </div>`).join('');
+  html += `<div class="ac-item" onclick="fdDirNovo(${id},'${q.replace(/'/g,"\\'")}','${tipo}')">
+    <div style="width:28px;height:36px;background:var(--gold-glow);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center">+</div>
+    <div style="font-size:.82rem;color:var(--gold)">Criar "${q}"</div>
+  </div>`;
+  ac.innerHTML = html;
+  ac.style.display = 'block';
+}
+
+function fdDirFechar(id) {
+  const ac = document.getElementById(`dir-ac-${id}`);
+  if (ac) ac.style.display = 'none';
+}
+
+function fdDirSelecionar(id, dirId, nome) {
+  document.getElementById(`dir-nome-${id}`).value = nome;
+  document.getElementById(`dir-row-${id}`).dataset.dirId = dirId;
+  fdDirFechar(id);
+}
+
+function fdDirNovo(rowId, nome, tipo) {
+  fdDirFechar(rowId);
+  _fdDirCallback = (dirId, dirNome) => {
+    document.getElementById(`dir-nome-${rowId}`).value = dirNome;
+    document.getElementById(`dir-row-${rowId}`).dataset.dirId = dirId;
+  };
+  document.getElementById('form-dir-titulo').textContent = tipo === 'Roteirista' ? '✦ Novo Roteirista' : '✦ Novo Diretor';
+  document.getElementById('fdir-nome').value = nome;
+  document.getElementById('fdir-nome-kor').value = '';
+  document.getElementById('fdir-foto').value = '';
+  document.getElementById('fdir-tipo').value = tipo;
+  document.getElementById('form-dir-overlay').classList.add('open');
+}
+
+function closeMiniFormDir() {
+  document.getElementById('form-dir-overlay').classList.remove('open');
+  _fdDirCallback = null;
+}
+
+async function salvarMiniFormDir() {
+  const nome = document.getElementById('fdir-nome').value.trim();
+  if (!nome) { showToast('Nome é obrigatório'); return; }
+  try {
+    const fields = {
+      'Nome': nome,
+      'Nome Estrangeiro': document.getElementById('fdir-nome-kor').value.trim() || undefined,
+      'Foto': document.getElementById('fdir-foto').value.trim() || undefined,
+      'Tipo': document.getElementById('fdir-tipo').value
+    };
+    const record = await createRecord(TABLES.direcao, fields);
+    allDirecao.push(record);
+    if (_fdDirCallback) _fdDirCallback(record.id, nome);
+    closeMiniFormDir();
+    showToast(`✓ ${nome} criado!`);
+  } catch(e) { showToast('Erro: ' + e.message); }
+}
+
+function fdGetDirData() {
+  return fdDirRows.map(id => {
+    const nome = document.getElementById(`dir-nome-${id}`)?.value.trim();
+    const tipo = document.getElementById(`dir-tipo-${id}`)?.value;
+    const dirId = document.getElementById(`dir-row-${id}`)?.dataset.dirId;
+    return nome ? { nome, tipo, dirId } : null;
+  }).filter(Boolean);
 }
 
 async function fdPopularPlataformas(selecionadas=[]) {
@@ -3367,7 +3545,47 @@ function fdGetCastData() {
     .filter(Boolean);
 }
 
-async function fdSalvarElenco(serieId, castData) {
+async function fdSalvarDirecao(serieId, dirData) {
+  try {
+    // Buscar UUID da série
+    const sbRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serieId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const sbSeries = await sbRes.json();
+    const sbSerieId = sbSeries[0]?.id;
+    if(!sbSerieId) return;
+
+    // Apagar direção antiga da série
+    await fetch(`${SB_URL}/rest/v1/serie_direcao?serie_id=eq.${sbSerieId}`,{method:'DELETE',headers:SB_HEADERS});
+
+    // Inserir nova direção
+    for(const dir of dirData){
+      let dirUUID = null;
+
+      if(dir.dirId){
+        // Buscar UUID pelo airtable_id
+        const dRes = await fetch(`${SB_URL}/rest/v1/direcao?airtable_id=eq.${dir.dirId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const dRows = await dRes.json();
+        dirUUID = dRows[0]?.id;
+      }
+
+      if(!dirUUID){
+        // Buscar pelo nome
+        const dRes = await fetch(`${SB_URL}/rest/v1/direcao?nome=eq.${encodeURIComponent(dir.nome)}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const dRows = await dRes.json();
+        if(dRows[0]) dirUUID = dRows[0].id;
+        else {
+          // Criar novo
+          const novoRes = await fetch(`${SB_URL}/rest/v1/direcao`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify({nome:dir.nome,tipo:dir.tipo})});
+          const novo = await novoRes.json();
+          dirUUID = novo[0]?.id;
+        }
+      }
+
+      if(dirUUID){
+        await fetch(`${SB_URL}/rest/v1/serie_direcao`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify({serie_id:sbSerieId,direcao_id:dirUUID,papel:dir.tipo})});
+      }
+    }
+  } catch(e) { console.warn('Erro ao salvar direção:', e); }
+}
   for (const membro of castData) {
     try {
       // Busca se ator já existe pelo nome no Supabase
@@ -3536,6 +3754,7 @@ function openFormDorama(data={}, editId=null){
   document.getElementById('fd-status-msg').textContent = '';
   document.getElementById('fd-prog').style.display = 'none';
   document.getElementById('fd-cast-list').innerHTML = ''; fdCastRows = []; fdCastCounter = 0;
+  document.getElementById('fd-dir-list').innerHTML = ''; fdDirRows = []; fdDirCounter = 0;
 
   // Capa preview
   if(data.capaUrl){
@@ -3565,7 +3784,7 @@ function openFormDorama(data={}, editId=null){
   document.body.style.overflow='hidden';
 }
 
-function openFormDoramaEdit(serie){
+async function openFormDoramaEdit(serie){
   const f = serie.fields;
   openFormDorama({
     nome: f['Nome']||'',
@@ -3586,6 +3805,20 @@ function openFormDoramaEdit(serie){
     'Fantasia':f['Fantasia'],'Química do Casal':f['Química do Casal'],
     'Ação':f['Ação'],'Roteiro':f['Roteiro'],'OST':f['OST']
   }, serie.id);
+
+  // Carregar direção existente
+  try {
+    const sbRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serie.id}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const sbSeries = await sbRes.json();
+    const sbSerieId = sbSeries[0]?.id;
+    if(sbSerieId){
+      const sdRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?serie_id=eq.${sbSerieId}&select=papel,direcao:direcao_id(airtable_id,nome)`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const sdRows = await sdRes.json();
+      sdRows.forEach(row => {
+        fdAddDirRow(row.papel, { nome: row.direcao?.nome||'', dirId: row.direcao?.airtable_id||'' });
+      });
+    }
+  } catch(_) {}
 }
 
 function closeFormDorama(){
@@ -3726,6 +3959,13 @@ async function fdSalvar(){
       fdSalvarElenco(serieId, castData).then(()=>{
         localStorage.removeItem('kdrama_cache');
       });
+    }
+
+    // Salva direção
+    const dirData = fdGetDirData();
+    if(dirData.length){
+      const serieId = fdEditId || record.id;
+      fdSalvarDirecao(serieId, dirData);
     }
 
     showToast(fdEditId?`✓ "${nome}" atualizado!`:`✓ "${nome}" cadastrado!`);
