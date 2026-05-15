@@ -1574,18 +1574,23 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
       <!-- Elenco -->
       <div class="form-sect">
-        <div class="form-sect-title">Elenco</div>
-        <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
-          <thead>
-            <tr style="border-bottom:1px solid var(--border)">
-              <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:4px 6px;text-transform:uppercase;letter-spacing:.06em">Ator/Atriz</th>
-              <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:4px 6px;text-transform:uppercase;letter-spacing:.06em">Personagem</th>
-              <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:4px 6px;text-transform:uppercase;letter-spacing:.06em">Tipo</th>
-              <th style="width:32px"></th>
-            </tr>
-          </thead>
-          <tbody id="fd-cast-list"></tbody>
-        </table>
+        <div class="form-sect-title" style="display:flex;align-items:center;justify-content:space-between">
+          Elenco
+          <span id="fd-cast-loading" style="font-size:.72rem;color:var(--text3);font-weight:400;display:none">Carregando…</span>
+        </div>
+        <div style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
+          <table style="width:100%;border-collapse:collapse">
+            <thead style="position:sticky;top:0;background:var(--bg2);z-index:1">
+              <tr style="border-bottom:1px solid var(--border)">
+                <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:6px 8px;text-transform:uppercase;letter-spacing:.06em">Ator/Atriz</th>
+                <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:6px 8px;text-transform:uppercase;letter-spacing:.06em">Personagem</th>
+                <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:6px 8px;text-transform:uppercase;letter-spacing:.06em">Tipo</th>
+                <th style="width:32px"></th>
+              </tr>
+            </thead>
+            <tbody id="fd-cast-list"></tbody>
+          </table>
+        </div>
         <button class="btn-add-cast" onclick="fdAddCastRow()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
           Adicionar ator
@@ -3482,6 +3487,7 @@ function fdAddCastRow(data={}) {
     </td>
   `;
   row.dataset.atorId = data.atorId || '';
+  row.dataset.elencoId = data.elencoId || '';
   document.getElementById('fd-cast-list').appendChild(row);
 }
 
@@ -3657,8 +3663,9 @@ function fdGetCastData() {
       const personagem = document.getElementById(`cast-personagem-${id}`)?.value.trim();
       const tipo = document.getElementById(`cast-tipo-${id}`)?.value;
       const atorId = document.getElementById(`cast-row-${id}`)?.dataset.atorId || '';
+      const elencoId = document.getElementById(`cast-row-${id}`)?.dataset.elencoId || '';
       if (!nome) return null;
-      return { nome, personagem, tipo, atorId };
+      return { nome, personagem, tipo, atorId, elencoId };
     })
     .filter(Boolean);
 }
@@ -3691,12 +3698,21 @@ async function fdSalvarElenco(serieId, castData) {
       }
 
       if(atorUUID && sbSerieId){
-        await fetch(`${SB_URL}/rest/v1/elenco`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify({
-          serie_id: sbSerieId,
-          ator_id: atorUUID,
-          personagem: membro.personagem || null,
-          tipo: membro.tipo || 'Secundário'
-        })});
+        if(membro.elencoId){
+          // Já existe — só atualiza personagem e tipo
+          await fetch(`${SB_URL}/rest/v1/elenco?id=eq.${membro.elencoId}`,{method:'PATCH',headers:SB_HEADERS,body:JSON.stringify({
+            personagem: membro.personagem || null,
+            tipo: membro.tipo || 'Secundário'
+          })});
+        } else {
+          // Novo membro — cria
+          await fetch(`${SB_URL}/rest/v1/elenco`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify({
+            serie_id: sbSerieId,
+            ator_id: atorUUID,
+            personagem: membro.personagem || null,
+            tipo: membro.tipo || 'Secundário'
+          })});
+        }
       }
     } catch(e) { console.warn('Erro ao salvar elenco:', e); }
   }
@@ -3956,16 +3972,33 @@ async function openFormDoramaEdit(serie){
     'Ação':f['Ação'],'Roteiro':f['Roteiro'],'OST':f['OST']
   }, serie.id);
 
-  // Carregar direção existente
+  // Carregar direção e elenco existentes
   try {
     const sbRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serie.id}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
     const sbSeries = await sbRes.json();
     const sbSerieId = sbSeries[0]?.id;
     if(sbSerieId){
+      // Direção
       const sdRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?serie_id=eq.${sbSerieId}&select=papel,direcao:direcao_id(airtable_id,nome)`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
       const sdRows = await sdRes.json();
       sdRows.forEach(row => {
         fdAddDirRow(row.papel, { nome: row.direcao?.nome||'', dirId: row.direcao?.airtable_id||'' });
+      });
+
+      // Elenco
+      const loadingEl = document.getElementById('fd-cast-loading');
+      if (loadingEl) loadingEl.style.display = '';
+      const ecRes = await fetch(`${SB_URL}/rest/v1/elenco?serie_id=eq.${sbSerieId}&select=id,personagem,tipo,atores:ator_id(airtable_id,nome)&order=tipo.asc`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const ecRows = await ecRes.json();
+      if (loadingEl) loadingEl.style.display = 'none';
+      ecRows.forEach(row => {
+        fdAddCastRow({
+          nome: row.atores?.nome || '',
+          personagem: row.personagem || '',
+          tipo: row.tipo || 'Secundário',
+          atorId: row.atores?.airtable_id || '',
+          elencoId: row.id
+        });
       });
     }
   } catch(_) {}
