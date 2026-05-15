@@ -5588,27 +5588,37 @@ let ostPageIdx = 0;
 
 async function renderOstPage(serieId) {
   ostCurrentSerieId = serieId;
-  // Pegar nome do dorama
   const serie = allSeries.find(s => s.id === serieId);
   const serieNome = serie?.fields['Nome'] || '';
   document.getElementById('ost-page-drama-name').textContent = serieNome;
 
-  // Reset visual
   document.getElementById('ost-page-tracks').innerHTML = `<div style="padding:20px;color:var(--text3);font-size:.85rem">Carregando…</div>`;
   document.getElementById('ost-page-video').innerHTML = `<div class="ost-video-placeholder"><span style="font-size:2rem">🎵</span><span>Selecione uma faixa para ouvir</span></div>`;
 
-  if (!TABLES.ost) { showToast('Tabela OST não configurada'); return; }
-
   try {
-    const allRecs = await fetchTable(TABLES.ost, {
-      fields: ['Nome da Faixa', 'Artista', 'URL do Youtube', 'Ordem', 'Dorama', 'Letra']
-    });
-    const recs = allRecs.filter(r => (r.fields['Dorama'] || []).includes(serieId));
-    if (!recs.length) {
-      document.getElementById('ost-page-tracks').innerHTML = `<div style="padding:20px;color:var(--text3);font-size:.85rem;text-align:center">Nenhuma OST cadastrada ainda</div>`;
-      return;
+    // Buscar UUID da série no Supabase
+    const sbRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serieId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const sbSeries = await sbRes.json();
+    const sbSerieId = sbSeries[0]?.id;
+
+    let ostRecs = [];
+    if(sbSerieId){
+      const ostRes = await fetch(`${SB_URL}/rest/v1/ost?serie_id=eq.${sbSerieId}&select=*&order=ordem.asc.nullslast`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const ostRows = await ostRes.json();
+      ostRecs = ostRows.map(row => ({
+        id: row.airtable_id || row.id,
+        _uuid: row.id,
+        fields: {
+          'Nome da Faixa': row.nome_faixa,
+          'Artista': row.artista,
+          'URL do Youtube': row.youtube_url,
+          'Letra': row.letra,
+          'Ordem': row.ordem
+        }
+      }));
     }
-    ostPagePlaylist = recs.sort((a, b) => (a.fields['Ordem'] || 99) - (b.fields['Ordem'] || 99));
+
+    ostPagePlaylist = ostRecs;
     renderOstTracks();
   } catch(e) {
     document.getElementById('ost-page-tracks').innerHTML = `<div style="padding:20px;color:var(--red);font-size:.85rem">Erro: ${e.message}</div>`;
@@ -5618,19 +5628,107 @@ async function renderOstPage(serieId) {
 function renderOstTracks() {
   const el = document.getElementById('ost-page-tracks');
   if (!el) return;
-  el.innerHTML = ostPagePlaylist.map((r, i) => {
+
+  // Botão adicionar (só em edit mode)
+  const btnAdicionar = editMode ? `
+    <button onclick="ostAbrirFormAdd()" style="width:100%;padding:10px;margin-bottom:8px;background:var(--surface);border:1px dashed var(--gold-dim);border-radius:8px;color:var(--gold);font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+      <span style="font-size:1.1rem">+</span> Adicionar faixa OST
+    </button>` : '';
+
+  if (!ostPagePlaylist.length) {
+    el.innerHTML = btnAdicionar + `<div style="padding:20px;color:var(--text3);font-size:.85rem;text-align:center">Nenhuma OST cadastrada ainda</div>`;
+    return;
+  }
+
+  el.innerHTML = btnAdicionar + ostPagePlaylist.map((r, i) => {
     const f = r.fields;
-    return `<div class="ost-track-item ${i === ostPageIdx ? 'active' : ''}" onclick="ostPageTocar(${i})">
-      <span class="ost-track-num">${i === ostPageIdx ? '♪' : (i + 1)}</span>
-      <div class="ost-track-info">
-        <div class="ost-track-name">${f['Nome da Faixa'] || 'Faixa ' + (i + 1)}</div>
-        <div class="ost-track-artist">${f['Artista'] || ''}</div>
+    const url = f['URL do Youtube'] || '';
+    return `<div class="ost-track-item ${i === ostPageIdx ? 'active' : ''}" style="position:relative">
+      <div onclick="ostPageTocar(${i})" style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;padding:10px 12px">
+        <span class="ost-track-num">${i === ostPageIdx ? '♪' : (i + 1)}</span>
+        <div class="ost-track-info" style="flex:1;min-width:0">
+          <div class="ost-track-name">${f['Nome da Faixa'] || 'Faixa ' + (i + 1)}</div>
+          <div class="ost-track-artist">${f['Artista'] || ''}</div>
+          ${editMode && url ? `<div style="font-size:.65rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;cursor:text" onclick="event.stopPropagation()" title="${url}">${url}</div>` : ''}
+        </div>
       </div>
+      ${editMode ? `<div style="display:flex;gap:4px;padding-right:8px;align-items:center">
+        ${url ? `<button onclick="event.stopPropagation();navigator.clipboard.writeText('${url.replace(/'/g,"\\'")}');showToast('URL copiada!')" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--text3);cursor:pointer;padding:3px 6px;font-size:.65rem" title="Copiar URL">📋</button>` : ''}
+        <button onclick="event.stopPropagation();ostEditarFaixa('${r._uuid||r.id}',${i})" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--text3);cursor:pointer;padding:3px 6px;font-size:.65rem">✏️</button>
+        <button onclick="event.stopPropagation();ostDeletarFaixa('${r._uuid||r.id}',${i})" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--text3);cursor:pointer;padding:3px 6px;font-size:.65rem">✕</button>
+      </div>` : ''}
     </div>`;
   }).join('');
 }
 
-function ostPageTocar(idx) {
+let _ostFormEditId = null;
+
+function ostAbrirFormAdd(editId=null, dados={}) {
+  _ostFormEditId = editId;
+  // Criar modal inline
+  const modal = document.createElement('div');
+  modal.id = 'ost-form-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:500px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="color:var(--gold);font-family:'Playfair Display',serif">${editId ? '✏️ Editar Faixa' : '+ Nova Faixa OST'}</h3>
+        <button onclick="document.getElementById('ost-form-modal').remove()" style="background:none;border:none;color:var(--text3);font-size:1.2rem;cursor:pointer">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div><label class="fl">Nome da Faixa</label><input class="fi" id="ostf-nome" placeholder="My Universe" value="${dados.nome||''}"></div>
+        <div><label class="fl">Artista</label><input class="fi" id="ostf-artista" placeholder="Coldplay x BTS" value="${dados.artista||''}"></div>
+        <div><label class="fl">URL do YouTube</label><input class="fi" id="ostf-url" placeholder="https://youtu.be/..." value="${dados.url||''}"></div>
+        <div><label class="fl">Ordem</label><input class="fi" id="ostf-ordem" type="number" placeholder="1" value="${dados.ordem||''}"></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+        <button onclick="document.getElementById('ost-form-modal').remove()" class="btn-outline" style="padding:8px 20px">Cancelar</button>
+        <button onclick="ostSalvarFaixa()" class="btn-gold" style="padding:8px 20px">💾 Salvar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function ostSalvarFaixa() {
+  const nome = document.getElementById('ostf-nome')?.value.trim();
+  const artista = document.getElementById('ostf-artista')?.value.trim();
+  const url = document.getElementById('ostf-url')?.value.trim();
+  const ordem = document.getElementById('ostf-ordem')?.value;
+  if (!nome) { showToast('Nome é obrigatório'); return; }
+
+  try {
+    // Buscar UUID da série
+    const sbRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${ostCurrentSerieId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const sbSeries = await sbRes.json();
+    const sbSerieId = sbSeries[0]?.id;
+
+    const row = { nome_faixa: nome, artista: artista||null, youtube_url: url||null, ordem: ordem?parseInt(ordem):null, serie_id: sbSerieId||null };
+
+    if(_ostFormEditId){
+      await fetch(`${SB_URL}/rest/v1/ost?id=eq.${_ostFormEditId}`,{method:'PATCH',headers:SB_HEADERS,body:JSON.stringify(row)});
+      showToast('✓ Faixa atualizada!');
+    } else {
+      await fetch(`${SB_URL}/rest/v1/ost`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify(row)});
+      showToast('✓ Faixa adicionada!');
+    }
+    document.getElementById('ost-form-modal')?.remove();
+    renderOstPage(ostCurrentSerieId);
+  } catch(e) { showToast('Erro: '+e.message); }
+}
+
+function ostEditarFaixa(uuid, idx) {
+  const f = ostPagePlaylist[idx]?.fields || {};
+  ostAbrirFormAdd(uuid, { nome: f['Nome da Faixa']||'', artista: f['Artista']||'', url: f['URL do Youtube']||'', ordem: f['Ordem']||'' });
+}
+
+async function ostDeletarFaixa(uuid, idx) {
+  if(!confirm(`Deletar "${ostPagePlaylist[idx]?.fields['Nome da Faixa']||'esta faixa'}"?`)) return;
+  try {
+    await fetch(`${SB_URL}/rest/v1/ost?id=eq.${uuid}`,{method:'DELETE',headers:SB_HEADERS});
+    showToast('✓ Faixa removida');
+    renderOstPage(ostCurrentSerieId);
+  } catch(e) { showToast('Erro: '+e.message); }
+}
   ostPageIdx = idx;
   const f = ostPagePlaylist[idx].fields;
   const url = f['URL do Youtube'] || '';
