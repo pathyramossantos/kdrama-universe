@@ -2940,7 +2940,12 @@ function saveAatorBannerPos(){
   const y=document.getElementById('banner-pos-y')?.value||20;
   const pos=`${x}% ${y}%`;
   localStorage.setItem(`kdrama_atorbannerpos_${currentRecordId}`,pos);
-  const url = localStorage.getItem(`kdrama_atorbannerurl_${currentRecordId}`) || '';
+  // Prioriza URL do Supabase, depois localStorage, depois foto do ator
+  const url = currentAtor?.fields?.['Banner_Url']
+    || localStorage.getItem(`kdrama_atorbannerurl_${currentRecordId}`)
+    || currentAtor?.fields?.['Foto']?.[0]?.url
+    || getPhoto(currentAtor,'Foto')
+    || '';
   bannerSalvarAirtable(currentRecordId, 'ator', { pos, url });
   showToast('Posição salva ✓');
 }
