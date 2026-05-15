@@ -117,21 +117,21 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .badge-exp-perfeito,.badge-exp-excelente,.badge-exp-bom,.badge-exp-aguardando{padding:3px 8px;border-radius:20px;font-size:.67rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
 
 /* EXPERIENCE BORDERS */
-.drama-card[data-exp*="Obra de Arte"]  { border: 2px solid #a78bfa; filter: drop-shadow(0 0 8px #a78bfa60); }
-.drama-card[data-exp*="Perfeito"]      { border: 2px solid #60a5fa; filter: drop-shadow(0 0 8px #60a5fa60); }
-.drama-card[data-exp*="Na Medida"]     { border: 2px solid #34d399; filter: drop-shadow(0 0 8px #34d39960); }
-.drama-card[data-exp*="Valeu a Pena"]  { border: 2px solid #fbbf24; filter: drop-shadow(0 0 8px #fbbf2460); }
-.drama-card[data-exp*="Faltou Algo"]   { border: 2px solid #f97316; filter: drop-shadow(0 0 8px #f9731660); }
-.drama-card[data-exp*="Não Recomendo"] { border: 2px solid #f87171; filter: drop-shadow(0 0 8px #f8717160); }
-.drama-card[data-exp*="Aguardando"]    { border: 2px solid #f472b6; filter: drop-shadow(0 0 8px #f472b660); }
+.drama-card[data-genre*="Romance"]             { border: 2px solid #f472b6; filter: drop-shadow(0 0 8px #f472b660); }
+.drama-card[data-genre*="Comédia"]             { border: 2px solid #fbbf24; filter: drop-shadow(0 0 8px #fbbf2460); }
+.drama-card[data-genre*="Drama"]               { border: 2px solid #60a5fa; filter: drop-shadow(0 0 8px #60a5fa60); }
+.drama-card[data-genre*="Fantasia"]            { border: 2px solid #34d399; filter: drop-shadow(0 0 8px #34d39960); }
+.drama-card[data-genre*="Ação"]                { border: 2px solid #a78bfa; filter: drop-shadow(0 0 8px #a78bfa60); }
+.drama-card[data-genre*="Suspense"]            { border: 2px solid #94a3b8; filter: drop-shadow(0 0 8px #94a3b860); }
+.drama-card[data-genre*="Mistério"]            { border: 2px solid #f97316; filter: drop-shadow(0 0 8px #f9731660); }
 
-.drama-card[data-exp*="Obra de Arte"]:hover  { filter: drop-shadow(0 0 14px #a78bfa80); }
-.drama-card[data-exp*="Perfeito"]:hover      { filter: drop-shadow(0 0 14px #60a5fa80); }
-.drama-card[data-exp*="Na Medida"]:hover     { filter: drop-shadow(0 0 14px #34d39980); }
-.drama-card[data-exp*="Valeu a Pena"]:hover  { filter: drop-shadow(0 0 14px #fbbf2480); }
-.drama-card[data-exp*="Aguardando"]:hover    { filter: drop-shadow(0 0 14px #f472b680); }
-.drama-card[data-exp*="Faltou Algo"]:hover   { filter: drop-shadow(0 0 14px #f9731680); }
-.drama-card[data-exp*="Não Recomendo"]:hover { filter: drop-shadow(0 0 14px #f8717180); }
+.drama-card[data-genre*="Romance"]:hover   { filter: drop-shadow(0 0 14px #f472b680); }
+.drama-card[data-genre*="Comédia"]:hover   { filter: drop-shadow(0 0 14px #fbbf2480); }
+.drama-card[data-genre*="Drama"]:hover     { filter: drop-shadow(0 0 14px #60a5fa80); }
+.drama-card[data-genre*="Fantasia"]:hover  { filter: drop-shadow(0 0 14px #34d39980); }
+.drama-card[data-genre*="Ação"]:hover      { filter: drop-shadow(0 0 14px #a78bfa80); }
+.drama-card[data-genre*="Suspense"]:hover  { filter: drop-shadow(0 0 14px #94a3b880); }
+.drama-card[data-genre*="Mistério"]:hover  { filter: drop-shadow(0 0 14px #f9731680); }
 
 /* EXPERIENCE GROUP TITLE */
 .exp-group-title {
@@ -2263,8 +2263,8 @@ function platformLogosHTML(platIds){
 function cardHTML(s,i){
   const f=s.fields;
   const photo=getPhoto(s);
-  const expVal=f['Experiência']||'';
-  return`<div class="drama-card" data-exp="${expVal}" onclick="navigate('dorama','${s.id}')" oncontextmenu="cardContextMenu(event,'dorama','${s.id}')" style="animation-delay:${i*0.04}s">
+  const primeiroGenero = Array.isArray(f['Gêneros']) ? (f['Gêneros'][0]||'') : (f['Gêneros']||'').split(',')[0].trim();
+  return`<div class="drama-card" data-genre="${primeiroGenero}" onclick="navigate('dorama','${s.id}')" oncontextmenu="cardContextMenu(event,'dorama','${s.id}')" style="animation-delay:${i*0.04}s">
     ${photo?`<img class="card-poster" src="${photo}" alt="${f['Nome']||''}" loading="lazy">`:`<div class="card-poster-placeholder"><span class="kr">드라마</span></div>`}
     <div class="card-overlay"><p class="card-synopsis">${f['Sinopse']||''}</p></div>
     <div class="card-info">
