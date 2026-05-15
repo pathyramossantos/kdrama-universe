@@ -2217,7 +2217,8 @@ async function renderDorama(id){
     }
     const resenhaPost = allPosts.find(p =>
       p.fields['Tipo'] === 'Resenha' &&
-      (p.fields['Dorama'] || '').toLowerCase() === nomeDorama.toLowerCase()
+      const doramaVal = Array.isArray(p.fields['Dorama']) ? (p.fields['Dorama'][0]||'') : (p.fields['Dorama']||'');
+      (doramaVal).toLowerCase() === nomeDorama.toLowerCase()
     )?.id || null;
 
     const ratingFields=['Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro'];
@@ -2891,30 +2892,31 @@ async function renderAtor(id){
     // Busca filmografia via tabela Elenco
     const elencoIds = f['Elenco'] || [];
     let filmografia = [];
-    if(elencoIds.length){
-      let elencoRecs = allElenco.length
-        ? allElenco.filter(e => elencoIds.includes(e.id))
-        : await fetchTable(TABLES.elenco, {formula:`OR(${elencoIds.map(i=>`RECORD_ID()='${i}'`).join(',')})`});
-      filmografia = await Promise.all(elencoRecs.map(async e=>{
-        const ef = e.fields;
-        const serieIds = ef['Séries'] || [];
-        let serie = serieIds.length ? allSeries.find(s=>s.id===serieIds[0]) : null;
-        if(!serie && serieIds.length){
-          try{
-            const recs = await fetchTable(TABLES.series, {formula:`RECORD_ID()='${serieIds[0]}'`});
-            serie = recs[0] || null;
-          }catch(_){}
-        }
-        return{
-          serieId: serieIds[0]||null,
+    // No Supabase, buscar elenco direto pelo ator_id
+    let elencoRecs = [];
+    if(ator.id){
+      try{
+        const res = await fetch(`${SB_URL}/rest/v1/elenco?select=*,series:serie_id(airtable_id,nome,capa,ano_lancamento)&ator_id=eq.${
+          // Buscar UUID do ator pelo airtable_id
+          (await fetch(`${SB_URL}/rest/v1/atores?airtable_id=eq.${ator.id}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}).then(r=>r.json()))[0]?.id || ator.id
+        }`, {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const rows = await res.json();
+        elencoRecs = rows.map(row => {
+          row.serie_airtable_id = row.series?.airtable_id;
+          return sbToAt(row, 'elenco');
+        });
+        // Adicionar info da série direto
+        filmografia = rows.map(row => ({
+          serieId: row.series?.airtable_id || null,
+          serieName: row.series?.nome || '—',
+          serieAno: row.series?.ano_lancamento || '',
+          seriePoster: row.series?.capa || null,
+          personagem: row.personagem || '',
+          tipo: row.tipo || ''
+        }));
+      }catch(_){}
+    }
           serieName: serie?(serie.fields['Nome']||'—'):'—',
-          serieAno: serie?(serie.fields['Ano Lançamento']||''):'',
-          seriePoster: serie?getPhoto(serie):null,
-          personagem: ef['Personagem']||'',
-          tipo: ef['Tipo']||'',
-          obs: ef['Observações']||''
-        };
-      }));
       filmografia.sort((a,b)=>(b.serieAno||0)-(a.serieAno||0));
     }
 
@@ -4133,7 +4135,7 @@ async function renderPost(id) {
     const tipo = f['Tipo'] || 'Post';
     const date = f['Data'] ? new Date(f['Data']).toLocaleDateString('pt-BR', {day:'numeric',month:'long',year:'numeric'}) : '';
     const capaUrl = Array.isArray(f['Capa']) ? f['Capa'][0]?.url : f['Capa'];
-    const tags = (f['Tags'] || '').split(/[,;]/).map(t => t.trim()).filter(Boolean);
+    const tags = Array.isArray(f['Tags']) ? f['Tags'] : (f['Tags'] || '').split(/[,;]/).map(t => t.trim()).filter(Boolean);
     content.innerHTML = `
       <span class="post-type-badge blog-type-badge blog-type-${tipo === 'Resenha' ? 'resenha' : 'post'}">${tipo}</span>
       ${f['Kicker'] ? `<div class="post-kicker">${f['Kicker']}</div>` : ''}
