@@ -3549,7 +3549,8 @@ function fdAddCastRow(data={}) {
   `;
   row.dataset.atorId = data.atorId || '';
   row.dataset.elencoId = data.elencoId || '';
-  document.getElementById('fd-cast-list').appendChild(row);
+  const castList = document.getElementById('fd-cast-list');
+  castList.insertBefore(row, castList.firstChild);
   atualizarContadorElenco();
 }
 
