@@ -4046,7 +4046,7 @@ async function fdSalvar(){
 
     showToast(fdEditId?`✓ "${nome}" atualizado!`:`✓ "${nome}" cadastrado!`);
     closeFormDorama();
-    if(fdEditId){ renderDorama(fdEditId); } else { renderHome(); }
+    setTimeout(() => { location.reload(); }, 1000);
 
   }catch(e){
     status.textContent='❌ Erro: '+e.message;
@@ -4460,7 +4460,7 @@ async function faSalvar(){
 
     showToast(faEditId?`✓ "${nome}" atualizado!`:`✓ "${nome}" cadastrado!`);
     closeFormAtor();
-    if(document.getElementById('page-atores').classList.contains('active')) filterAtores();
+    setTimeout(() => { location.reload(); }, 1000);
 
   }catch(e){
     status.textContent='❌ Erro: '+e.message;
