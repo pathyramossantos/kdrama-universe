@@ -5819,7 +5819,7 @@ function renderAniversarios() {
   section.style.display = 'block';
   list.innerHTML = aniversariantes.map(a => {
     const f = a.fields;
-    const foto = f['Foto']?.[0]?.url || '';
+    const foto = getPhoto(a, 'Foto') || '';
     const nome = f['Nome'] || '';
     const nasc = f['Data de Nascimento'] || '';
     const idade = nasc ? (hoje.getFullYear() - parseInt(nasc.split('-')[0])) + ' anos' : '';
