@@ -1991,11 +1991,16 @@ function clearCache(){
 // ── HELPERS ───────────────────────────────────────────────
 function getPhoto(rec,field='Capa'){
   const a=rec.fields[field];
-  return(a&&a.length)?a[0].url:null;
+  if(!a) return null;
+  if(typeof a==='string') return a||null;
+  if(Array.isArray(a)) return a[0]?.url||a[0]||null;
+  return null;
 }
 function getAllPhotos(rec,field='Galeria'){
   const a=rec.fields[field];
-  return(a&&a.length)?a.map(x=>x.url):[];
+  if(!a||!a.length) return [];
+  if(typeof a[0]==='string') return a;
+  return a.map(x=>x.url||x).filter(Boolean);
 }
 function starsHTML(nota,max=10,count=5){
   const r=nota?(nota/max)*count:0;
