@@ -1175,9 +1175,19 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     </div>
     <div class="blog-layout">
       <div>
-        <div class="blog-search-wrap">
-          <span class="blog-search-icon">🔍</span>
-          <input class="blog-search-input" id="blog-search" placeholder="Buscar posts…" oninput="filtrarBlogPorBusca(this.value)">
+        <div style="display:flex;gap:10px;margin-bottom:20px;align-items:center">
+          <div class="blog-search-wrap" style="flex:1;margin-bottom:0">
+            <span class="blog-search-icon">🔍</span>
+            <input class="blog-search-input" id="blog-search" placeholder="Buscar posts…" oninput="filtrarBlogPorBusca(this.value)">
+          </div>
+          <select id="blog-order" class="fs" style="font-size:.78rem;padding:10px 12px;border-radius:10px;min-width:160px;flex-shrink:0" onchange="filterBlog()">
+            <option value="data_desc">Mais recente</option>
+            <option value="data_asc">Mais antigo</option>
+            <option value="titulo_asc">A → Z</option>
+            <option value="titulo_desc">Z → A</option>
+            <option value="nota_desc">Maior nota</option>
+            <option value="nota_asc">Menor nota</option>
+          </select>
         </div>
         <div id="blog-list"></div>
       </div>
@@ -5732,6 +5742,19 @@ function filterBlog() {
       return titulo.includes(blogSearchQuery) || tags.includes(blogSearchQuery) || conteudo.includes(blogSearchQuery);
     });
   }
+  // Ordenação
+  const ordem = document.getElementById('blog-order')?.value || 'data_desc';
+  filtered.sort((a, b) => {
+    const parseData = d => d ? new Date(d).getTime() : 0;
+    if (ordem === 'data_desc') return parseData(b.fields['Data']) - parseData(a.fields['Data']);
+    if (ordem === 'data_asc')  return parseData(a.fields['Data']) - parseData(b.fields['Data']);
+    if (ordem === 'titulo_asc')  return (a.fields['Título']||'').localeCompare(b.fields['Título']||'', 'pt-BR', {sensitivity:'base'});
+    if (ordem === 'titulo_desc') return (b.fields['Título']||'').localeCompare(a.fields['Título']||'', 'pt-BR', {sensitivity:'base'});
+    if (ordem === 'nota_desc') return (parseFloat(b.fields['Nota'])||0) - (parseFloat(a.fields['Nota'])||0);
+    if (ordem === 'nota_asc')  return (parseFloat(a.fields['Nota'])||0) - (parseFloat(b.fields['Nota'])||0);
+    return 0;
+  });
+
   if (!filtered.length) {
     list.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Nenhum post encontrado.</p></div>`;
     renderBlogSidebar();
