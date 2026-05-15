@@ -1850,9 +1850,16 @@ function sbToAt(row, tabela) {
   const createdTime = row.created_at;
   let fields = {};
   if (tabela === 'series') {
+    const _parseCapa = v => {
+      if (!v) return null;
+      if (typeof v === 'string' && v.trim().startsWith('[')) {
+        try { const arr = JSON.parse(v); return arr[0]?.url || arr[0] || v; } catch(_) {}
+      }
+      return v;
+    };
     fields = {
       'Nome': row.nome, 'Título Original': row.titulo_original,
-      'Capa': row.capa, 'Sinopse': row.sinopse,
+      'Capa': _parseCapa(row.capa), 'Sinopse': row.sinopse,
       'Ano Lançamento': row.ano_lancamento, 'Episódios': row.episodios,
       'País': row.pais, 'Status': row.status, 'Nota': row.nota,
       'Avaliação': row.avaliacao, 'Experiência': row.experiencia,
@@ -2057,7 +2064,7 @@ async function bannerSalvarAirtable(id, tipo, { pos, url }) {
 }
 
 const CACHE_TTL = 48 * 60 * 60 * 1000; // 48 horas
-const CACHE_VERSION = 'v9'; // Supabase
+const CACHE_VERSION = 'v10'; // Supabase
 
 async function loadAllData(){
   // Tenta carregar do cache primeiro
