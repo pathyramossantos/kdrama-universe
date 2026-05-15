@@ -1588,23 +1588,13 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           Elenco
           <span id="fd-cast-loading" style="font-size:.72rem;color:var(--text3);font-weight:400;display:none">Carregando…</span>
         </div>
-        <div style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
-          <table style="width:100%;border-collapse:collapse">
-            <thead style="position:sticky;top:0;background:var(--bg2);z-index:1">
-              <tr style="border-bottom:1px solid var(--border)">
-                <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:6px 8px;text-transform:uppercase;letter-spacing:.06em">Ator/Atriz</th>
-                <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:6px 8px;text-transform:uppercase;letter-spacing:.06em">Personagem</th>
-                <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:6px 8px;text-transform:uppercase;letter-spacing:.06em">Tipo</th>
-                <th style="width:32px"></th>
-              </tr>
-            </thead>
-            <tbody id="fd-cast-list"></tbody>
-          </table>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
+          <span id="fd-cast-count" style="font-size:.85rem;color:var(--text2)">Nenhum ator adicionado</span>
+          <button class="btn-add-cast" style="margin-top:0;margin-left:auto" onclick="openModalElenco()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Gerenciar Elenco
+          </button>
         </div>
-        <button class="btn-add-cast" onclick="fdAddCastRow()">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          Adicionar ator
-        </button>
       </div>
 
       <!-- Direção -->
@@ -1777,6 +1767,43 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       </div>
       <button class="btn-outline" onclick="closeFormAtor()">Cancelar</button>
       <button class="btn-gold" onclick="faSalvar()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL ELENCO -->
+<div class="form-overlay" id="modal-elenco-overlay" style="z-index:600">
+  <div class="form-panel" style="max-width:720px;height:90vh;display:flex;flex-direction:column">
+    <div class="form-head">
+      <h2>🎭 Elenco</h2>
+      <button class="form-x" onclick="closeModalElenco()">✕</button>
+    </div>
+    <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center">
+      <button class="btn-add-cast" style="margin-top:0" onclick="fdAddCastRow()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Adicionar ator
+      </button>
+      <span style="font-size:.78rem;color:var(--text3);margin-left:auto" id="modal-cast-count"></span>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:0 8px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead style="position:sticky;top:0;background:var(--bg2);z-index:2">
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:10px 8px;text-transform:uppercase;letter-spacing:.06em">Ator/Atriz</th>
+            <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:10px 8px;text-transform:uppercase;letter-spacing:.06em">Personagem</th>
+            <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:10px 8px;text-transform:uppercase;letter-spacing:.06em">Tipo</th>
+            <th style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="fd-cast-list"></tbody>
+      </table>
+      <div id="fd-cast-empty" style="display:none;text-align:center;padding:40px;color:var(--text3);font-size:.85rem">
+        Nenhum ator adicionado ainda.<br>Clique em "+ Adicionar ator" para começar.
+      </div>
+    </div>
+    <div class="form-foot">
+      <button class="btn-outline" onclick="closeModalElenco()">Fechar</button>
     </div>
   </div>
 </div>
@@ -3466,6 +3493,30 @@ function acFechar(id) {
 let fdCastRows = [];
 let fdCastCounter = 0;
 
+function openModalElenco() {
+  document.getElementById('modal-elenco-overlay').classList.add('open');
+  atualizarContadorElenco();
+}
+
+function closeModalElenco() {
+  document.getElementById('modal-elenco-overlay').classList.remove('open');
+  atualizarContadorElenco();
+}
+
+function atualizarContadorElenco() {
+  const total = fdCastRows.filter(id => {
+    const nome = document.getElementById(`cast-nome-${id}`)?.value.trim();
+    return !!nome;
+  }).length;
+  const resumo = total === 0 ? 'Nenhum ator adicionado' : `${total} ator${total > 1 ? 'es' : ''} no elenco`;
+  const countEl = document.getElementById('fd-cast-count');
+  if (countEl) countEl.textContent = resumo;
+  const modalCount = document.getElementById('modal-cast-count');
+  if (modalCount) modalCount.textContent = total > 0 ? `${total} ator${total > 1 ? 'es' : ''}` : '';
+  const emptyEl = document.getElementById('fd-cast-empty');
+  if (emptyEl) emptyEl.style.display = total === 0 ? '' : 'none';
+}
+
 function fdAddCastRow(data={}) {
   const id = ++fdCastCounter;
   fdCastRows.push(id);
@@ -3499,6 +3550,13 @@ function fdAddCastRow(data={}) {
   row.dataset.atorId = data.atorId || '';
   row.dataset.elencoId = data.elencoId || '';
   document.getElementById('fd-cast-list').appendChild(row);
+  atualizarContadorElenco();
+}
+
+function fdRemoveCastRow(id) {
+  document.getElementById(`cast-row-${id}`)?.remove();
+  fdCastRows = fdCastRows.filter(r => r !== id);
+  atualizarContadorElenco();
 }
 
 // ── DIREÇÃO NO FORMULÁRIO DE DORAMA ──────────────────────
@@ -3930,7 +3988,7 @@ function openFormDorama(data={}, editId=null){
   document.getElementById('fd-galeria-preview').innerHTML = '';
   document.getElementById('fd-status-msg').textContent = '';
   document.getElementById('fd-prog').style.display = 'none';
-  document.getElementById('fd-cast-list').innerHTML = ''; fdCastRows = []; fdCastCounter = 0;
+  document.getElementById('fd-cast-list').innerHTML = ''; fdCastRows = []; fdCastCounter = 0; atualizarContadorElenco();
   document.getElementById('fd-dir-list').innerHTML = ''; fdDirRows = []; fdDirCounter = 0;
 
   // Capa preview
@@ -4695,6 +4753,7 @@ function mdlImportCast() {
   document.getElementById('fd-cast-list').innerHTML = '';
   fdCastRows = [];
   fdCastCounter = 0;
+  atualizarContadorElenco();
 
   // Adicionar cada membro
   mdlCastData.forEach(m => {
