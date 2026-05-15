@@ -5431,7 +5431,7 @@ function filterDirecao(q) {
   if (q !== undefined) dirSearchQuery = q.toLowerCase();
   const grid = document.getElementById('direcao-grid');
   if (!grid) return;
-  let filtered = [...allDirecao].sort((a, b) => (a.fields['Nome'] || '').localeCompare(b.fields['Nome'] || '', 'pt-BR'));
+  let filtered = [...allDirecao];
   if (dirTipoFilter) filtered = filtered.filter(d => (d.fields['Tipo'] || '') === dirTipoFilter);
   if (dirSearchQuery) filtered = filtered.filter(d => (d.fields['Nome'] || '').toLowerCase().includes(dirSearchQuery));
   if (!filtered.length) {
@@ -5463,7 +5463,7 @@ async function renderDiretor(id) {
   detail.innerHTML = '<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>';
 
   let dir = allDirecao.find(d => d.id === id);
-  if (!dir) {
+  if (!dir || !dir.fields) {
     try {
       const recs = await fetchTable(TABLES.direcao, {
         fields: ['Nome', 'Nome Estrangeiro', 'Foto', 'Tipo']
@@ -5472,7 +5472,7 @@ async function renderDiretor(id) {
       dir = recs.find(d => d.id === id);
     } catch(e) { detail.innerHTML = `<p>Erro: ${e.message}</p>`; return; }
   }
-  if (!dir) { detail.innerHTML = '<p>Não encontrado</p>'; return; }
+  if (!dir || !dir.fields) { detail.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Não encontrado.</p></div>'; return; }
   const f = dir.fields;
   const foto = Array.isArray(f['Foto']) ? f['Foto'][0]?.url : f['Foto'];
   const tipo = f['Tipo'] || '';
