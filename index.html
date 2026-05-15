@@ -1859,9 +1859,17 @@ function sbToAt(row, tabela) {
       'Diretores': row.diretores_ids || [], 'Roteiristas': row.roteiristas_ids || []
     };
   } else if (tabela === 'atores') {
+    // foto pode chegar como string JSON do Airtable (ex: '[{"url":"..."}]') ou URL direta
+    const _parseFoto = v => {
+      if (!v) return null;
+      if (typeof v === 'string' && v.trim().startsWith('[')) {
+        try { const arr = JSON.parse(v); return arr[0]?.url || arr[0] || v; } catch(_) {}
+      }
+      return v;
+    };
     fields = {
       'Nome': row.nome, 'Nome Estrangeiro': row.nome_estrangeiro,
-      'Foto': row.foto, 'Data de Nascimento': row.data_nascimento,
+      'Foto': _parseFoto(row.foto), 'Data de Nascimento': row.data_nascimento,
       'Biografia': row.biografia, 'Instagram': row.instagram,
       'Site': row.site, 'Url Hancinema': row.url_hancinema,
       'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url,
@@ -1876,9 +1884,16 @@ function sbToAt(row, tabela) {
   } else if (tabela === 'plataformas') {
     fields = { 'Nome': row.nome, 'Logo': row.logo };
   } else if (tabela === 'direcao') {
+    const _parseFotoDir = v => {
+      if (!v) return null;
+      if (typeof v === 'string' && v.trim().startsWith('[')) {
+        try { const arr = JSON.parse(v); return arr[0]?.url || arr[0] || v; } catch(_) {}
+      }
+      return v;
+    };
     fields = {
       'Nome': row.nome, 'Nome Estrangeiro': row.nome_estrangeiro,
-      'Foto': row.foto, 'Tipo': row.tipo,
+      'Foto': _parseFotoDir(row.foto), 'Tipo': row.tipo,
       'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url
     };
   } else if (tabela === 'blog') {
