@@ -3517,6 +3517,22 @@ function atualizarContadorElenco() {
   if (emptyEl) emptyEl.style.display = total === 0 ? '' : 'none';
 }
 
+function reordenarCastList() {
+  const tbody = document.getElementById('fd-cast-list');
+  if (!tbody) return;
+  const ordemTipo = t => t === 'Principal' ? 0 : t === 'Secundário' ? 1 : 2;
+  const rows = [...tbody.querySelectorAll('tr')];
+  rows.sort((a, b) => {
+    const tipoA = ordemTipo(a.querySelector('select')?.value || '');
+    const tipoB = ordemTipo(b.querySelector('select')?.value || '');
+    if (tipoA !== tipoB) return tipoA - tipoB;
+    const nomeA = (a.querySelector('input')?.value || '').toLowerCase();
+    const nomeB = (b.querySelector('input')?.value || '').toLowerCase();
+    return nomeA.localeCompare(nomeB, 'pt-BR', {sensitivity: 'base'});
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
 function fdAddCastRow(data={}) {
   const id = ++fdCastCounter;
   fdCastRows.push(id);
@@ -3537,7 +3553,7 @@ function fdAddCastRow(data={}) {
       <input class="fi" id="cast-personagem-${id}" placeholder="Nome do personagem" value="${data.personagem||''}" style="font-size:.82rem;padding:6px 10px">
     </td>
     <td style="padding:4px 6px">
-      <select id="cast-tipo-${id}" class="fs" style="font-size:.82rem;padding:6px 10px">
+      <select id="cast-tipo-${id}" class="fs" style="font-size:.82rem;padding:6px 10px" onchange="reordenarCastList()">
         <option value="Principal"${data.tipo==='Principal'?' selected':''}>Principal</option>
         <option value="Secundário"${(data.tipo||'Secundário')==='Secundário'?' selected':''}>Secundário</option>
         <option value="Participação especial"${data.tipo==='Participação especial'?' selected':''}>Part. especial</option>
@@ -4070,6 +4086,7 @@ async function openFormDoramaEdit(serie){
           elencoId: row.id
         });
       });
+      reordenarCastList();
     }
   } catch(_) {}
 }
