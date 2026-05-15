@@ -482,7 +482,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .fs{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a09880' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;background-color:var(--bg);cursor:pointer}
 
 /* Image upload */
-.img-zone{border:2px dashed var(--border);border-radius:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:80px}.img-zone.drag-over{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,var(--bg));transform:scale(1.02)}
+.img-zone{border:2px dashed var(--border);border-radius:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:80px}
 .img-zone:hover,.img-zone.drag{border-color:var(--gold-dim);background:var(--gold-glow)}
 .img-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .img-zone-icon{font-size:1.6rem;color:var(--text3);pointer-events:none}
@@ -982,6 +982,19 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     <div class="home-updates-section">
       <div class="home-updates-inner">
 
+        <!-- Notícias -->
+        <div class="home-carousel-block">
+          <div class="home-section-header">
+            <div class="home-section-title">Notícias</div>
+            <button class="carousel-nav-btn" onclick="navigate('blog')">Ver tudo ↗</button>
+          </div>
+          <div class="home-carousel-wrap">
+            <button class="carousel-arrow carousel-arrow-left" onclick="carouselScroll('carousel-noticias',-1)">‹</button>
+            <div class="home-carousel" id="carousel-noticias"></div>
+            <button class="carousel-arrow carousel-arrow-right" onclick="carouselScroll('carousel-noticias',1)">›</button>
+          </div>
+        </div>
+
         <!-- Resenhas -->
         <div class="home-carousel-block">
           <div class="home-section-header">
@@ -1018,19 +1031,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             <button class="carousel-arrow carousel-arrow-left" onclick="carouselScroll('carousel-atores',-1)">‹</button>
             <div class="home-carousel" id="carousel-atores"></div>
             <button class="carousel-arrow carousel-arrow-right" onclick="carouselScroll('carousel-atores',1)">›</button>
-          </div>
-        </div>
-
-        <!-- Notícias -->
-        <div class="home-carousel-block">
-          <div class="home-section-header">
-            <div class="home-section-title">Notícias</div>
-            <button class="carousel-nav-btn" onclick="navigate('blog')">Ver tudo ↗</button>
-          </div>
-          <div class="home-carousel-wrap">
-            <button class="carousel-arrow carousel-arrow-left" onclick="carouselScroll('carousel-noticias',-1)">‹</button>
-            <div class="home-carousel" id="carousel-noticias"></div>
-            <button class="carousel-arrow carousel-arrow-right" onclick="carouselScroll('carousel-noticias',1)">›</button>
           </div>
         </div>
 
@@ -1447,70 +1447,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       </div>
 
 
-      <!-- Avaliação e Experiência -->
-      <div class="form-sect">
-        <div class="form-sect-title">Avaliação Pessoal</div>
-        <div class="form-row cols-2" style="margin:0">
-          <div class="fg"><label class="fl">Avaliação</label><input class="fi" id="fd-aval" placeholder="Ex: Excelente, Bom, Ruim"></div>
-          <div class="fg"><label class="fl">Experiência</label><select class="fs" id="fd-exp"><option value="">—</option><option>Obra de Arte</option><option>Perfeito</option><option>Na Medida</option><option>Valeu a Pena</option><option>Faltou Algo</option><option>Não Recomendo</option><option>Aguardando</option></select></div>
-        </div>
-      </div>
-
-      <!-- Ratings com Estrelas -->
-      <div class="form-sect">
-        <div class="form-sect-title">Avaliações por Categoria</div>
-        <div id="fd-ratings" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px">
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Romance</label>
-            <div class="stars" data-field="Romance" onclick="fdSetRating('Romance',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Comédia</label>
-            <div class="stars" data-field="Comédia" onclick="fdSetRating('Comédia',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Drama</label>
-            <div class="stars" data-field="Drama" onclick="fdSetRating('Drama',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Fantasia</label>
-            <div class="stars" data-field="Fantasia" onclick="fdSetRating('Fantasia',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Química do Casal</label>
-            <div class="stars" data-field="Química do Casal" onclick="fdSetRating('Química do Casal',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Ação</label>
-            <div class="stars" data-field="Ação" onclick="fdSetRating('Ação',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Roteiro</label>
-            <div class="stars" data-field="Roteiro" onclick="fdSetRating('Roteiro',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">OST</label>
-            <div class="stars" data-field="OST" onclick="fdSetRating('OST',event.target.dataset.val)">
-              <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Sinopse -->
       <div class="form-sect">
         <div class="form-sect-title">Sinopse</div>
@@ -1643,7 +1579,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             <div class="img-zone-icon" id="fdir-foto-icon">🎬</div>
             <div class="img-zone-txt" id="fdir-foto-txt">Clique ou arraste</div>
             <img id="fdir-foto-img" class="img-zone-preview" style="display:none">
-            <button class="img-zone-del" id="fdir-foto-del" style="display:none" onclick="fdirRemoveFoto(event)">✕</button>
+            <button class="img-zone-del" id="fdir-foto-del" style="display:none" onclick="fdirClearFoto(event)">✕</button>
           </div>
           <input class="fi" id="fdir-foto-url" placeholder="ou cole URL…" style="margin-top:6px;font-size:.78rem" oninput="fdirPreviewFotoUrl(this.value)">
         </div>
@@ -1685,7 +1621,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
               <img id="fa-foto-img" class="img-zone-preview" style="display:none">
               <button class="img-zone-del" id="fa-foto-del" style="display:none" onclick="faRemoveFoto(event)">✕</button>
             </div>
-            <input class="fi" id="fa-foto-url" type="hidden">
+            <input class="fi" id="fa-foto-url" placeholder="ou cole URL…" style="margin-top:6px;font-size:.78rem" oninput="faPreviewFotoUrl(this.value)">
           </div>
           <div style="display:flex;flex-direction:column;gap:12px">
             <div class="fg">
@@ -1740,7 +1676,11 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <div class="form-sect">
         <div class="form-sect-title">Preview do Banner</div>
         <div class="fg">
-          <input type="hidden" id="fa-banner-url-preview">
+          <label class="fl" style="margin-bottom:6px">URL da imagem do banner</label>
+          <div style="display:flex;gap:8px">
+            <input class="fi" id="fa-banner-url-preview" placeholder="Cole URL para preview…" style="flex:1" oninput="faPreviewBanner(this.value)">
+            <button class="btn-ai" onclick="faUsarFotoComoBanner()">Usar foto</button>
+          </div>
           <div id="fa-banner-preview-wrap" style="display:none;margin-top:10px;border-radius:10px;overflow:hidden;position:relative;height:180px">
             <img id="fa-banner-preview-img" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%">
             <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 60%)"></div>
@@ -1910,16 +1850,9 @@ function sbToAt(row, tabela) {
   const createdTime = row.created_at;
   let fields = {};
   if (tabela === 'series') {
-    const _parseCapa = v => {
-      if (!v) return null;
-      if (typeof v === 'string' && v.trim().startsWith('[')) {
-        try { const arr = JSON.parse(v); return arr[0]?.url || arr[0] || v; } catch(_) {}
-      }
-      return v;
-    };
     fields = {
       'Nome': row.nome, 'Título Original': row.titulo_original,
-      'Capa': _parseCapa(row.capa), 'Sinopse': row.sinopse,
+      'Capa': row.capa, 'Sinopse': row.sinopse,
       'Ano Lançamento': row.ano_lancamento, 'Episódios': row.episodios,
       'País': row.pais, 'Status': row.status, 'Nota': row.nota,
       'Avaliação': row.avaliacao, 'Experiência': row.experiencia,
@@ -1933,17 +1866,9 @@ function sbToAt(row, tabela) {
       'Diretores': row.diretores_ids || [], 'Roteiristas': row.roteiristas_ids || []
     };
   } else if (tabela === 'atores') {
-    // foto pode chegar como string JSON do Airtable (ex: '[{"url":"..."}]') ou URL direta
-    const _parseFoto = v => {
-      if (!v) return null;
-      if (typeof v === 'string' && v.trim().startsWith('[')) {
-        try { const arr = JSON.parse(v); return arr[0]?.url || arr[0] || v; } catch(_) {}
-      }
-      return v;
-    };
     fields = {
       'Nome': row.nome, 'Nome Estrangeiro': row.nome_estrangeiro,
-      'Foto': _parseFoto(row.foto), 'Data de Nascimento': row.data_nascimento,
+      'Foto': row.foto, 'Data de Nascimento': row.data_nascimento,
       'Biografia': row.biografia, 'Instagram': row.instagram,
       'Site': row.site, 'Url Hancinema': row.url_hancinema,
       'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url,
@@ -1958,16 +1883,9 @@ function sbToAt(row, tabela) {
   } else if (tabela === 'plataformas') {
     fields = { 'Nome': row.nome, 'Logo': row.logo };
   } else if (tabela === 'direcao') {
-    const _parseFotoDir = v => {
-      if (!v) return null;
-      if (typeof v === 'string' && v.trim().startsWith('[')) {
-        try { const arr = JSON.parse(v); return arr[0]?.url || arr[0] || v; } catch(_) {}
-      }
-      return v;
-    };
     fields = {
       'Nome': row.nome, 'Nome Estrangeiro': row.nome_estrangeiro,
-      'Foto': _parseFotoDir(row.foto), 'Tipo': row.tipo,
+      'Foto': row.foto, 'Tipo': row.tipo,
       'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url
     };
   } else if (tabela === 'blog') {
@@ -2018,18 +1936,13 @@ function atToSb(fields, tabela) {
     foto: fields['Foto'], tipo: fields['Tipo'],
     banner_position: fields['Banner_Position'], banner_url: fields['Banner_Url']
   };
-  if (tabela === 'blog') {
-    const blogRow = {
-      titulo: fields['Título'], tipo: fields['Tipo'], status: fields['Status'],
-      kicker: fields['Kicker'], conteudo: fields['Conteúdo'], capa: fields['Capa'],
-      tags: Array.isArray(fields['Tags']) ? fields['Tags'] : (fields['Tags'] ? String(fields['Tags']).split(',').map(t=>t.trim()) : []),
-      nota: fields['Nota'], experiencia: fields['Experiência'],
-      autor: fields['Autor'], data: fields['Data'] || null
-    };
-    // serie_id: UUID resolvido previamente em bfSalvar
-    if (fields['_serie_uuid']) blogRow.serie_id = fields['_serie_uuid'];
-    return blogRow;
-  }
+  if (tabela === 'blog') return {
+    titulo: fields['Título'], tipo: fields['Tipo'], status: fields['Status'],
+    kicker: fields['Kicker'], conteudo: fields['Conteúdo'], capa: fields['Capa'],
+    tags: Array.isArray(fields['Tags']) ? fields['Tags'] : (fields['Tags'] ? String(fields['Tags']).split(',').map(t=>t.trim()) : []),
+    nota: fields['Nota'], experiencia: fields['Experiência'],
+    autor: fields['Autor'], data: fields['Data'] || null
+  };
   if (tabela === 'ost') return {
     nome_faixa: fields['Nome da Faixa'], artista: fields['Artista'],
     youtube_url: fields['URL do Youtube'], letra: fields['Letra'],
@@ -2124,7 +2037,7 @@ async function bannerSalvarAirtable(id, tipo, { pos, url }) {
 }
 
 const CACHE_TTL = 48 * 60 * 60 * 1000; // 48 horas
-const CACHE_VERSION = 'v10'; // Supabase
+const CACHE_VERSION = 'v9'; // Supabase
 
 async function loadAllData(){
   // Tenta carregar do cache primeiro
@@ -2523,7 +2436,7 @@ async function renderDorama(id){
               const ef=e.fields;
               const name=a?(a.fields['Nome']||''):'';
               const ph=a?getPhoto(a,'Foto'):null;
-              return`<div class="cast-card" style="position:relative"${a?` onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')"`:''} >${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div>${isOwner()?`<button onclick="event.stopPropagation();editarElenco('${e.id}','${(ef['Personagem']||'').replace(/'/g,"\\'")}','${(ef['Tipo']||'').replace(/'/g,"\\'")}',event)" style="position:absolute;top:6px;right:6px;background:rgba(10,10,12,.75);border:1px solid var(--gold-dim);color:var(--gold);border-radius:6px;padding:3px 7px;font-size:.7rem;cursor:pointer;backdrop-filter:blur(6px);z-index:5" title="Editar personagem">✏️</button>`:''}</div>`;
+              return`<div class="cast-card"${a?` onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')"`:''} >${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div></div>`;
             }).join('')}
           </div>`:''}
         ${dirDorama.length ? `
@@ -3203,7 +3116,10 @@ async function renderAtor(id){
 
     <div style="max-width:1100px;margin:0 auto;padding:40px clamp(16px,4vw,48px);display:grid;grid-template-columns:280px 1fr;gap:40px" class="ator-body-grid">
       <div>
-        ${photo?`<img src="${photo}" alt="${f['Nome']||''}" style="width:100%;border-radius:var(--card-r);box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid var(--border);object-fit:cover;aspect-ratio:3/4">`:''}
+        <div style="position:relative">
+          ${foto?`<img id="dir-foto-img-${id}" src="${foto}" alt="${f['Nome']||''}" style="width:100%;border-radius:var(--card-r);box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid var(--border);object-fit:cover;aspect-ratio:3/4">`:`<div id="dir-foto-img-${id}" style="width:100%;aspect-ratio:3/4;border-radius:var(--card-r);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--text3)">🎬</div>`}
+          ${isOwner()?`<label style="position:absolute;bottom:8px;right:8px;cursor:pointer;background:rgba(10,10,12,.75);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.72rem;color:var(--text2);display:flex;align-items:center;gap:5px" title="Trocar foto">📷 Foto<input type="file" accept="image/*" style="display:none" onchange="dirTrocarFoto(this,'${id}')"></label>`:''}
+        </div>
       </div>
       <div class="actor-detail-wrap" style="max-width:100%;padding:0;margin:0">
       <div class="actor-detail-section">
@@ -3569,7 +3485,7 @@ function fdDirNovo(rowId, nome, tipo) {
   document.getElementById('form-dir-titulo').textContent = tipo === 'Roteirista' ? '✦ Novo Roteirista' : '✦ Novo Diretor';
   document.getElementById('fdir-nome').value = nome;
   document.getElementById('fdir-nome-kor').value = '';
-  document.getElementById('fdir-foto').value = '';
+  fdirClearFoto();
   document.getElementById('fdir-tipo').value = tipo;
   document.getElementById('form-dir-overlay').classList.add('open');
 }
@@ -3577,27 +3493,77 @@ function fdDirNovo(rowId, nome, tipo) {
 function closeMiniFormDir() {
   document.getElementById('form-dir-overlay').classList.remove('open');
   _fdDirCallback = null;
+  fdirClearFoto();
+  document.getElementById('fdir-nome').value = '';
+  document.getElementById('fdir-nome-kor').value = '';
+}
+
+// ── Foto mini form diretor ──────────────────────────────
+let fdirFotoFile = null;
+let fdirFotoUrlFinal = null;
+
+function fdirPreviewFoto(input) {
+  const file = input.files[0]; if (!file) return;
+  fdirFotoFile = file; fdirFotoUrlFinal = null;
+  document.getElementById('fdir-foto-url').value = '';
+  const reader = new FileReader();
+  reader.onload = e => fdirShowFoto(e.target.result);
+  reader.readAsDataURL(file);
+}
+function fdirPreviewFotoUrl(url) {
+  fdirFotoFile = null; fdirFotoUrlFinal = url || null;
+  if (url) fdirShowFoto(url); else fdirClearFoto();
+}
+function fdirShowFoto(src) {
+  const img = document.getElementById('fdir-foto-img');
+  img.src = src; img.style.display = 'block';
+  document.getElementById('fdir-foto-icon').style.display = 'none';
+  document.getElementById('fdir-foto-txt').style.display = 'none';
+  document.getElementById('fdir-foto-del').style.display = 'flex';
+}
+function fdirClearFoto(e) {
+  if (e) e.stopPropagation();
+  fdirFotoFile = null; fdirFotoUrlFinal = null;
+  document.getElementById('fdir-foto-img').style.display = 'none';
+  document.getElementById('fdir-foto-icon').style.display = '';
+  document.getElementById('fdir-foto-txt').style.display = '';
+  document.getElementById('fdir-foto-del').style.display = 'none';
+  document.getElementById('fdir-foto-url').value = '';
+  document.getElementById('fdir-foto-file').value = '';
 }
 
 async function salvarMiniFormDir() {
   const nome = document.getElementById('fdir-nome').value.trim();
   if (!nome) { showToast('Nome é obrigatório'); return; }
   try {
-    showToast('Salvando…');
-    let fotoUrl = fdirFotoUrlFinal || document.getElementById('fdir-foto-url')?.value.trim() || '';
+    let fotoUrl = fdirFotoUrlFinal || document.getElementById('fdir-foto-url').value.trim() || undefined;
+
+    // Se tem arquivo, sobe pro Supabase Storage
     if (fdirFotoFile) {
-      try { fotoUrl = await uploadToSupabase(fdirFotoFile, 'diretores'); } catch(e) { showToast('Erro no upload: ' + e.message); return; }
+      showToast('Enviando foto…');
+      const ext = fdirFotoFile.name.split('.').pop() || 'jpg';
+      const tmpNome = nome.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+      const caminho = `diretores/${tmpNome}_${Date.now()}.${ext}`;
+      const r = await fetch(`${SB_URL}/storage/v1/object/imagens/${caminho}`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': fdirFotoFile.type, 'x-upsert': 'true' },
+        body: fdirFotoFile
+      });
+      if (!r.ok) throw new Error('Falha no upload');
+      fotoUrl = `${SB_URL}/storage/v1/object/public/imagens/${caminho}`;
     }
+
     const fields = {
       'Nome': nome,
       'Nome Estrangeiro': document.getElementById('fdir-nome-kor').value.trim() || undefined,
-      'Foto': fotoUrl || undefined,
       'Tipo': document.getElementById('fdir-tipo').value
     };
+    if (fotoUrl) fields['Foto'] = fotoUrl;
+
     const record = await createRecord(TABLES.direcao, fields);
     allDirecao.push(record);
-    fdirClearFoto();
     if (_fdDirCallback) _fdDirCallback(record.id, nome);
+    fdirClearFoto();
     closeMiniFormDir();
     showToast(`✓ ${nome} criado!`);
   } catch(e) { showToast('Erro: ' + e.message); }
@@ -3681,33 +3647,6 @@ async function fdSalvarElenco(serieId, castData) {
         })});
       }
     } catch(e) { console.warn('Erro ao salvar elenco:', e); }
-  }
-}
-
-async function editarElenco(elencoId, personagemAtual, tipoAtual, evt) {
-  if (evt) evt.stopPropagation();
-  const tiposValidos = ['Principal','Suporte','Participação especial'];
-  const novoPersonagem = prompt('Personagem:', personagemAtual);
-  if (novoPersonagem === null) return; // cancelou
-  const tipoOpts = tiposValidos.map((t,i) => `${i+1}. ${t}`).join('\n');
-  const tipoAtualIdx = tiposValidos.indexOf(tipoAtual);
-  const tipoInput = prompt(`Tipo:\n${tipoOpts}\nDigite o número ou o nome (atual: ${tipoAtual || '—'}):`, tipoAtualIdx >= 0 ? String(tipoAtualIdx + 1) : tipoAtual);
-  if (tipoInput === null) return;
-  const tipoNum = parseInt(tipoInput);
-  const novoTipo = (!isNaN(tipoNum) && tiposValidos[tipoNum - 1]) ? tiposValidos[tipoNum - 1] : (tiposValidos.includes(tipoInput) ? tipoInput : tipoAtual);
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/elenco?id=eq.${elencoId}`, {
-      method: 'PATCH',
-      headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
-      body: JSON.stringify({ personagem: novoPersonagem, tipo: novoTipo })
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    showToast('✓ Elenco atualizado!');
-    // Recarregar a página do dorama atual para refletir a mudança
-    const hashMatch = location.hash.match(/^#dorama\/(.+)$/);
-    if (hashMatch) navigate('dorama', decodeURIComponent(hashMatch[1]));
-  } catch(e) {
-    showToast('Erro ao atualizar elenco: ' + e.message);
   }
 }
 
@@ -4059,15 +3998,7 @@ async function fdSalvar(){
       if(fdRatings[r]) fields[r]=fdRatings[r];
     });
 
-    // Capa — upload pro Supabase se tiver arquivo
-    if (fdCapaFile) {
-      try {
-        const uploadedUrl = await uploadToSupabase(fdCapaFile, 'doramas');
-        fdCapaUrlFinal = uploadedUrl;
-        document.getElementById('fd-capa-url').value = uploadedUrl;
-        fdCapaFile = null;
-      } catch(e) { showToast('Erro no upload da capa: ' + e.message); return; }
-    }
+    // Capa
     const capaUrl = fdCapaUrlFinal || document.getElementById('fd-capa-url').value.trim();
     if(capaUrl) fields['Capa']=[{url:capaUrl}];
 
@@ -4110,7 +4041,7 @@ async function fdSalvar(){
 
     showToast(fdEditId?`✓ "${nome}" atualizado!`:`✓ "${nome}" cadastrado!`);
     closeFormDorama();
-    setTimeout(() => { location.reload(); }, 1000);
+    if(fdEditId){ renderDorama(fdEditId); } else { renderHome(); }
 
   }catch(e){
     status.textContent='❌ Erro: '+e.message;
@@ -4186,16 +4117,6 @@ function faShowFoto(url){
   document.getElementById('fa-foto-icon').style.display='none';
   document.getElementById('fa-foto-txt').style.display='none';
   document.getElementById('fa-foto-del').style.display='flex';
-  
-  // Atualiza o preview do banner automaticamente
-  const bannerWrap = document.getElementById('fa-banner-preview-wrap');
-  const bannerImg = document.getElementById('fa-banner-preview-img');
-  const bannerInput = document.getElementById('fa-banner-url-preview');
-  if (bannerImg && bannerWrap) {
-    bannerImg.src = url;
-    bannerWrap.style.display = 'block';
-    if (bannerInput) bannerInput.value = url;
-  }
 }
 function faClearFoto(){
   const img=document.getElementById('fa-foto-img');
@@ -4204,113 +4125,8 @@ function faClearFoto(){
   document.getElementById('fa-foto-txt').style.display='';
   document.getElementById('fa-foto-del').style.display='none';
   faFotoFile=null; faFotoUrlFinal=null;
-  
-  // Limpa o preview do banner
-  const bannerWrap = document.getElementById('fa-banner-preview-wrap');
-  const bannerImg = document.getElementById('fa-banner-preview-img');
-  const bannerInput = document.getElementById('fa-banner-url-preview');
-  if (bannerWrap) bannerWrap.style.display = 'none';
-  if (bannerImg) bannerImg.src = '';
-  if (bannerInput) bannerInput.value = '';
 }
 function faRemoveFoto(e){ e.stopPropagation(); faClearFoto(); document.getElementById('fa-foto-url').value=''; }
-// ── UPLOAD SUPABASE STORAGE ─────────────────────────────────────────
-async function uploadToSupabase(file, pasta = 'fotos') {
-  const ext = file.name.split('.').pop() || 'jpg';
-  const nome = `${pasta}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-  const res = await fetch(`${SB_URL}/storage/v1/object/imagens/${nome}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SB_KEY,
-      'Authorization': `Bearer ${SB_KEY}`,
-      'Content-Type': file.type || 'image/jpeg',
-    },
-    body: file
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error('Upload falhou: ' + err);
-  }
-  return `${SB_URL}/storage/v1/object/public/imagens/${nome}`;
-}
-
-// ── DRAG AND DROP GENÉRICO ───────────────────────────────────────────
-function setupImgZoneDrop(zoneId, onFile) {
-  const zone = document.getElementById(zoneId);
-  if (!zone) return;
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
-  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-  zone.addEventListener('drop', e => {
-    e.preventDefault();
-    zone.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) onFile(file);
-  });
-}
-
-// ── INIT DRAG AND DROP (chamado após DOMContentLoaded) ───────────────
-function initImgZoneDrops() {
-  // Ator - foto
-  setupImgZoneDrop('fa-foto-zone', file => {
-    faFotoFile = file; faFotoUrlFinal = null;
-    document.getElementById('fa-foto-url').value = '';
-    faShowFoto(URL.createObjectURL(file));
-  });
-  // Dorama - capa
-  setupImgZoneDrop('fd-capa-zone', file => {
-    fdCapaFile = file; fdCapaUrlFinal = null;
-    document.getElementById('fd-capa-url').value = '';
-    const img = document.getElementById('fd-capa-img');
-    img.src = URL.createObjectURL(file); img.style.display = 'block';
-    document.getElementById('fd-capa-icon').style.display = 'none';
-    document.getElementById('fd-capa-txt').style.display = 'none';
-    document.getElementById('fd-capa-del').style.display = 'flex';
-  });
-  // Diretor - foto
-  setupImgZoneDrop('fdir-foto-zone', file => {
-    fdirFotoFile = file; fdirFotoUrlFinal = null;
-    document.getElementById('fdir-foto-url').value = '';
-    fdirShowFoto(URL.createObjectURL(file));
-  });
-}
-
-// ── FUNÇÕES DIRETOR ──────────────────────────────────────────────────
-let fdirFotoFile = null, fdirFotoUrlFinal = null;
-
-function fdirShowFoto(src) {
-  const img = document.getElementById('fdir-foto-img');
-  if (!img) return;
-  img.src = src; img.style.display = 'block';
-  document.getElementById('fdir-foto-icon').style.display = 'none';
-  document.getElementById('fdir-foto-txt').style.display = 'none';
-  document.getElementById('fdir-foto-del').style.display = 'flex';
-}
-function fdirClearFoto() {
-  const img = document.getElementById('fdir-foto-img');
-  if (!img) return;
-  img.src = ''; img.style.display = 'none';
-  document.getElementById('fdir-foto-icon').style.display = '';
-  document.getElementById('fdir-foto-txt').style.display = '';
-  document.getElementById('fdir-foto-del').style.display = 'none';
-  fdirFotoFile = null; fdirFotoUrlFinal = null;
-}
-function fdirPreviewFoto(input) {
-  const file = input.files[0]; if (!file) return;
-  fdirFotoFile = file; fdirFotoUrlFinal = null;
-  document.getElementById('fdir-foto-url').value = '';
-  fdirShowFoto(URL.createObjectURL(file));
-}
-function fdirPreviewFotoUrl(url) {
-  if (!url) return;
-  fdirFotoFile = null; fdirFotoUrlFinal = url;
-  fdirShowFoto(url);
-}
-function fdirRemoveFoto(e) {
-  e.stopPropagation();
-  fdirClearFoto();
-  document.getElementById('fdir-foto-url').value = '';
-}
-
 function faPreviewFoto(input){
   const file=input.files[0]; if(!file) return;
   faFotoFile=file; faFotoUrlFinal=null;
@@ -4482,16 +4298,6 @@ async function faSalvar(){
   status.textContent='Salvando…'; prog.style.display='block'; bar.style.width='30%';
 
   try{
-    // Upload da foto pro Supabase Storage se tiver arquivo selecionado
-    if (faFotoFile) {
-      try {
-        bar.style.width = '20%';
-        const uploadedUrl = await uploadToSupabase(faFotoFile, 'atores');
-        faFotoUrlFinal = uploadedUrl;
-        document.getElementById('fa-foto-url').value = uploadedUrl;
-        faFotoFile = null;
-      } catch(e) { showToast('Erro no upload da foto: ' + e.message); return; }
-    }
     const fotoUrl=faFotoUrlFinal||document.getElementById('fa-foto-url').value.trim();
     const bannerUrl=document.getElementById('fa-banner-url-preview')?.value.trim();
     const fields={
@@ -4524,7 +4330,7 @@ async function faSalvar(){
 
     showToast(faEditId?`✓ "${nome}" atualizado!`:`✓ "${nome}" cadastrado!`);
     closeFormAtor();
-    setTimeout(() => { location.reload(); }, 1000);
+    if(document.getElementById('page-atores').classList.contains('active')) filterAtores();
 
   }catch(e){
     status.textContent='❌ Erro: '+e.message;
@@ -4917,24 +4723,17 @@ if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
     const inline = t
       .replace(/\*@([\wÀ-ú][\wÀ-ú\/-]*(?:\s[\wÀ-ú][\wÀ-ú\/-]*){0,3})\*/g, '@$1').replace(/@([\wÀ-ú][\wÀ-ú\/-]*(?:\s[\wÀ-ú][\wÀ-ú\/-]*){0,3})/g, (match, captured) => {
         const words = captured.split(' ');
-        // Normalização para ignorar acentos e case
-        const normStr = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-        const normCapture = normStr(captured);
         for (let len = words.length; len >= 1; len--) {
           const nome = words.slice(0, len).join(' ');
           const resto = words.slice(len).join(' ');
           const sufixo = resto ? ' ' + resto : '';
-          const normNome = normStr(nome);
-          // 1. Busca por nome do ator — match exato ou parcial (startsWith) sem acento
-          const ator = (allAtores||[]).find(a => {
-            const n = normStr(a.fields['Nome'] || '');
-            return n === normNome || n.startsWith(normNome) || normNome.startsWith(n.split(' ')[0]) && normNome.length >= 3;
-          });
+          // 1. Busca por nome do ator
+          const ator = (allAtores||[]).find(a => (a.fields['Nome']||'').toLowerCase() === nome.toLowerCase());
           if (ator) {
             return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${ator.id}')">${nome}</a></em></strong>${sufixo}`;
           }
-          // 2. Fallback: busca por nome do personagem no elenco (match normalizado)
-          const elencoRec = (allElenco||[]).find(e => normStr(e.fields['Personagem']||'') === normNome);
+          // 2. Fallback: busca por nome do personagem no elenco
+          const elencoRec = (allElenco||[]).find(e => (e.fields['Personagem']||'').toLowerCase() === nome.toLowerCase());
           if (elencoRec) {
             const atorId = (elencoRec.fields['Atores']||[])[0];
             if (atorId) {
@@ -5031,10 +4830,6 @@ async function bfPopularSelectDoramas() {
   }
   const series = [...allSeries].sort((a,b) => (a.fields['Nome']||'').localeCompare(b.fields['Nome']||''));
   sel.innerHTML = '<option value="">— Selecione o dorama —</option>';
-  // Em edição: usar só o valor do post (já definido em `atual` antes de popular).
-  // Em novo post: usar o último dorama salvo no localStorage.
-  const ultimoId   = !bfEditId ? (localStorage.getItem('kdrama_blog_ultimo_dorama') || '') : '';
-  const ultimoNome = !bfEditId ? (localStorage.getItem('kdrama_blog_ultimo_dorama_nome') || '') : '';
   series.forEach(s => {
     const nome = s.fields['Nome'] || '';
     if (!nome) return;
@@ -5042,18 +4837,15 @@ async function bfPopularSelectDoramas() {
     opt.value = s.id;
     opt.dataset.nome = nome;
     opt.textContent = nome;
-    if (bfEditId) {
-      // Edição: seleciona apenas se bater com o valor do post
-      if (s.id === atual || nome === atual) opt.selected = true;
-    } else {
-      // Novo post: usa o último dorama salvo
-      if (s.id === ultimoId || nome === ultimoNome) opt.selected = true;
-    }
+    // Selecionar pelo valor atual do campo (editando) ou pelo último usado (novo post)
+    const usarUltimo = !bfEditId; // só usa localStorage em novo post
+    const ultimoId = usarUltimo ? (localStorage.getItem('kdrama_blog_ultimo_dorama') || '') : '';
+    const ultimoNome = usarUltimo ? (localStorage.getItem('kdrama_blog_ultimo_dorama_nome') || '') : '';
+    if (s.id === atual || nome === atual || s.id === ultimoId || nome === ultimoNome) opt.selected = true;
     sel.appendChild(opt);
   });
-  // onchange só salva no localStorage se for novo post
+  // Salvar no localStorage quando mudar
   sel.onchange = () => {
-    if (bfEditId) return; // edição: não contamina o localStorage
     const opt = sel.options[sel.selectedIndex];
     const nomeDorama = opt?.dataset.nome || opt?.textContent || '';
     if (nomeDorama && nomeDorama !== '— Selecione o dorama —') {
@@ -5176,34 +4968,15 @@ async function bfSalvar() {
     const sel = document.getElementById('bf-dorama-nome');
     const dorId = sel?.value || '';
     const dorNome = sel?.options[sel.selectedIndex]?.dataset.nome || sel?.options[sel.selectedIndex]?.text || '';
-    if (dorNome && dorNome !== '— Selecione o dorama —') fields['Dorama'] = dorNome;
+    if (dorNome) fields['Dorama'] = dorNome;
     if (dorId && dorId !== dorNome) fields['Dorama ID'] = dorId;
-    // Resolver UUID da série no Supabase para gravar a FK serie_id
-    if (dorId && dorId !== dorNome) {
-      try {
-        const sbRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${dorId}&select=id`, {
-          headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-        });
-        const sbRows = await sbRes.json();
-        if (sbRows[0]?.id) fields['_serie_uuid'] = sbRows[0].id;
-      } catch(_) {}
-    }
     const capa = document.getElementById('bf-capa').value.trim(); if (capa) fields['Capa'] = capa;
     bar.style.width = '70%';
     let record;
     if (bfEditId) {
       record = await patchRecord(tbl, bfEditId, fields);
       const idx = allPosts.findIndex(p => p.id === bfEditId);
-      if (idx > -1) {
-        const updateFields = {...fields};
-        // Normalizar Dorama/Dorama ID pra formato array (igual o Supabase devolve)
-        if (updateFields['Dorama'] && !Array.isArray(updateFields['Dorama']))
-          updateFields['Dorama'] = [updateFields['Dorama']];
-        if (updateFields['Dorama ID'] && !Array.isArray(updateFields['Dorama ID']))
-          updateFields['Dorama ID'] = [updateFields['Dorama ID']];
-        delete updateFields['_serie_uuid'];
-        Object.assign(allPosts[idx].fields, updateFields);
-      }
+      if (idx > -1) Object.assign(allPosts[idx].fields, fields);
     } else {
       record = await createRecord(tbl, fields);
       allPosts.unshift(record);
@@ -5334,7 +5107,7 @@ function renderCarouselDoramas() {
   }
   el.innerHTML = doramas.map(s => {
     const f = s.fields;
-    const capa = Array.isArray(f['Capa']) ? (f['Capa'][0]?.url || '') : (f['Capa'] || (Array.isArray(f['Poster']) ? (f['Poster']?.[0]?.url || '') : (f['Poster'] || '')));
+    const capa = Array.isArray(f['Capa']) ? (f['Capa'][0]?.url || '') : (f['Capa'] || Array.isArray(f['Poster']) ? (f['Poster']?.[0]?.url || '') : (f['Poster'] || ''));
     return `<div class="hc-dorama-card" onclick="navigate('dorama','${s.id}')">
       ${capa
         ? `<img class="hc-dorama-card-img" src="${capa}" loading="lazy" onerror="this.style.display='none'">`
@@ -5737,10 +5510,6 @@ function renderBlogSidebar() {
   }
 
   // Ranking
-  // Mostrar tabelinha de experiências só quando filtrado por Resenha
-  const rankCard = document.getElementById('sidebar-ranking-card');
-  if (rankCard) rankCard.style.display = (blogFilter === 'Resenha') ? 'block' : 'none';
-
   const rankEl = document.getElementById('sidebar-ranking');
   if (rankEl) {
     const expOrder = ['Obra de Arte','Perfeito','Na Medida','Valeu a Pena','Faltou Algo','Não Recomendo'];
@@ -6488,6 +6257,46 @@ async function dirUploadBannerImg(input, id) {
 }
 
 
+async function dirTrocarFoto(input, dirAirtableId) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    showToast('Enviando foto…');
+    const ext = file.name.split('.').pop() || 'jpg';
+    const caminho = `diretores/${dirAirtableId}_${Date.now()}.${ext}`;
+    const r = await fetch(`${SB_URL}/storage/v1/object/imagens/${caminho}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': file.type, 'x-upsert': 'true' },
+      body: file
+    });
+    if (!r.ok) throw new Error('Falha no upload');
+    const novaUrl = `${SB_URL}/storage/v1/object/public/imagens/${caminho}`;
+
+    // Atualizar no Supabase
+    await fetch(`${SB_URL}/rest/v1/direcao?airtable_id=eq.${dirAirtableId}`, {
+      method: 'PATCH',
+      headers: { ...SB_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ foto: novaUrl })
+    });
+
+    // Atualizar no Airtable
+    await patchRecord(TABLES.direcao, dirAirtableId, { 'Foto': novaUrl });
+
+    // Atualizar imagem na tela sem recarregar
+    const imgEl = document.getElementById(`dir-foto-img-${dirAirtableId}`);
+    if (imgEl) {
+      if (imgEl.tagName === 'IMG') { imgEl.src = novaUrl; }
+      else { imgEl.outerHTML = `<img id="dir-foto-img-${dirAirtableId}" src="${novaUrl}" style="width:100%;border-radius:var(--card-r);box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid var(--border);object-fit:cover;aspect-ratio:3/4">`; }
+    }
+
+    // Atualizar cache local
+    const cached = allDirecao.find(d => d.id === dirAirtableId);
+    if (cached) cached.fields['Foto'] = novaUrl;
+
+    showToast('Foto atualizada!');
+  } catch(e) { showToast('Erro: ' + e.message); }
+}
+
 // ── EDITOR DE LETRA OST ───────────────────────────────────
 let ostLetraAtualId = null;
 
@@ -7200,15 +7009,6 @@ function cardContextMenu(e, page, id) {
     <audio id="radio-audio" preload="none"></audio>
   </div>
 </div>
-
-<script>
-// Inicializar drag and drop nas img-zones após DOM pronto
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initImgZoneDrops);
-} else {
-  initImgZoneDrops();
-}
-</script>
 
 </body>
 
