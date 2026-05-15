@@ -1929,13 +1929,18 @@ function atToSb(fields, tabela) {
     foto: fields['Foto'], tipo: fields['Tipo'],
     banner_position: fields['Banner_Position'], banner_url: fields['Banner_Url']
   };
-  if (tabela === 'blog') return {
-    titulo: fields['Título'], tipo: fields['Tipo'], status: fields['Status'],
-    kicker: fields['Kicker'], conteudo: fields['Conteúdo'], capa: fields['Capa'],
-    tags: Array.isArray(fields['Tags']) ? fields['Tags'] : (fields['Tags'] ? String(fields['Tags']).split(',').map(t=>t.trim()) : []),
-    nota: fields['Nota'], experiencia: fields['Experiência'],
-    autor: fields['Autor'], data: fields['Data'] || null
-  };
+  if (tabela === 'blog') {
+    const blogRow = {
+      titulo: fields['Título'], tipo: fields['Tipo'], status: fields['Status'],
+      kicker: fields['Kicker'], conteudo: fields['Conteúdo'], capa: fields['Capa'],
+      tags: Array.isArray(fields['Tags']) ? fields['Tags'] : (fields['Tags'] ? String(fields['Tags']).split(',').map(t=>t.trim()) : []),
+      nota: fields['Nota'], experiencia: fields['Experiência'],
+      autor: fields['Autor'], data: fields['Data'] || null
+    };
+    // serie_id: UUID resolvido previamente em bfSalvar
+    if (fields['_serie_uuid']) blogRow.serie_id = fields['_serie_uuid'];
+    return blogRow;
+  }
   if (tabela === 'ost') return {
     nome_faixa: fields['Nome da Faixa'], artista: fields['Artista'],
     youtube_url: fields['URL do Youtube'], letra: fields['Letra'],
@@ -4943,15 +4948,34 @@ async function bfSalvar() {
     const sel = document.getElementById('bf-dorama-nome');
     const dorId = sel?.value || '';
     const dorNome = sel?.options[sel.selectedIndex]?.dataset.nome || sel?.options[sel.selectedIndex]?.text || '';
-    if (dorNome) fields['Dorama'] = dorNome;
+    if (dorNome && dorNome !== '— Selecione o dorama —') fields['Dorama'] = dorNome;
     if (dorId && dorId !== dorNome) fields['Dorama ID'] = dorId;
+    // Resolver UUID da série no Supabase para gravar a FK serie_id
+    if (dorId && dorId !== dorNome) {
+      try {
+        const sbRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${dorId}&select=id`, {
+          headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+        });
+        const sbRows = await sbRes.json();
+        if (sbRows[0]?.id) fields['_serie_uuid'] = sbRows[0].id;
+      } catch(_) {}
+    }
     const capa = document.getElementById('bf-capa').value.trim(); if (capa) fields['Capa'] = capa;
     bar.style.width = '70%';
     let record;
     if (bfEditId) {
       record = await patchRecord(tbl, bfEditId, fields);
       const idx = allPosts.findIndex(p => p.id === bfEditId);
-      if (idx > -1) Object.assign(allPosts[idx].fields, fields);
+      if (idx > -1) {
+        const updateFields = {...fields};
+        // Normalizar Dorama/Dorama ID pra formato array (igual o Supabase devolve)
+        if (updateFields['Dorama'] && !Array.isArray(updateFields['Dorama']))
+          updateFields['Dorama'] = [updateFields['Dorama']];
+        if (updateFields['Dorama ID'] && !Array.isArray(updateFields['Dorama ID']))
+          updateFields['Dorama ID'] = [updateFields['Dorama ID']];
+        delete updateFields['_serie_uuid'];
+        Object.assign(allPosts[idx].fields, updateFields);
+      }
     } else {
       record = await createRecord(tbl, fields);
       allPosts.unshift(record);
