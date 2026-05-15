@@ -227,6 +227,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .cast-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:16px}
 .cast-card{border-radius:var(--radius);overflow:hidden;background:#000;border:1px solid var(--border);cursor:pointer;transition:transform .3s ease,box-shadow .3s ease;text-align:center}
 .cast-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.cast-card:hover .cast-edit-btn{opacity:1!important}
 .cast-photo{width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--bg3)}
 .cast-photo-placeholder{width:100%;aspect-ratio:3/4;background:linear-gradient(135deg,var(--bg3),var(--surface2));display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--text3)}
 .cast-info{padding:10px 8px}
@@ -2429,7 +2430,8 @@ async function renderDorama(id){
               const ef=e.fields;
               const name=a?(a.fields['Nome']||''):'';
               const ph=a?getPhoto(a,'Foto'):null;
-              return`<div class="cast-card"${a?` onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')"`:''} >${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div></div>`;
+              return`<div class="cast-card" style="position:relative"${a?` onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')"`:''} >${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div>${isOwner()?`<button onclick="event.stopPropagation();ostEditarElenco('${e._uuid||e.id}','${(ef['Personagem']||'').replace(/'/g,"\\'")}','${ef['Tipo']||''}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:.65rem;padding:2px 5px;opacity:0;transition:.2s" class="cast-edit-btn">✏️</button>`:''}</div>`;
+
             }).join('')}
           </div>`:''}
         ${dirDorama.length ? `
@@ -4661,13 +4663,28 @@ if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
           const nome = words.slice(0, len).join(' ');
           const resto = words.slice(len).join(' ');
           const sufixo = resto ? ' ' + resto : '';
-          // 1. Busca por nome do ator
-          const ator = (allAtores||[]).find(a => (a.fields['Nome']||'').toLowerCase() === nome.toLowerCase());
+          const nomeLower = nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+          // 1. Busca exata por nome do ator
+          const ator = (allAtores||[]).find(a => {
+            const n = (a.fields['Nome']||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            return n === nomeLower;
+          });
           if (ator) {
             return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${ator.id}')">${nome}</a></em></strong>${sufixo}`;
           }
-          // 2. Fallback: busca por nome do personagem no elenco
-          const elencoRec = (allElenco||[]).find(e => (e.fields['Personagem']||'').toLowerCase() === nome.toLowerCase());
+          // 2. Busca parcial por nome do ator (começa com)
+          const atorParcial = (allAtores||[]).find(a => {
+            const n = (a.fields['Nome']||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            return n.startsWith(nomeLower) || nomeLower.startsWith(n.split(' ')[0]);
+          });
+          if (atorParcial) {
+            return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${atorParcial.id}')">${nome}</a></em></strong>${sufixo}`;
+          }
+          // 3. Fallback: busca por nome do personagem no elenco
+          const elencoRec = (allElenco||[]).find(e => {
+            const p = (e.fields['Personagem']||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            return p === nomeLower;
+          });
           if (elencoRec) {
             const atorId = (elencoRec.fields['Atores']||[])[0];
             if (atorId) {
@@ -5683,7 +5700,22 @@ function renderOstTracks() {
 
 let _ostFormEditId = null;
 
-function ostAbrirFormAdd(editId=null, dados={}) {
+function ostEditarElenco(uuid, personagemAtual, tipoAtual) {
+  const novoPersonagem = prompt('Nome do personagem:', personagemAtual);
+  if (novoPersonagem === null) return; // cancelou
+  const tipos = ['Principal', 'Secundário', 'Participação especial'];
+  const tipoIdx = tipos.indexOf(tipoAtual);
+  const novoTipo = prompt(`Tipo (${tipos.join(' / ')}):`, tipoAtual || 'Secundário');
+  if (novoTipo === null) return;
+  fetch(`${SB_URL}/rest/v1/elenco?id=eq.${uuid}`, {
+    method: 'PATCH',
+    headers: SB_HEADERS,
+    body: JSON.stringify({ personagem: novoPersonagem, tipo: novoTipo })
+  }).then(r => {
+    if (r.ok) { showToast('✓ Elenco atualizado!'); renderDorama(currentSerie?.id || ostCurrentSerieId); }
+    else showToast('Erro ao salvar');
+  }).catch(() => showToast('Erro ao salvar'));
+}
   _ostFormEditId = editId;
   // Criar modal inline
   const modal = document.createElement('div');
