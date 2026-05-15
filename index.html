@@ -2424,10 +2424,11 @@ async function renderDorama(id){
       const sbSeries = await sbSerieRes.json();
       const sbSerieId = sbSeries[0]?.id;
       if(sbSerieId){
-        const elencoRes = await fetch(`${SB_URL}/rest/v1/elenco?select=*,atores:ator_id(airtable_id,nome,foto,data_nascimento)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const elencoRes = await fetch(`${SB_URL}/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,foto,data_nascimento)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
         const elencoRows = await elencoRes.json();
         castRecords = elencoRows.map(row => {
-          const ator = row.atores ? sbToAt(row.atores, 'atores') : null;
+          const atorRaw = row.atores ? {...row.atores, airtable_id: row.atores.airtable_id || row.atores.id} : null;
+          const ator = atorRaw ? sbToAt(atorRaw, 'atores') : null;
           const elenco = sbToAt(row, 'elenco');
           return {elenco, ator};
         });
@@ -3097,6 +3098,17 @@ async function renderAtor(id){
       const recs = await fetchTable(TABLES.atores, {formula:`RECORD_ID()='${id}'`});
       ator = recs[0] || null;
     }
+    // Fallback: buscar por UUID do Supabase (atores criados sem airtable_id)
+    if(!ator || !ator.fields){
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(id);
+      if(isUUID){
+        try{
+          const res = await fetch(`${SB_URL}/rest/v1/atores?id=eq.${id}&select=*`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+          const rows = await res.json();
+          if(rows[0]) ator = sbToAt({...rows[0], airtable_id: rows[0].airtable_id || rows[0].id}, 'atores');
+        }catch(_){}
+      }
+    }
     if(!ator || !ator.fields){
       content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Ator não encontrado.</p></div>`;
       return;
@@ -3136,10 +3148,15 @@ async function renderAtor(id){
     let elencoRecs = [];
     if(ator.id){
       try{
-        const res = await fetch(`${SB_URL}/rest/v1/elenco?select=*,series:serie_id(airtable_id,nome,capa,ano_lancamento)&ator_id=eq.${
-          // Buscar UUID do ator pelo airtable_id
-          (await fetch(`${SB_URL}/rest/v1/atores?airtable_id=eq.${ator.id}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}).then(r=>r.json()))[0]?.id || ator.id
-        }`, {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        // Buscar UUID do ator — se id já for UUID usa direto, senão busca pelo airtable_id
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(ator.id);
+        let atorUUID = ator.id;
+        if (!isUUID) {
+          const uuidRes = await fetch(`${SB_URL}/rest/v1/atores?airtable_id=eq.${ator.id}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+          const uuidRows = await uuidRes.json();
+          atorUUID = uuidRows[0]?.id || ator.id;
+        }
+        const res = await fetch(`${SB_URL}/rest/v1/elenco?select=*,series:serie_id(airtable_id,nome,capa,ano_lancamento)&ator_id=eq.${atorUUID}`, {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
         const rows = await res.json();
         elencoRecs = rows.map(row => {
           row.serie_airtable_id = row.series?.airtable_id;
