@@ -3545,6 +3545,45 @@ function fdGetCastData() {
     .filter(Boolean);
 }
 
+async function fdSalvarElenco(serieId, castData) {
+  for (const membro of castData) {
+    try {
+      // Buscar UUID da série
+      const sbSerieRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serieId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const sbSeries = await sbSerieRes.json();
+      const sbSerieId = sbSeries[0]?.id;
+      if(!sbSerieId) continue;
+
+      // Buscar ator no Supabase pelo nome
+      let atorUUID = null;
+      if(membro.atorId){
+        const aRes = await fetch(`${SB_URL}/rest/v1/atores?airtable_id=eq.${membro.atorId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const aRows = await aRes.json();
+        atorUUID = aRows[0]?.id;
+      }
+      if(!atorUUID){
+        const aRes = await fetch(`${SB_URL}/rest/v1/atores?nome=eq.${encodeURIComponent(membro.nome)}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const aRows = await aRes.json();
+        if(aRows[0]) atorUUID = aRows[0].id;
+        else {
+          const novoRes = await fetch(`${SB_URL}/rest/v1/atores`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify({nome:membro.nome})});
+          const novo = await novoRes.json();
+          atorUUID = novo[0]?.id;
+        }
+      }
+
+      if(atorUUID && sbSerieId){
+        await fetch(`${SB_URL}/rest/v1/elenco`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify({
+          serie_id: sbSerieId,
+          ator_id: atorUUID,
+          personagem: membro.personagem || null,
+          tipo: membro.tipo || 'Secundário'
+        })});
+      }
+    } catch(e) { console.warn('Erro ao salvar elenco:', e); }
+  }
+}
+
 async function fdSalvarDirecao(serieId, dirData) {
   try {
     // Buscar UUID da série
@@ -3585,40 +3624,6 @@ async function fdSalvarDirecao(serieId, dirData) {
       }
     }
   } catch(e) { console.warn('Erro ao salvar direção:', e); }
-}
-  for (const membro of castData) {
-    try {
-      // Busca se ator já existe pelo nome no Supabase
-      const res = await fetch(
-        `${SB_URL}/rest/v1/atores?nome=eq.${encodeURIComponent(membro.nome)}&select=airtable_id,nome&limit=1`,
-        { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
-      );
-      const rows = await res.json();
-      const atores = rows.map(r => sbToAt(r, 'atores'));
-      
-      let atorId = membro.atorId || null;
-      if (!atorId) {
-        if (atores.length) {
-          atorId = atores[0].id;
-        } else {
-          const novoAtor = await createRecord(TABLES.atores, { 'Nome': membro.nome });
-          atorId = novoAtor.id;
-          allAtores.unshift(novoAtor);
-        }
-      }
-
-      // Cria registro de elenco
-      await createRecord(TABLES.elenco, {
-        'Séries': [serieId],
-        'Atores': [atorId],
-        'Personagem': membro.personagem || '',
-        'Tipo': membro.tipo || 'Principal'
-      });
-
-    } catch(e) {
-      console.warn(`Erro ao salvar ${membro.nome}:`, e.message);
-    }
-  }
 }
 
 
