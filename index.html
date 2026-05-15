@@ -5106,7 +5106,7 @@ function renderCarouselDoramas() {
   }
   el.innerHTML = doramas.map(s => {
     const f = s.fields;
-    const capa = Array.isArray(f['Capa']) ? (f['Capa'][0]?.url || '') : (f['Capa'] || Array.isArray(f['Poster']) ? (f['Poster']?.[0]?.url || '') : (f['Poster'] || ''));
+    const capa = Array.isArray(f['Capa']) ? (f['Capa'][0]?.url || '') : (f['Capa'] || (Array.isArray(f['Poster']) ? (f['Poster']?.[0]?.url || '') : (f['Poster'] || '')));
     return `<div class="hc-dorama-card" onclick="navigate('dorama','${s.id}')">
       ${capa
         ? `<img class="hc-dorama-card-img" src="${capa}" loading="lazy" onerror="this.style.display='none'">`
