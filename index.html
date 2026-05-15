@@ -2215,11 +2215,10 @@ async function renderDorama(id){
     if (!allPosts.length && TABLES.blog && apiKey) {
       try { const br = await fetchTable(TABLES.blog, {fields:['Título','Tipo','Status','Dorama']}); allPosts = br.filter(p=>p.fields['Status']==='Publicado'); } catch(_){}
     }
-    const resenhaPost = allPosts.find(p =>
-      p.fields['Tipo'] === 'Resenha' &&
+    const resenhaPost = allPosts.find(p => {
       const doramaVal = Array.isArray(p.fields['Dorama']) ? (p.fields['Dorama'][0]||'') : (p.fields['Dorama']||'');
-      (doramaVal).toLowerCase() === nomeDorama.toLowerCase()
-    )?.id || null;
+      return p.fields['Tipo'] === 'Resenha' && doramaVal.toLowerCase() === nomeDorama.toLowerCase();
+    })?.id || null;
 
     const ratingFields=['Romance','Comédia','Fantasia','Química do Casal','OST','Ação','Drama','Roteiro'];
     const ratingsHTML=ratingFields.map(r=>{
