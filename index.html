@@ -1269,10 +1269,15 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       </div>
     </div>
     <!-- Filtro por tipo -->
-    <div style="padding:0 clamp(16px,4vw,48px) 16px;display:flex;gap:8px">
+    <div style="padding:0 clamp(16px,4vw,48px) 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <button class="blog-tab active" onclick="setDirTipo('')" data-dtype="">Todos</button>
       <button class="blog-tab" onclick="setDirTipo('Diretor')" data-dtype="Diretor">Diretores</button>
       <button class="blog-tab" onclick="setDirTipo('Roteirista')" data-dtype="Roteirista">Roteiristas</button>
+      <div style="flex:1"></div>
+      <button id="btn-novo-diretor" class="btn-new-drama" style="display:none" onclick="openMiniFormDirFromPage()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Novo
+      </button>
     </div>
     <div id="direcao-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:20px;padding:0 clamp(16px,4vw,48px) 48px;max-width:1600px;margin:0 auto"></div>
   </div>
@@ -3569,7 +3574,6 @@ function fdDirNovo(rowId, nome, tipo) {
   document.getElementById('form-dir-titulo').textContent = tipo === 'Roteirista' ? '✦ Novo Roteirista' : '✦ Novo Diretor';
   document.getElementById('fdir-nome').value = nome;
   document.getElementById('fdir-nome-kor').value = '';
-  document.getElementById('fdir-foto').value = '';
   document.getElementById('fdir-tipo').value = tipo;
   document.getElementById('form-dir-overlay').classList.add('open');
 }
@@ -3577,6 +3581,20 @@ function fdDirNovo(rowId, nome, tipo) {
 function closeMiniFormDir() {
   document.getElementById('form-dir-overlay').classList.remove('open');
   _fdDirCallback = null;
+}
+
+function openMiniFormDirFromPage() {
+  _fdDirCallback = () => {
+    // Recarrega a grid de diretores após criar
+    filterDirecao();
+  };
+  document.getElementById('form-dir-titulo').textContent = '✦ Novo Diretor/Roteirista';
+  document.getElementById('fdir-nome').value = '';
+  document.getElementById('fdir-nome-kor').value = '';
+  document.getElementById('fdir-tipo').value = 'Diretor';
+  fdirClearFoto();
+  document.getElementById('fdir-foto-url').value = '';
+  document.getElementById('form-dir-overlay').classList.add('open');
 }
 
 async function salvarMiniFormDir() {
@@ -6273,6 +6291,9 @@ let dirTipoFilter = '';
 async function renderDirecao() {
   const grid = document.getElementById('direcao-grid');
   if (!grid) return;
+  // Mostra botão de novo diretor só pra owner
+  const btnNovo = document.getElementById('btn-novo-diretor');
+  if (btnNovo) btnNovo.style.display = isOwner() ? '' : 'none';
   grid.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
   if (!allDirecao.length) {
     try {
