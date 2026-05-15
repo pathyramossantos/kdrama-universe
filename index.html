@@ -982,19 +982,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     <div class="home-updates-section">
       <div class="home-updates-inner">
 
-        <!-- Notícias -->
-        <div class="home-carousel-block">
-          <div class="home-section-header">
-            <div class="home-section-title">Notícias</div>
-            <button class="carousel-nav-btn" onclick="navigate('blog')">Ver tudo ↗</button>
-          </div>
-          <div class="home-carousel-wrap">
-            <button class="carousel-arrow carousel-arrow-left" onclick="carouselScroll('carousel-noticias',-1)">‹</button>
-            <div class="home-carousel" id="carousel-noticias"></div>
-            <button class="carousel-arrow carousel-arrow-right" onclick="carouselScroll('carousel-noticias',1)">›</button>
-          </div>
-        </div>
-
         <!-- Resenhas -->
         <div class="home-carousel-block">
           <div class="home-section-header">
@@ -1031,6 +1018,19 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             <button class="carousel-arrow carousel-arrow-left" onclick="carouselScroll('carousel-atores',-1)">‹</button>
             <div class="home-carousel" id="carousel-atores"></div>
             <button class="carousel-arrow carousel-arrow-right" onclick="carouselScroll('carousel-atores',1)">›</button>
+          </div>
+        </div>
+
+        <!-- Notícias -->
+        <div class="home-carousel-block">
+          <div class="home-section-header">
+            <div class="home-section-title">Notícias</div>
+            <button class="carousel-nav-btn" onclick="navigate('blog')">Ver tudo ↗</button>
+          </div>
+          <div class="home-carousel-wrap">
+            <button class="carousel-arrow carousel-arrow-left" onclick="carouselScroll('carousel-noticias',-1)">‹</button>
+            <div class="home-carousel" id="carousel-noticias"></div>
+            <button class="carousel-arrow carousel-arrow-right" onclick="carouselScroll('carousel-noticias',1)">›</button>
           </div>
         </div>
 
@@ -5509,6 +5509,10 @@ function renderBlogSidebar() {
   }
 
   // Ranking
+  // Mostrar tabelinha de experiências só quando filtrado por Resenha
+  const rankCard = document.getElementById('sidebar-ranking-card');
+  if (rankCard) rankCard.style.display = (blogFilter === 'Resenha') ? 'block' : 'none';
+
   const rankEl = document.getElementById('sidebar-ranking');
   if (rankEl) {
     const expOrder = ['Obra de Arte','Perfeito','Na Medida','Valeu a Pena','Faltou Algo','Não Recomendo'];
