@@ -1451,15 +1451,12 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <div class="form-sect">
         <div class="form-sect-title">Sinopse</div>
         <div class="fg">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-            <label class="fl">Sinopse</label>
-            <button class="btn-ai" onclick="fdGerarSinopse()">✨ Gerar com IA</button>
-          </div>
+          <label class="fl">Sinopse</label>
           <textarea class="fta" id="fd-sinopse" placeholder="Resumo da história…" style="min-height:110px"></textarea>
         </div>
       </div>
 
-      <!-- Gêneros -->
+      <!-- Gêneros + Plataformas -->
       <div class="form-sect">
         <div class="form-sect-title">Gêneros</div>
         <div class="genre-wrap" id="fd-generos">
@@ -1484,6 +1481,15 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         </div>
       </div>
 
+      <!-- Plataformas -->
+      <div class="form-sect">
+        <div class="form-sect-title">Plataformas</div>
+        <div class="genre-wrap" id="fd-plataformas">
+          <!-- preenchido por fdPopularPlataformas() -->
+          <span style="color:var(--text3);font-size:.8rem">Carregando…</span>
+        </div>
+      </div>
+
       <!-- Galeria -->
       <div class="form-sect">
         <div class="form-sect-title">Galeria</div>
@@ -1500,17 +1506,20 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <!-- Elenco -->
       <div class="form-sect">
         <div class="form-sect-title">Elenco</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 130px 36px;gap:8px;margin-bottom:6px">
-          <span class="fl" style="font-size:.65rem">Nome do Ator</span>
-          <span class="fl" style="font-size:.65rem">Personagem</span>
-          <span class="fl" style="font-size:.65rem">Tipo</span>
-          <span></span>
-        </div>
-        
-        <div class="cast-list" id="fd-cast-list"></div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:4px 6px;text-transform:uppercase;letter-spacing:.06em">Ator/Atriz</th>
+              <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:4px 6px;text-transform:uppercase;letter-spacing:.06em">Personagem</th>
+              <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:4px 6px;text-transform:uppercase;letter-spacing:.06em">Tipo</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="fd-cast-list"></tbody>
+        </table>
         <button class="btn-add-cast" onclick="fdAddCastRow()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          Adicionar ator manualmente
+          Adicionar ator
         </button>
       </div>
     </div>
@@ -1811,6 +1820,7 @@ function atToSb(fields, tabela) {
     pais: fields['País'], status: fields['Status'], nota: fields['Nota'],
     avaliacao: fields['Avaliação'], experiencia: fields['Experiência'],
     generos: fields['Gêneros'], galeria: fields['Galeria'],
+    plataformas: fields['Plataformas'],
     romance: fields['Romance'], comedia: fields['Comédia'],
     fantasia: fields['Fantasia'], quimica_casal: fields['Química do Casal'],
     ost_nota: fields['OST'], acao: fields['Ação'], drama: fields['Drama'],
@@ -3257,24 +3267,32 @@ function fdAddCastRow(data={}) {
   const id = ++fdCastCounter;
   fdCastRows.push(id);
 
-  const row = document.createElement('div');
-  row.className = 'cast-row';
+  const row = document.createElement('tr');
   row.id = `cast-row-${id}`;
+  row.style.cssText = 'border-bottom:1px solid var(--border)';
   row.innerHTML = `
-    <div class="ac-wrap">
-      <input class="fi" id="cast-nome-${id}" placeholder="" value="${data.nome||''}" 
-        oninput="acBuscar(${id}, this.value)" onpaste="setTimeout(()=>acBuscar(${id}, this.value),50)" onblur="setTimeout(()=>acFechar(${id}),200)" autocomplete="off">
-      <div class="ac-list" id="ac-list-${id}"></div>
-    </div>
-    <input class="fi" id="cast-personagem-${id}" placeholder="" value="${data.personagem||''}">
-    <select id="cast-tipo-${id}">
-      <option value="Principal"${data.tipo==='Principal'?' selected':''}>Principal</option>
-      <option value="Secundário"${(data.tipo||'Secundário')==='Secundário'?' selected':''}>Secundário</option>
-      <option value="Participação especial"${data.tipo==='Participação especial'?' selected':''}>Part. especial</option>
-    </select>
-    <button class="cast-del" onclick="fdRemoveCastRow(${id})" title="Remover">✕</button>
+    <td style="padding:4px 6px">
+      <div class="ac-wrap" style="position:relative">
+        <input class="fi" id="cast-nome-${id}" placeholder="Nome do ator" value="${data.nome||''}" 
+          style="font-size:.82rem;padding:6px 10px"
+          oninput="acBuscar(${id}, this.value)" onpaste="setTimeout(()=>acBuscar(${id}, this.value),50)" onblur="setTimeout(()=>acFechar(${id}),200)" autocomplete="off">
+        <div class="ac-list" id="ac-list-${id}"></div>
+      </div>
+    </td>
+    <td style="padding:4px 6px">
+      <input class="fi" id="cast-personagem-${id}" placeholder="Nome do personagem" value="${data.personagem||''}" style="font-size:.82rem;padding:6px 10px">
+    </td>
+    <td style="padding:4px 6px">
+      <select id="cast-tipo-${id}" class="fs" style="font-size:.82rem;padding:6px 10px">
+        <option value="Principal"${data.tipo==='Principal'?' selected':''}>Principal</option>
+        <option value="Secundário"${(data.tipo||'Secundário')==='Secundário'?' selected':''}>Secundário</option>
+        <option value="Participação especial"${data.tipo==='Participação especial'?' selected':''}>Part. especial</option>
+      </select>
+    </td>
+    <td style="padding:4px 6px;text-align:center">
+      <button onclick="fdRemoveCastRow(${id})" title="Remover" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem;line-height:1">✕</button>
+    </td>
   `;
-  // Store selected ator id
   row.dataset.atorId = data.atorId || '';
   document.getElementById('fd-cast-list').appendChild(row);
 }
@@ -3283,6 +3301,26 @@ function fdRemoveCastRow(id) {
   const row = document.getElementById(`cast-row-${id}`);
   if(row) row.remove();
   fdCastRows = fdCastRows.filter(r => r !== id);
+}
+
+async function fdPopularPlataformas(selecionadas=[]) {
+  const wrap = document.getElementById('fd-plataformas');
+  if (!wrap) return;
+  // Usar allPlataformas ou buscar
+  let plats = allPlataformas.length ? allPlataformas : await fetchTable(TABLES.plataformas).catch(()=>[]);
+  wrap.innerHTML = plats.map(p => {
+    const nome = p.fields['Nome'] || '';
+    const sel = selecionadas.includes(nome) ? 'selected' : '';
+    return `<div class="gc ${sel}" onclick="fdTogglePlat(this,'${nome}')" data-plat="${nome}">${nome}</div>`;
+  }).join('') || '<span style="color:var(--text3);font-size:.8rem">Nenhuma plataforma cadastrada</span>';
+}
+
+function fdTogglePlat(el, nome) {
+  el.classList.toggle('selected');
+}
+
+function fdGetPlataformas() {
+  return [...document.querySelectorAll('#fd-plataformas .gc.selected')].map(el => el.dataset.plat);
 }
 
 function fdGetCastData() {
@@ -3482,6 +3520,9 @@ function openFormDorama(data={}, editId=null){
     el.classList.toggle('on', fdGenerosSel.includes(el.dataset.genre));
   });
 
+  // Plataformas
+  fdPopularPlataformas(data.plataformas||[]);
+
   // Ratings
   ['Romance','Comédia','Drama','Fantasia','Química do Casal','Ação','Roteiro','OST'].forEach(r=>{
     const val = data[r] || data.ratings?.[r];
@@ -3509,6 +3550,7 @@ function openFormDoramaEdit(serie){
     hancinema: f['Url Hancinema']||'',
     capaUrl: getPhoto(serie)||'',
     generos: f['Gêneros']||[],
+    plataformas: f['Plataformas']||[],
     'Romance':f['Romance'],'Comédia':f['Comédia'],'Drama':f['Drama'],
     'Fantasia':f['Fantasia'],'Química do Casal':f['Química do Casal'],
     'Ação':f['Ação'],'Roteiro':f['Roteiro'],'OST':f['OST']
@@ -3613,6 +3655,8 @@ async function fdSalvar(){
     const nota=document.getElementById('fd-nota').value;
     if(nota) fields['Nota']=parseFloat(nota);
     if(fdGenerosSel.length) fields['Gêneros']=fdGenerosSel;
+    const plataformasSel = fdGetPlataformas();
+    if(plataformasSel.length) fields['Plataformas']=plataformasSel;
 
     // Ratings
     ['Romance','Comédia','Drama','Fantasia','Química do Casal','Ação','Roteiro','OST'].forEach(r=>{
