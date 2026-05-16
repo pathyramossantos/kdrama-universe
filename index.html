@@ -2541,9 +2541,11 @@ async function renderDorama(id){
               const ef=e.fields;
               const name=a?(a.fields['Nome']||''):'';
               const ph=a?getPhoto(a,'Foto'):null;
-              const click=a?' onclick="navigate('ator',''+a.id+'')" oncontextmenu="cardContextMenu(event,'ator',''+a.id+'')"':'';
-              const photoEl=ph?('<img class="cast-photo" src="'+ph+'" alt="'+name+'" loading="lazy">'):'<div class="cast-photo-placeholder">👤</div>';
-              return '<div class="cast-card" style="position:relative"'+click+'>'+photoEl+'<div class="cast-info"><div class="cast-name">'+name+'</div><div class="cast-char">'+(ef['Personagem']||'')+'</div><div class="cast-type">'+(ef['Tipo']||'')+'</div></div></div>';
+              const aid=a?a.id:'';
+              const click=a?[' onclick="navigate(\'ator\',\'',aid,'\');return false;" oncontextmenu="cardContextMenu(event,\'ator\',\'',aid,'\');return false;"'].join(''):'';
+              const photoEl=ph?'<img class="cast-photo" src="'+ph+'" alt="'+name+'" loading="lazy">':'<div class="cast-photo-placeholder">👤</div>';
+              const info='<div class="cast-info"><div class="cast-name">'+name+'</div><div class="cast-char">'+(ef['Personagem']||'')+'</div><div class="cast-type">'+(ef['Tipo']||'')+'</div></div>';
+              return '<div class="cast-card" style="position:relative;cursor:'+(a?'pointer':'default')+'"'+click+'>'+photoEl+info+'</div>';
             }
             let html='<div class="section-title">Elenco</div>';
             Object.entries(grupos).forEach(([tipo,g])=>{
