@@ -2565,7 +2565,10 @@ function toggleEditMode(){
   if(tmdb) tmdb.style.display=editMode?'block':'none';
   const tmdbAtor=document.getElementById('tmdb-ator-box');
   if(tmdbAtor) tmdbAtor.style.display=editMode?'block':'none';
-  const bannerCtrl=document.getElementById('banner-controls');
+  // Abrir o banner-controls correto dependendo da página ativa
+  const pageAtorAtiva = document.getElementById('page-ator')?.classList.contains('active');
+  const bannerCtrlId = pageAtorAtiva ? 'banner-controls-ator' : 'banner-controls';
+  const bannerCtrl=document.getElementById(bannerCtrlId);
   if(bannerCtrl) bannerCtrl.style.display=editMode?'flex':'none';
   document.querySelectorAll('.editable').forEach(el=>el.setAttribute('contenteditable',editMode?'true':'false'));
 }
@@ -2575,10 +2578,10 @@ function applyEditModeToDOM() {
   const formAberto = document.querySelector('.form-overlay.open, .blog-form-overlay.open');
   if (formAberto) return;
 
-  const bannerCtrl = document.getElementById('banner-controls');
-  // Só mexe no banner-controls se ele não estiver aberto manualmente
-  if (bannerCtrl && bannerCtrl.style.display !== 'flex') {
-    bannerCtrl.style.display = editMode ? 'flex' : 'none';
+  const pageAtorAtivaApply = document.getElementById('page-ator')?.classList.contains('active');
+  const bannerCtrlApply = document.getElementById(pageAtorAtivaApply ? 'banner-controls-ator' : 'banner-controls');
+  if (bannerCtrlApply && bannerCtrlApply.style.display !== 'flex') {
+    bannerCtrlApply.style.display = editMode ? 'flex' : 'none';
   }
   const tmdb = document.getElementById('tmdb-box');
   if (tmdb) tmdb.style.display = editMode ? 'block' : 'none';
@@ -3202,7 +3205,7 @@ async function renderAtor(id){
 
     content.innerHTML=`
 
-    <div class="banner-controls" id="banner-controls" style="display:none">
+    <div class="banner-controls" id="banner-controls-ator" style="display:none">
       <div class="banner-ctrl-group">
         <label class="banner-ctrl-label">↕ Vertical</label>
         <input type="range" id="banner-pos-y" min="0" max="100" value="${parseInt(atorBannerPos.split(' ')[1]||'20')}" oninput="updateBannerPos()" class="banner-slider">
