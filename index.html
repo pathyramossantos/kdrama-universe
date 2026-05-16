@@ -2527,30 +2527,34 @@ async function renderDorama(id){
             ${gallery.map((url,i)=>`<img class="gallery-img" src="${url}" loading="lazy" onclick="openLightbox(${i},'drama')">`).join('')}
           </div>`:
           `<div class="section-title">Galeria</div><p style="color:var(--text3);font-size:.85rem;margin-bottom:24px">Nenhuma foto na galeria ainda. Adicione imagens no campo "Galeria" do Airtable.</p>`}
-        ${castRecords.length?`
-          <div class="section-title">Elenco</div>
-          ${(()=>{
+        ${(()=>{
+            if(!castRecords.length) return '';
             const grupos = {'Principal':[], 'Secundário':[], 'Participação especial':[]};
             castRecords.forEach(({elenco:e,ator:a})=>{
               const tipo = e.fields['Tipo']||'Secundário';
-              const grupo = grupos[tipo] ? tipo : 'Secundário';
-              grupos[grupo].push({e,a});
+              const key = grupos[tipo]!==undefined ? tipo : 'Secundário';
+              grupos[key].push({e,a});
             });
-            // Ordenar cada grupo alfabeticamente
             Object.values(grupos).forEach(g=>g.sort((x,y)=>(x.a?.fields['Nome']||'').localeCompare(y.a?.fields['Nome']||'','pt-BR')));
             const labels = {'Principal':'Principais','Secundário':'Secundários','Participação especial':'Part. Especial'};
-            return Object.entries(grupos).filter(([,g])=>g.length).map(([tipo,g])=>`
-              <div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:16px 0 8px;padding-left:2px">${labels[tipo]}</div>
-              <div class="cast-grid">
-                ${g.map(({e,a})=>{
-                  const ef=e.fields;
-                  const name=a?(a.fields['Nome']||''):'';
-                  const ph=a?getPhoto(a,'Foto'):null;
-                  return \`<div class="cast-card" style="position:relative"\${a?\` onclick="navigate('ator','\${a.id}')" oncontextmenu="cardContextMenu(event,'ator','\${a.id}')"\`:''} >\${ph?\`<img class="cast-photo" src="\${ph}" alt="\${name}" loading="lazy">\`:\`<div class="cast-photo-placeholder">👤</div>\`}<div class="cast-info"><div class="cast-name">\${name}</div><div class="cast-char">\${ef['Personagem']||''}</div><div class="cast-type">\${ef['Tipo']||''}</div></div></div>\`;
-                }).join('')}
-              </div>`).join('');
+            function castCardHTML(e,a){
+              const ef=e.fields;
+              const name=a?(a.fields['Nome']||''):'';
+              const ph=a?getPhoto(a,'Foto'):null;
+              const click=a?' onclick="navigate('ator',''+a.id+'')" oncontextmenu="cardContextMenu(event,'ator',''+a.id+'')"':'';
+              const photoEl=ph?('<img class="cast-photo" src="'+ph+'" alt="'+name+'" loading="lazy">'):'<div class="cast-photo-placeholder">👤</div>';
+              return '<div class="cast-card" style="position:relative"'+click+'>'+photoEl+'<div class="cast-info"><div class="cast-name">'+name+'</div><div class="cast-char">'+(ef['Personagem']||'')+'</div><div class="cast-type">'+(ef['Tipo']||'')+'</div></div></div>';
+            }
+            let html='<div class="section-title">Elenco</div>';
+            Object.entries(grupos).forEach(([tipo,g])=>{
+              if(!g.length) return;
+              html+='<div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:16px 0 8px;padding-left:2px">'+labels[tipo]+'</div>';
+              html+='<div class="cast-grid">';
+              g.forEach(({e,a})=>{ html+=castCardHTML(e,a); });
+              html+='</div>';
+            });
+            return html;
           })()}
-          `:''}
         ${dirDorama.length ? `
           <div class="section-title" style="margin-top:32px">Direção & Roteiro</div>
           <div class="cast-grid">
