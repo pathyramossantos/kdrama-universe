@@ -1455,9 +1455,10 @@ select.filter-select:focus{border-color:var(--gold-dim)}
                 </select>
               </div>
             </div>
-            <div class="form-row cols-2" style="margin:0">
+            <div class="form-row cols-3" style="margin:0">
               <div class="fg"><label class="fl">Ano</label><input class="fi" id="fd-ano" type="number" placeholder="2024"></div>
               <div class="fg"><label class="fl">Episódios</label><input class="fi" id="fd-eps" type="number" placeholder="16"></div>
+              <div class="fg"><label class="fl">Nota (0-10)</label><input class="fi" id="fd-nota" type="number" step="0.1" min="0" max="10" placeholder="9.5"></div>
             </div>
           </div>
         </div>
@@ -4014,6 +4015,7 @@ function openFormDorama(data={}, editId=null){
   setVal('fd-pais', data.pais||'');
   setVal('fd-ano', data.ano||'');
   setVal('fd-eps', data.eps||'');
+  setVal('fd-nota', data.nota||'');
   setVal('fd-sinopse', data.sinopse||'');
   setVal('fd-hancinema', data.hancinema||'');
   setVal('fd-capa-url', data.capaUrl||'');
@@ -4038,7 +4040,14 @@ function openFormDorama(data={}, editId=null){
   });
 
   // Plataformas
-  fdCarregarPlataformas(data.plataformas||[]);
+  fdPopularPlataformas(data.plataformas||[]);
+
+  // Ratings
+  ['Romance','Comédia','Drama','Fantasia','Química do Casal','Ação','Roteiro','OST'].forEach(r=>{
+    const val = data[r] || data.ratings?.[r];
+    if(val){ fdRatings[r]=val; fdUpdateStars(r,val); }
+    else { fdClearStars(r); }
+  });
 
   document.getElementById('form-dorama-overlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -4061,6 +4070,9 @@ async function openFormDoramaEdit(serie){
     capaUrl: getPhoto(serie)||'',
     generos: f['Gêneros']||[],
     plataformas: f['Plataformas']||[],
+    'Romance':f['Romance'],'Comédia':f['Comédia'],'Drama':f['Drama'],
+    'Fantasia':f['Fantasia'],'Química do Casal':f['Química do Casal'],
+    'Ação':f['Ação'],'Roteiro':f['Roteiro'],'OST':f['OST']
   }, serie.id);
 
   // Carregar direção e elenco existentes
@@ -4189,6 +4201,8 @@ async function fdSalvar(){
     if(ano) fields['Ano Lançamento']=parseInt(ano);
     const eps=document.getElementById('fd-eps').value;
     if(eps) fields['Episódios']=parseInt(eps);
+    const nota=document.getElementById('fd-nota').value;
+    if(nota) fields['Nota']=parseFloat(nota);
     if(fdGenerosSel.length) fields['Gêneros']=fdGenerosSel;
     const plataformasSel = fdGetPlataformas();
     if(plataformasSel.length) fields['Plataformas']=plataformasSel;
