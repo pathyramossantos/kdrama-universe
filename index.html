@@ -3217,7 +3217,7 @@ async function renderAtor(id){
     content.innerHTML=`
     ${tmdbActorBox}
 
-    <div class="banner-controls" id="banner-controls" style="display:none">
+    <div class="banner-controls" id="banner-controls" style="display:none;padding-left:200px">
       <div class="banner-ctrl-group">
         <label class="banner-ctrl-label">↕ Posição Vertical</label>
         <input type="range" id="banner-pos-y" min="0" max="100" value="${parseInt(atorBannerPos.split(' ')[1]||'20')}" oninput="updateBannerPos()" class="banner-slider">
