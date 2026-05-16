@@ -4040,13 +4040,6 @@ function openFormDorama(data={}, editId=null){
   // Plataformas
   fdCarregarPlataformas(data.plataformas||[]);
 
-  // Ratings
-  ['Romance','Comédia','Drama','Fantasia','Química do Casal','Ação','Roteiro','OST'].forEach(r=>{
-    const val = data[r] || data.ratings?.[r];
-    if(val){ fdRatings[r]=val; fdUpdateStars(r,val); }
-    else { fdClearStars(r); }
-  });
-
   document.getElementById('form-dorama-overlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -4068,9 +4061,6 @@ async function openFormDoramaEdit(serie){
     capaUrl: getPhoto(serie)||'',
     generos: f['Gêneros']||[],
     plataformas: f['Plataformas']||[],
-    'Romance':f['Romance'],'Comédia':f['Comédia'],'Drama':f['Drama'],
-    'Fantasia':f['Fantasia'],'Química do Casal':f['Química do Casal'],
-    'Ação':f['Ação'],'Roteiro':f['Roteiro'],'OST':f['OST']
   }, serie.id);
 
   // Carregar direção e elenco existentes
