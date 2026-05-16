@@ -2348,6 +2348,18 @@ function loadMoreBtn(total, shown){
 // ── DORAMA DETAIL ─────────────────────────────────────────
 let currentSerie = null;
 
+const _platLogos = {
+  'Netflix': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#141414"/><path d="M7 4h2.5v6.8L13.5 4H16v16h-2.5V13.2L9.5 20H7z" fill="#E50914"/></svg>',
+  'Prime Video': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1A1A2E"/><text x="12" y="14" text-anchor="middle" font-size="5.5" font-weight="bold" fill="#00A8E0" font-family="Arial">prime</text></svg>',
+  'Disney Plus': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#0C1445"/><text x="12" y="11" text-anchor="middle" font-size="5" font-weight="bold" fill="#1DAFEC" font-family="Arial">DISNEY</text><text x="12" y="19" text-anchor="middle" font-size="8" font-weight="bold" fill="white" font-family="Arial">+</text></svg>',
+  'Apple TV': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1C1C1E"/><text x="12" y="14" text-anchor="middle" font-size="5" font-weight="300" fill="white" font-family="Arial">Apple TV+</text></svg>',
+  'HBO Max': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#002BE7"/><text x="12" y="16" text-anchor="middle" font-size="8" font-weight="bold" fill="white" font-family="Arial">MAX</text></svg>',
+  'Viki': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1DAFEC"/><text x="12" y="16" text-anchor="middle" font-size="9" font-weight="bold" fill="white" font-family="Arial">Viki</text></svg>',
+  'iQIYI': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#00BE06"/><text x="12" y="16" text-anchor="middle" font-size="7" font-weight="bold" fill="white" font-family="Arial">iQIYI</text></svg>',
+  'Kocowa': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#E4002B"/><text x="12" y="15" text-anchor="middle" font-size="5.5" font-weight="bold" fill="white" font-family="Arial">KOCOWA</text></svg>',
+  'Telegram': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#2AABEE"/><path d="M5 12.5l3.5 3.5 9.5-9.5" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
 async function renderDorama(id){
   const content=document.getElementById('dorama-content');
   content.innerHTML=`<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>`;
@@ -2472,8 +2484,13 @@ async function renderDorama(id){
         <div class="detail-badges">
           ${statusBadge(f['Status'])} ${generos}
         </div>
-        ${(f['Plataformas']||[]).length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-          ${(f['Plataformas']||[]).map(p=>`<span style="padding:4px 10px;border-radius:20px;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.2)">${p}</span>`).join('')}
+        ${(f['Plataformas']||[]).length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">
+          ${(f['Plataformas']||[]).map(p=>{
+            const svg = _platLogos[p];
+            return svg
+              ? `<span title="${p}" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);overflow:hidden;flex-shrink:0">${svg}</span>`
+              : `<span style="padding:4px 10px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.2)">${p}</span>`;
+          }).join('')}
         </div>` : ''}
       </div>
     </div>
