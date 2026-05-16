@@ -1103,10 +1103,12 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
   <!-- DORAMA DETAIL -->
   <div class="page" id="page-dorama">
-    <div style="position:absolute;z-index:10;display:flex;align-items:center;gap:8px;padding:16px clamp(16px,4vw,48px);">
+    <div style="position:absolute;z-index:10;top:16px;left:clamp(16px,4vw,48px)">
       <button class="back-btn" style="margin:0;background:rgba(10,10,12,.6);backdrop-filter:blur(10px)" onclick="navigate('home')">← Voltar</button>
-      <button class="edit-toggle" id="dorama-edit-toggle" style="background:rgba(10,10,12,.6);backdrop-filter:blur(10px)" onclick="toggleEditMode()">✏️ Editar</button>
-      <button class="edit-toggle" onclick="editCurrentDorama()" style="background:var(--gold);color:#0a0a0c;border-color:var(--gold)">📝 Formulário</button>
+    </div>
+    <div style="position:absolute;z-index:10;top:16px;right:clamp(16px,4vw,48px);display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+      <button class="edit-toggle" id="dorama-edit-toggle" data-keep-label style="background:rgba(10,10,12,.6);backdrop-filter:blur(10px);width:130px;text-align:center" onclick="toggleEditMode()">🖼 Banner</button>
+      <button class="edit-toggle" data-keep-label onclick="editCurrentDorama()" style="background:var(--gold);color:#0a0a0c;border-color:var(--gold);width:130px;text-align:center">📝 Cadastro</button>
     </div>
     <div id="dorama-content"></div>
   </div>
@@ -2420,15 +2422,7 @@ async function renderDorama(id){
 
     const generos=(f['Gêneros']||[]).map(g=>`<span class="badge badge-exp">${g}</span>`).join('');
 
-    // TMDB search box (só em edit mode)
-    const tmdbBox=`<div class="tmdb-search-box" id="tmdb-box" style="display:none">
-      <h4>🎬 Buscar no TMDB — preenche automaticamente</h4>
-      <div class="tmdb-row">
-        <input class="tmdb-input" id="tmdb-search-input" placeholder="Nome do dorama em inglês ou coreano…" value="${f['Nome']||''}">
-        <button class="btn-gold btn-sm" onclick="searchTMDB()">Buscar</button>
-      </div>
-      <div class="tmdb-results" id="tmdb-results"></div>
-    </div>`;
+    const tmdbBox='';
   setTimeout(() => applyEditModeToDOM(), 100);
   setTimeout(() => applyEditModeToDOM(), 500);
 
