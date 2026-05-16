@@ -3204,18 +3204,7 @@ async function renderAtor(id){
     if (rawBannerUrl) localStorage.setItem(`kdrama_atorbannerurl_${id}`, rawBannerUrl);
     const atorBannerSrc = atorBannerUrl || photo;
 
-    const tmdbActorBox=`<div class="tmdb-search-box" id="tmdb-ator-box" style="display:none;border-radius:0;border-left:none;border-right:none;margin:0">
-      <h4>🎬 Buscar ator no TMDB — preenche automaticamente</h4>
-      <div class="tmdb-row">
-        <input class="tmdb-input" id="tmdb-ator-input" placeholder="Nome do ator em inglês ou coreano…" value="${f['Nome']||''}">
-        <button class="btn-gold btn-sm" onclick="searchTMDBator()">Buscar</button>
-        <button class="btn-outline btn-sm" id="reimport-btn" onclick="reimportTMDBator()" style="display:none">🔄 Reimportar</button>
-      </div>
-      <div class="tmdb-results" id="tmdb-ator-results"></div>
-    </div>`;
-
     content.innerHTML=`
-    ${tmdbActorBox}
 
     <div class="banner-controls" id="banner-controls" style="display:none;padding-left:200px">
       <div class="banner-ctrl-group">
