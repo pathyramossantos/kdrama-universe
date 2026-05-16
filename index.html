@@ -1706,6 +1706,20 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 60%)"></div>
             <div style="position:absolute;bottom:12px;left:16px;font-size:.8rem;color:#fff;opacity:.7">Preview do banner</div>
           </div>
+          <!-- Sliders de posição -->
+          <div id="fa-banner-pos-wrap" style="display:none;margin-top:12px;background:rgba(255,255,255,.05);border-radius:10px;padding:14px 16px;border:1px solid var(--border)">
+            <div style="font-size:.68rem;color:var(--text3);margin-bottom:10px;text-align:center;letter-spacing:.05em;text-transform:uppercase">Ajustar posição da imagem</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <span style="font-size:.85rem;color:var(--text3);width:14px;text-align:center">↕</span>
+              <input type="range" id="fa-banner-pos-y" min="0" max="100" value="20" style="flex:1;accent-color:var(--gold)" oninput="faUpdateBannerPos()">
+              <span id="fa-banner-pos-y-val" style="font-size:.72rem;color:var(--gold);width:32px;text-align:right">20%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:.85rem;color:var(--text3);width:14px;text-align:center">↔</span>
+              <input type="range" id="fa-banner-pos-x" min="0" max="100" value="50" style="flex:1;accent-color:var(--gold)" oninput="faUpdateBannerPos()">
+              <span id="fa-banner-pos-x-val" style="font-size:.72rem;color:var(--gold);width:32px;text-align:right">50%</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -4286,6 +4300,7 @@ function openFormAtor(ator=null){
   const faRes=document.getElementById('fa-tmdb-results'); if(faRes) faRes.innerHTML='';
   document.getElementById('fa-status-msg').textContent='';
   document.getElementById('fa-banner-preview-wrap').style.display='none';
+  const faPos = document.getElementById('fa-banner-pos-wrap'); if(faPos) faPos.style.display='none';
   faClearFoto();
 
   if(ator){
@@ -4322,10 +4337,35 @@ function closeFormAtor(){
 
 function faPreviewBanner(url) {
   const wrap = document.getElementById('fa-banner-preview-wrap');
+  const posWrap = document.getElementById('fa-banner-pos-wrap');
   const img = document.getElementById('fa-banner-preview-img');
-  if (!url) { wrap.style.display='none'; return; }
+  if (!url) { wrap.style.display='none'; if(posWrap) posWrap.style.display='none'; return; }
   img.src = url;
   wrap.style.display = 'block';
+  if(posWrap) posWrap.style.display = 'block';
+  // Carregar posição salva do ator em edição
+  if(faEditId) {
+    const saved = allAtores.find(a=>a.id===faEditId)?.fields?.['Banner_Position'] 
+               || localStorage.getItem(`kdrama_atorbannerpos_${faEditId}`) 
+               || '50% 20%';
+    const parts = saved.split(' ');
+    const x = parseInt(parts[0]) || 50;
+    const y = parseInt(parts[1]) || 20;
+    const slX = document.getElementById('fa-banner-pos-x');
+    const slY = document.getElementById('fa-banner-pos-y');
+    if(slX){ slX.value = x; document.getElementById('fa-banner-pos-x-val').textContent = x+'%'; }
+    if(slY){ slY.value = y; document.getElementById('fa-banner-pos-y-val').textContent = y+'%'; }
+    img.style.objectPosition = `${x}% ${y}%`;
+  }
+}
+
+function faUpdateBannerPos() {
+  const x = document.getElementById('fa-banner-pos-x').value;
+  const y = document.getElementById('fa-banner-pos-y').value;
+  document.getElementById('fa-banner-pos-x-val').textContent = x+'%';
+  document.getElementById('fa-banner-pos-y-val').textContent = y+'%';
+  const img = document.getElementById('fa-banner-preview-img');
+  if(img) img.style.objectPosition = `${x}% ${y}%`;
 }
 
 function faUsarFotoComoBanner() {
@@ -4665,6 +4705,12 @@ async function faSalvar(){
     const bannerFinal = (bannerUrl && !bannerUrl.startsWith('blob:') ? bannerUrl : null) 
                      || (fotoUrl && !fotoUrl.startsWith('blob:') ? fotoUrl : null);
     if(bannerFinal) fields['Banner_Url']=bannerFinal;
+    // Salvar posição do banner se os sliders estiverem visíveis
+    const slX = document.getElementById('fa-banner-pos-x');
+    const slY = document.getElementById('fa-banner-pos-y');
+    if(slX && slY && document.getElementById('fa-banner-pos-wrap')?.style.display !== 'none') {
+      fields['Banner_Position'] = `${slX.value}% ${slY.value}%`;
+    }
 
     bar.style.width='70%';
     let record;
