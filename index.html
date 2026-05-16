@@ -1458,7 +1458,19 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             <div class="form-row cols-3" style="margin:0">
               <div class="fg"><label class="fl">Ano</label><input class="fi" id="fd-ano" type="number" placeholder="2024"></div>
               <div class="fg"><label class="fl">Episódios</label><input class="fi" id="fd-eps" type="number" placeholder="16"></div>
-              <div class="fg"><label class="fl">Nota (0-10)</label><input class="fi" id="fd-nota" type="number" step="0.1" min="0" max="10" placeholder="9.5"></div>
+              <div class="fg"><label class="fl">Plataformas</label>
+                <select class="fi" id="fd-plataformas-sel" multiple style="height:80px;padding:4px 8px;font-size:.82rem">
+                  <option value="Netflix">Netflix</option>
+                  <option value="Prime Video">Prime Video</option>
+                  <option value="Disney Plus">Disney Plus</option>
+                  <option value="Apple TV">Apple TV</option>
+                  <option value="HBO Max">HBO Max</option>
+                  <option value="Viki">Viki</option>
+                  <option value="iQIYI">iQIYI</option>
+                  <option value="Kocowa">Kocowa</option>
+                  <option value="Telegram">Telegram</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -1503,14 +1515,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         </div>
       </div>
 
-      <!-- Plataformas -->
-      <div class="form-sect">
-        <div class="form-sect-title">Plataformas</div>
-        <div class="genre-wrap" id="fd-plataformas">
-          <!-- preenchido por fdPopularPlataformas() -->
-          <span style="color:var(--text3);font-size:.8rem">Carregando…</span>
-        </div>
-      </div>
 
       <!-- Galeria -->
       <div class="form-sect">
@@ -3747,7 +3751,9 @@ function fdTogglePlat(el, nome) {
 }
 
 function fdGetPlataformas() {
-  return [...document.querySelectorAll('#fd-plataformas .gc.selected')].map(el => el.dataset.plat);
+  const sel = document.getElementById('fd-plataformas-sel');
+  if (!sel) return [];
+  return [...sel.options].filter(o => o.selected).map(o => o.value);
 }
 
 function fdGetCastData() {
@@ -4015,7 +4021,6 @@ function openFormDorama(data={}, editId=null){
   setVal('fd-pais', data.pais||'');
   setVal('fd-ano', data.ano||'');
   setVal('fd-eps', data.eps||'');
-  setVal('fd-nota', data.nota||'');
   setVal('fd-sinopse', data.sinopse||'');
   setVal('fd-hancinema', data.hancinema||'');
   setVal('fd-capa-url', data.capaUrl||'');
@@ -4040,7 +4045,12 @@ function openFormDorama(data={}, editId=null){
   });
 
   // Plataformas
-  fdPopularPlataformas(data.plataformas||[]);
+  // Popular select de plataformas
+  const platSel = document.getElementById('fd-plataformas-sel');
+  if (platSel) {
+    const plats = data.plataformas || [];
+    [...platSel.options].forEach(o => { o.selected = plats.includes(o.value); });
+  }
 
   // Ratings
   ['Romance','Comédia','Drama','Fantasia','Química do Casal','Ação','Roteiro','OST'].forEach(r=>{
@@ -4201,8 +4211,6 @@ async function fdSalvar(){
     if(ano) fields['Ano Lançamento']=parseInt(ano);
     const eps=document.getElementById('fd-eps').value;
     if(eps) fields['Episódios']=parseInt(eps);
-    const nota=document.getElementById('fd-nota').value;
-    if(nota) fields['Nota']=parseFloat(nota);
     if(fdGenerosSel.length) fields['Gêneros']=fdGenerosSel;
     const plataformasSel = fdGetPlataformas();
     if(plataformasSel.length) fields['Plataformas']=plataformasSel;
