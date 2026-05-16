@@ -2940,10 +2940,9 @@ function saveAatorBannerPos(){
   const y=document.getElementById('banner-pos-y')?.value||20;
   const pos=`${x}% ${y}%`;
   localStorage.setItem(`kdrama_atorbannerpos_${currentRecordId}`,pos);
-  // Prioriza URL do Supabase, depois localStorage, depois foto do ator
-  const url = currentAtor?.fields?.['Banner_Url']
-    || localStorage.getItem(`kdrama_atorbannerurl_${currentRecordId}`)
-    || currentAtor?.fields?.['Foto']?.[0]?.url
+  // Prioriza localStorage (mais recente que pode ter sido colado agora), depois Supabase
+  const url = localStorage.getItem(`kdrama_atorbannerurl_${currentRecordId}`)
+    || currentAtor?.fields?.['Banner_Url']
     || getPhoto(currentAtor,'Foto')
     || '';
   bannerSalvarAirtable(currentRecordId, 'ator', { pos, url });
@@ -2973,7 +2972,14 @@ function changeAatorBannerUrl(){
   const img=document.getElementById('banner-img');
   if(img) img.src=url;
   localStorage.setItem(`kdrama_atorbannerurl_${currentRecordId}`,url);
-  showToast('Imagem aplicada e salva no navegador ✓');
+  // Atualiza currentAtor em memória para evitar URL antiga sobrescrever
+  if(currentAtor?.fields) currentAtor.fields['Banner_Url'] = url;
+  // Salva direto no Supabase — não depende do "Salvar Posição"
+  const x=document.getElementById('banner-pos-x')?.value||50;
+  const y=document.getElementById('banner-pos-y')?.value||20;
+  const pos=`${x}% ${y}%`;
+  bannerSalvarAirtable(currentRecordId, 'ator', { pos, url });
+  showToast('Imagem salva ✓');
 }
 
 // ── GALLERY LIGHTBOX ──────────────────────────────────────
@@ -3047,17 +3053,22 @@ async function renderAtor(id){
   const content=document.getElementById('ator-content');
   content.innerHTML=`<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>`;
   try{
-    // Sempre busca fresco do Supabase para ter banner_url/position atualizados
-    let ator = null;
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(id);
-    try {
-      const filtro = isUUID ? `id=eq.${id}` : `airtable_id=eq.${id}`;
-      const res = await fetch(`${SB_URL}/rest/v1/atores?${filtro}&select=*`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
-      const rows = await res.json();
-      if(rows[0]) ator = sbToAt({...rows[0], airtable_id: rows[0].airtable_id || rows[0].id}, 'atores');
-    } catch(_) {}
-    // Fallback pro cache local se Supabase falhar
-    if(!ator || !ator.fields) ator = allAtores.find(a=>a.id===id) || null;
+    let ator=allAtores.find(a=>a.id===id);
+    if(!ator || !ator.fields){
+      const recs = await fetchTable(TABLES.atores, {formula:`RECORD_ID()='${id}'`});
+      ator = recs[0] || null;
+    }
+    // Fallback: buscar por UUID do Supabase (atores criados sem airtable_id)
+    if(!ator || !ator.fields){
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(id);
+      if(isUUID){
+        try{
+          const res = await fetch(`${SB_URL}/rest/v1/atores?id=eq.${id}&select=*`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+          const rows = await res.json();
+          if(rows[0]) ator = sbToAt({...rows[0], airtable_id: rows[0].airtable_id || rows[0].id}, 'atores');
+        }catch(_){}
+      }
+    }
     if(!ator || !ator.fields){
       content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Ator não encontrado.</p></div>`;
       return;
