@@ -2560,9 +2560,9 @@ function toggleEditMode(){
   document.body.classList.toggle('edit-mode',editMode);
   const btns=document.querySelectorAll('.edit-toggle');
   btns.forEach(b=>{
-    b.classList.toggle('active',editMode);
-    // Não reescrever botões com label próprio
+    // Só muda active/texto nos botões genéricos de edição
     if (!b.dataset.keepLabel) {
+      b.classList.toggle('active',editMode);
       b.textContent=editMode?'✅ Modo Edição ON':'✏️ Editar';
     }
   });
