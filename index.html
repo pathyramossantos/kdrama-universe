@@ -1143,11 +1143,13 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
   <!-- ATOR DETAIL -->
   <div class="page" id="page-ator">
-    <div style="position:absolute;z-index:10;display:flex;align-items:center;gap:8px;padding:16px clamp(16px,4vw,48px);flex-wrap:wrap">
+    <div style="position:absolute;z-index:10;padding:16px clamp(16px,4vw,48px);display:flex;flex-direction:column;align-items:flex-start;gap:8px">
       <button class="back-btn" style="margin:0;background:rgba(10,10,12,.6);backdrop-filter:blur(10px)" onclick="navigate('atores')">← Voltar para Atores</button>
-      <button class="edit-toggle" id="ator-edit-toggle" style="background:rgba(10,10,12,.6);backdrop-filter:blur(10px)" onclick="toggleEditMode()">🖼 Banner</button>
-      <button class="edit-toggle" id="btn-cadastro-ator" data-keep-label onclick="editCurrentAtor()" style="background:var(--gold);color:#0a0a0c;border-color:var(--gold)">📝 Cadastro</button>
-      <button class="edit-toggle" id="btn-excluir-ator" data-keep-label onclick="excluirAtorAtual()" style="display:none;background:rgba(180,40,40,.7);border-color:rgba(220,60,60,.5);color:#fff;backdrop-filter:blur(10px)">🗑 Excluir</button>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+        <button class="edit-toggle" id="ator-edit-toggle" style="background:rgba(10,10,12,.6);backdrop-filter:blur(10px);width:120px;text-align:left" onclick="toggleEditMode()">🖼 Banner</button>
+        <button class="edit-toggle" id="btn-cadastro-ator" data-keep-label onclick="editCurrentAtor()" style="background:var(--gold);color:#0a0a0c;border-color:var(--gold);width:120px;text-align:left">📝 Cadastro</button>
+        <button class="edit-toggle" id="btn-excluir-ator" data-keep-label onclick="excluirAtorAtual()" style="display:none;background:rgba(180,40,40,.7);border-color:rgba(220,60,60,.5);color:#fff;backdrop-filter:blur(10px);width:120px;text-align:left">🗑 Excluir</button>
+      </div>
     </div>
     <div id="ator-content"></div>
   </div>
