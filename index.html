@@ -2530,7 +2530,7 @@ async function renderDorama(id){
               const ef=e.fields;
               const name=a?(a.fields['Nome']||''):'';
               const ph=a?getPhoto(a,'Foto'):null;
-              return`<div class="cast-card" style="position:relative"${a?` onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')"`:''} >${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div>${isOwner()?`<button onclick="event.stopPropagation();editarElenco('${e.id}','${(ef['Personagem']||'').replace(/'/g,"\\'")}','${(ef['Tipo']||'').replace(/'/g,"\\'")}',event)" style="position:absolute;top:6px;right:6px;background:rgba(10,10,12,.75);border:1px solid var(--gold-dim);color:var(--gold);border-radius:6px;padding:3px 7px;font-size:.7rem;cursor:pointer;backdrop-filter:blur(6px);z-index:5" title="Editar personagem">✏️</button>`:''}</div>`;
+              return`<div class="cast-card" style="position:relative"${a?` onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')"`:''} >${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div></div>`;
             }).join('')}
           </div>`:''}
         ${dirDorama.length ? `
