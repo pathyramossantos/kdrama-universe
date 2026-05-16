@@ -1078,22 +1078,25 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       </div>
       <div class="filter-group" id="genre-filters">
         <button class="filter-chip active" data-genre="">Todos</button>
-        <button class="filter-chip" data-genre="Romance">Romance</button>
-        <button class="filter-chip" data-genre="Comédia">Comédia</button>
-        <button class="filter-chip" data-genre="Drama">Drama</button>
-        <button class="filter-chip" data-genre="Fantasia">Fantasia</button>
         <button class="filter-chip" data-genre="Ação">Ação</button>
-        <button class="filter-chip" data-genre="Suspense">Suspense</button>
-        <button class="filter-chip" data-genre="Histórico">Histórico</button>
+        <button class="filter-chip" data-genre="Adulto">Adulto</button>
+        <button class="filter-chip" data-genre="Comédia">Comédia</button>
+        <button class="filter-chip" data-genre="Direito">Direito</button>
+        <button class="filter-chip" data-genre="Drama">Drama</button>
+        <button class="filter-chip" data-genre="Época/Histórico">Época/Histórico</button>
+        <button class="filter-chip" data-genre="Fantasia">Fantasia</button>
+        <button class="filter-chip" data-genre="Ficção Científica (Sci-Fi)">Ficção Científica</button>
+        <button class="filter-chip" data-genre="Melodrama">Melodrama</button>
         <button class="filter-chip" data-genre="Mistério">Mistério</button>
+        <button class="filter-chip" data-genre="Negócios">Negócios</button>
+        <button class="filter-chip" data-genre="Psicológico">Psicológico</button>
+        <button class="filter-chip" data-genre="Romance">Romance</button>
+        <button class="filter-chip" data-genre="Sobrenatural">Sobrenatural</button>
+        <button class="filter-chip" data-genre="Suspense/Thriller">Suspense/Thriller</button>
+        <button class="filter-chip" data-genre="Terror/Horror">Terror/Horror</button>
+        <button class="filter-chip" data-genre="Vida">Vida</button>
       </div>
-      <select class="filter-select" id="status-filter">
-        <option value="">Todos os Status</option>
-        <option value="Concluído">Concluído</option>
-        <option value="Assistindo">Assistindo</option>
-        <option value="Na fila">Na fila</option>
-        <option value="Abandonado">Abandonado</option>
-      </select>
+
       <select class="filter-select" id="platform-filter">
         <option value="">Todas as Plataformas</option>
       </select>
@@ -2240,7 +2243,7 @@ function populatePlatformFilter(){
   const sel=document.getElementById('platform-filter');
   const existing=new Set([...sel.options].map(o=>o.value));
   allPlataformas.forEach(p=>{
-    const name=p.fields['Nome'];
+    const name=p.nome || (p.fields&&p.fields['Nome']);
     if(name&&!existing.has(name)){
       const opt=document.createElement('option');
       opt.value=name;opt.textContent=name;
@@ -2307,8 +2310,7 @@ async function renderHome(resetPage=true){
 
   let filtered=allSeries;
   if(activeGenre) filtered=filtered.filter(s=>(s.fields['Gêneros']||[]).includes(activeGenre));
-  if(activeStatus) filtered=filtered.filter(s=>s.fields['Status']===activeStatus);
-  if(activePlatform) filtered=filtered.filter(s=>(s.fields['Plataformas']||[]).some(pid=>{const p=allPlataformas.find(x=>x.id===pid);return p&&p.fields['Nome']===activePlatform;}));
+  if(activePlatform) filtered=filtered.filter(s=>(s.fields['Plataformas']||[]).includes(activePlatform));
   if(searchQuery){const q=searchQuery.toLowerCase();filtered=filtered.filter(s=>(s.fields['Nome']||'').toLowerCase().includes(q));}
 
   currentFiltered=filtered;
@@ -3391,7 +3393,7 @@ document.querySelectorAll('#genre-filters .filter-chip').forEach(btn=>{
     renderHome();
   });
 });
-document.getElementById('status-filter').addEventListener('change',e=>{activeStatus=e.target.value;renderHome();});
+
 document.getElementById('platform-filter').addEventListener('change',e=>{activePlatform=e.target.value;renderHome();});
 let st;
 document.getElementById('search-input').addEventListener('input',e=>{
