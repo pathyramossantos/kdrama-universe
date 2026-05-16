@@ -2982,6 +2982,34 @@ function changeAatorBannerUrl(){
   showToast('Imagem salva ✓');
 }
 
+// ── LIMPEZA DE BLOB URLs NO SUPABASE ───────────────────────
+async function limparBlobUrls() {
+  if (!isOwner()) return;
+  showToast('Limpando URLs inválidas…');
+  try {
+    // Buscar todos os atores com banner_url começando com blob:
+    const res = await fetch(`${SB_URL}/rest/v1/atores?banner_url=like.blob:*&select=id,nome,foto,banner_url`, {
+      headers: {'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`}
+    });
+    const rows = await res.json();
+    if (!rows.length) { showToast('Nenhuma URL inválida encontrada ✓'); return; }
+    let corrigidos = 0;
+    for (const row of rows) {
+      // Substituir blob por foto ou null
+      const foto = row.foto && !row.foto.startsWith('blob:') ? row.foto : null;
+      await fetch(`${SB_URL}/rest/v1/atores?id=eq.${row.id}`, {
+        method: 'PATCH',
+        headers: SB_HEADERS,
+        body: JSON.stringify({ banner_url: foto || null })
+      });
+      corrigidos++;
+    }
+    showToast(`✓ ${corrigidos} ator(es) corrigidos`);
+  } catch(e) {
+    showToast('Erro: ' + e.message);
+  }
+}
+
 // ── GALLERY LIGHTBOX ──────────────────────────────────────
 function openLightbox(idx,src){
   const imgs = src==='drama' ? window._dramaGallery : window._atorGallery;
@@ -3168,9 +3196,10 @@ async function renderAtor(id){
       </div>` : '';
 
     const atorBannerPos = f['Banner_Position'] || localStorage.getItem(`kdrama_atorbannerpos_${id}`) || '50% 20%';
-    const atorBannerUrl = f['Banner_Url'] || localStorage.getItem(`kdrama_atorbannerurl_${id}`);
+    const rawBannerUrl = f['Banner_Url'] && !f['Banner_Url'].startsWith('blob:') ? f['Banner_Url'] : null;
+    const atorBannerUrl = rawBannerUrl || localStorage.getItem(`kdrama_atorbannerurl_${id}`);
     if (f['Banner_Position']) localStorage.setItem(`kdrama_atorbannerpos_${id}`, f['Banner_Position']);
-    if (f['Banner_Url']) localStorage.setItem(`kdrama_atorbannerurl_${id}`, f['Banner_Url']);
+    if (rawBannerUrl) localStorage.setItem(`kdrama_atorbannerurl_${id}`, rawBannerUrl);
     const atorBannerSrc = atorBannerUrl || photo;
 
     const tmdbActorBox=`<div class="tmdb-search-box" id="tmdb-ator-box" style="display:none;border-radius:0;border-left:none;border-right:none;margin:0">
@@ -4266,7 +4295,9 @@ function openFormAtor(ator=null){
     if(foto){ faFotoUrlFinal=foto; setVal('fa-foto-url',foto); faShowFoto(foto); }
     // Preview do banner se tiver url salva
     const bannerUrl = f['Banner_Url'] || foto;
-    if(bannerUrl){ setVal('fa-banner-url-preview', bannerUrl); faPreviewBanner(bannerUrl); }
+    // Nunca usar blob URLs — são temporárias e somem ao fechar a página
+    const bannerUrlFinal = bannerUrl && !bannerUrl.startsWith('blob:') ? bannerUrl : null;
+    if(bannerUrlFinal){ setVal('fa-banner-url-preview', bannerUrlFinal); faPreviewBanner(bannerUrlFinal); }
   } else {
     document.getElementById('form-ator-titulo').textContent='✦ Cadastrar Ator/Atriz';
   }
@@ -4621,7 +4652,9 @@ async function faSalvar(){
     };
     if(fotoUrl) fields['Foto']=fotoUrl;
     // Se não tiver banner definido, usa a foto como banner automaticamente
-    const bannerFinal = bannerUrl || fotoUrl;
+    // Nunca salvar blob URLs — são temporárias
+    const bannerFinal = (bannerUrl && !bannerUrl.startsWith('blob:') ? bannerUrl : null) 
+                     || (fotoUrl && !fotoUrl.startsWith('blob:') ? fotoUrl : null);
     if(bannerFinal) fields['Banner_Url']=bannerFinal;
 
     bar.style.width='70%';
