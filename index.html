@@ -2529,24 +2529,28 @@ async function renderDorama(id){
           `<div class="section-title">Galeria</div><p style="color:var(--text3);font-size:.85rem;margin-bottom:24px">Nenhuma foto na galeria ainda. Adicione imagens no campo "Galeria" do Airtable.</p>`}
         ${castRecords.length?`
           <div class="section-title">Elenco</div>
-          <div class="cast-grid">
-            ${castRecords
-              .sort((a,b)=>{
-                const typeOrder = {'Principal':0,'Suporte':1,'Participação especial':2};
-                const ta = typeOrder[a.elenco.fields['Tipo']] ?? 3;
-                const tb = typeOrder[b.elenco.fields['Tipo']] ?? 3;
-                if(ta !== tb) return ta - tb;
-                const na = a.ator?(a.ator.fields['Nome']||''):'';
-                const nb = b.ator?(b.ator.fields['Nome']||''):'';
-                return na.localeCompare(nb,'pt-BR');
-              })
-              .map(({elenco:e,ator:a})=>{
-              const ef=e.fields;
-              const name=a?(a.fields['Nome']||''):'';
-              const ph=a?getPhoto(a,'Foto'):null;
-              return`<div class="cast-card" style="position:relative"${a?` onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')"`:''} >${ph?`<img class="cast-photo" src="${ph}" alt="${name}" loading="lazy">`:`<div class="cast-photo-placeholder">👤</div>`}<div class="cast-info"><div class="cast-name">${name}</div><div class="cast-char">${ef['Personagem']||''}</div><div class="cast-type">${ef['Tipo']||''}</div></div></div>`;
-            }).join('')}
-          </div>`:''}
+          ${(()=>{
+            const grupos = {'Principal':[], 'Secundário':[], 'Participação especial':[]};
+            castRecords.forEach(({elenco:e,ator:a})=>{
+              const tipo = e.fields['Tipo']||'Secundário';
+              const grupo = grupos[tipo] ? tipo : 'Secundário';
+              grupos[grupo].push({e,a});
+            });
+            // Ordenar cada grupo alfabeticamente
+            Object.values(grupos).forEach(g=>g.sort((x,y)=>(x.a?.fields['Nome']||'').localeCompare(y.a?.fields['Nome']||'','pt-BR')));
+            const labels = {'Principal':'Principais','Secundário':'Secundários','Participação especial':'Part. Especial'};
+            return Object.entries(grupos).filter(([,g])=>g.length).map(([tipo,g])=>`
+              <div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:16px 0 8px;padding-left:2px">${labels[tipo]}</div>
+              <div class="cast-grid">
+                ${g.map(({e,a})=>{
+                  const ef=e.fields;
+                  const name=a?(a.fields['Nome']||''):'';
+                  const ph=a?getPhoto(a,'Foto'):null;
+                  return \`<div class="cast-card" style="position:relative"\${a?\` onclick="navigate('ator','\${a.id}')" oncontextmenu="cardContextMenu(event,'ator','\${a.id}')"\`:''} >\${ph?\`<img class="cast-photo" src="\${ph}" alt="\${name}" loading="lazy">\`:\`<div class="cast-photo-placeholder">👤</div>\`}<div class="cast-info"><div class="cast-name">\${name}</div><div class="cast-char">\${ef['Personagem']||''}</div><div class="cast-type">\${ef['Tipo']||''}</div></div></div>\`;
+                }).join('')}
+              </div>`).join('');
+          })()}
+          `:''}
         ${dirDorama.length ? `
           <div class="section-title" style="margin-top:32px">Direção & Roteiro</div>
           <div class="cast-grid">
