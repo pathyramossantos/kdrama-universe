@@ -3506,6 +3506,7 @@ function acFechar(id) {
 
 let fdCastRows = [];
 let fdCastCounter = 0;
+let fdCastDeleted = []; // elencoIds removidos para deletar no Supabase
 
 function openModalElenco() {
   document.getElementById('modal-elenco-overlay').classList.add('open');
@@ -3585,6 +3586,9 @@ function fdAddCastRow(data={}) {
 }
 
 function fdRemoveCastRow(id) {
+  // Guardar elencoId pra deletar no Supabase ao salvar
+  const elencoId = document.getElementById(`cast-row-${id}`)?.dataset.elencoId;
+  if (elencoId) fdCastDeleted.push(elencoId);
   document.getElementById(`cast-row-${id}`)?.remove();
   fdCastRows = fdCastRows.filter(r => r !== id);
   atualizarContadorElenco();
@@ -3775,6 +3779,16 @@ async function fdSalvarElenco(serieId, castData) {
   const sbSeries = await sbSerieRes.json();
   const sbSerieId = sbSeries[0]?.id;
   if(!sbSerieId) { console.warn('Série não encontrada no Supabase:', serieId); return; }
+
+  // Deletar registros removidos pelo usuário
+  for (const elencoId of fdCastDeleted) {
+    try {
+      await fetch(`${SB_URL}/rest/v1/elenco?id=eq.${elencoId}`, {
+        method: 'DELETE', headers: {'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}
+      });
+    } catch(_) {}
+  }
+  fdCastDeleted = [];
 
   for (const membro of castData) {
     try {
@@ -4017,7 +4031,7 @@ function openFormDorama(data={}, editId=null){
   document.getElementById('fd-galeria-preview').innerHTML = '';
   document.getElementById('fd-status-msg').textContent = '';
   document.getElementById('fd-prog').style.display = 'none';
-  document.getElementById('fd-cast-list').innerHTML = ''; fdCastRows = []; fdCastCounter = 0; atualizarContadorElenco();
+  document.getElementById('fd-cast-list').innerHTML = ''; fdCastRows = []; fdCastCounter = 0; fdCastDeleted = []; atualizarContadorElenco();
   document.getElementById('fd-dir-list').innerHTML = ''; fdDirRows = []; fdDirCounter = 0;
 
   // Capa preview
@@ -4828,6 +4842,7 @@ function mdlImportCast() {
   document.getElementById('fd-cast-list').innerHTML = '';
   fdCastRows = [];
   fdCastCounter = 0;
+  fdCastDeleted = [];
   atualizarContadorElenco();
 
   // Adicionar cada membro
