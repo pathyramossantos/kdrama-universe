@@ -3208,30 +3208,16 @@ async function renderAtor(id){
 
     content.innerHTML=`
 
-    <div class="banner-controls" id="banner-controls" style="display:none;padding-left:200px">
+    <div class="banner-controls" id="banner-controls" style="display:none">
       <div class="banner-ctrl-group">
-        <label class="banner-ctrl-label">↕ Posição Vertical</label>
+        <label class="banner-ctrl-label">↕ Vertical</label>
         <input type="range" id="banner-pos-y" min="0" max="100" value="${parseInt(atorBannerPos.split(' ')[1]||'20')}" oninput="updateBannerPos()" class="banner-slider">
       </div>
       <div class="banner-ctrl-group">
-        <label class="banner-ctrl-label">↔ Posição Horizontal</label>
+        <label class="banner-ctrl-label">↔ Horizontal</label>
         <input type="range" id="banner-pos-x" min="0" max="100" value="${parseInt(atorBannerPos.split(' ')[0]||'50')}" oninput="updateBannerPos()" class="banner-slider">
       </div>
       <button class="btn-gold btn-sm" onclick="saveAatorBannerPos()">Salvar Posição</button>
-      <div class="banner-ctrl-sep"></div>
-      <div class="banner-ctrl-group" style="flex:1;min-width:240px">
-        <label class="banner-ctrl-label">🖼 Trocar Imagem (URL ou Upload)</label>
-        <div style="display:flex;gap:6px">
-          <input type="text" id="banner-url-input" class="tmdb-input" placeholder="https://…" style="font-size:.78rem;flex:1">
-          <button class="btn-gold btn-sm" onclick="changeAatorBannerUrl()">Aplicar</button>
-          <label class="btn-outline btn-sm" style="cursor:pointer;display:flex;align-items:center;gap:4px" title="Upload para GitHub">
-            📁
-            <input type="file" accept="image/*" style="display:none" onchange="uploadAtorBannerImg(this)">
-          </label>
-          <button class="btn-outline btn-sm" onclick="resetAatorBannerUrl()" title="Voltar para foto do Airtable">↺</button>
-        </div>
-        <div id="ator-banner-upload-status" style="font-size:.72rem;color:var(--text3);margin-top:4px;display:none"></div>
-      </div>
     </div>
 
     <div class="detail-banner" id="detail-banner">
