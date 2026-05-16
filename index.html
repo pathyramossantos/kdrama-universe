@@ -6782,6 +6782,10 @@ if (!isOwner()) {
   document.querySelectorAll('.btn-new-drama').forEach(el => el.style.display='none');
 } else {
   const nd = document.getElementById('nav-direcao'); if(nd) nd.style.display='inline';
+  // Garantir que botões com data-keep-label estão visíveis (exceto excluir que tem lógica própria)
+  document.querySelectorAll('.edit-toggle[data-keep-label]').forEach(el => {
+    if (el.id !== 'btn-excluir-ator') el.style.display = '';
+  });
 }
 
 // ── ACTOR MDL SEARCH (movido para dentro do documento) ──────
