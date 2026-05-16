@@ -2349,15 +2349,15 @@ function loadMoreBtn(total, shown){
 let currentSerie = null;
 
 const _platLogos = {
-  'Netflix': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#141414"/><path d="M7 4h2.5v6.8L13.5 4H16v16h-2.5V13.2L9.5 20H7z" fill="#E50914"/></svg>',
-  'Prime Video': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1A1A2E"/><text x="12" y="14" text-anchor="middle" font-size="5.5" font-weight="bold" fill="#00A8E0" font-family="Arial">prime</text></svg>',
-  'Disney Plus': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#0C1445"/><text x="12" y="11" text-anchor="middle" font-size="5" font-weight="bold" fill="#1DAFEC" font-family="Arial">DISNEY</text><text x="12" y="19" text-anchor="middle" font-size="8" font-weight="bold" fill="white" font-family="Arial">+</text></svg>',
-  'Apple TV': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1C1C1E"/><text x="12" y="14" text-anchor="middle" font-size="5" font-weight="300" fill="white" font-family="Arial">Apple TV+</text></svg>',
-  'HBO Max': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#002BE7"/><text x="12" y="16" text-anchor="middle" font-size="8" font-weight="bold" fill="white" font-family="Arial">MAX</text></svg>',
-  'Viki': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1DAFEC"/><text x="12" y="16" text-anchor="middle" font-size="9" font-weight="bold" fill="white" font-family="Arial">Viki</text></svg>',
-  'iQIYI': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#00BE06"/><text x="12" y="16" text-anchor="middle" font-size="7" font-weight="bold" fill="white" font-family="Arial">iQIYI</text></svg>',
-  'Kocowa': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#E4002B"/><text x="12" y="15" text-anchor="middle" font-size="5.5" font-weight="bold" fill="white" font-family="Arial">KOCOWA</text></svg>',
-  'Telegram': '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#2AABEE"/><path d="M5 12.5l3.5 3.5 9.5-9.5" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  'Netflix':     'https://images.justwatch.com/icon/207360008/s100/netflix.webp',
+  'Prime Video': 'https://images.justwatch.com/icon/52449861/s100/amazon-prime-video.webp',
+  'Disney Plus': 'https://images.justwatch.com/icon/147638351/s100/disney-plus.webp',
+  'Apple TV':    'https://images.justwatch.com/icon/190848813/s100/apple-tv-plus.webp',
+  'HBO Max':     'https://images.justwatch.com/icon/305458112/s100/max.webp',
+  'Viki':        'https://images.justwatch.com/icon/169478387/s100/viki.webp',
+  'iQIYI':       'https://images.justwatch.com/icon/279681649/s100/iqiyi.webp',
+  'Kocowa':      'https://images.justwatch.com/icon/215530567/s100/kocowa.webp',
+  'Telegram':    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/120px-Telegram_logo.svg.png',
 };
 
 async function renderDorama(id){
@@ -2486,9 +2486,9 @@ async function renderDorama(id){
         </div>
         ${(f['Plataformas']||[]).length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">
           ${(f['Plataformas']||[]).map(p=>{
-            const svg = _platLogos[p];
-            return svg
-              ? `<span title="${p}" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);overflow:hidden;flex-shrink:0">${svg}</span>`
+            const imgUrl = _platLogos[p];
+            return imgUrl
+              ? `<span title="${p}" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0"><img src="${imgUrl}" alt="${p}" style="width:100%;height:100%;object-fit:cover" loading="lazy"></span>`
               : `<span style="padding:4px 10px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.2)">${p}</span>`;
           }).join('')}
         </div>` : ''}
