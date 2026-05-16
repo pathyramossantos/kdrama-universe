@@ -1929,7 +1929,7 @@ function sbToAt(row, tabela) {
       'OST': row.ost_nota, 'Ação': row.acao, 'Drama': row.drama,
       'Roteiro': row.roteiro, 'Banner_Position': row.banner_position,
       'Banner_Url': row.banner_url, 'Data': row.data,
-      'Elenco': row.elenco_ids || [], 'Plataformas': row.plataformas_ids || [],
+      'Elenco': row.elenco_ids || [], 'Plataformas': row.plataformas || row.plataformas_ids || [],
       'Diretores': row.diretores_ids || [], 'Roteiristas': row.roteiristas_ids || []
     };
   } else if (tabela === 'atores') {
@@ -2472,6 +2472,9 @@ async function renderDorama(id){
         <div class="detail-badges">
           ${statusBadge(f['Status'])} ${generos}
         </div>
+        ${(f['Plataformas']||[]).length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          ${(f['Plataformas']||[]).map(p=>`<span style="padding:4px 10px;border-radius:20px;font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.2)">${p}</span>`).join('')}
+        </div>` : ''}
       </div>
     </div>
     <div class="detail-body">
