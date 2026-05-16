@@ -2348,17 +2348,10 @@ function loadMoreBtn(total, shown){
 // ── DORAMA DETAIL ─────────────────────────────────────────
 let currentSerie = null;
 
-const _platLogos = {
-  'Netflix':     'https://images.justwatch.com/icon/207360008/s100/netflix.webp',
-  'Prime Video': 'https://images.justwatch.com/icon/52449861/s100/amazon-prime-video.webp',
-  'Disney Plus': 'https://images.justwatch.com/icon/147638351/s100/disney-plus.webp',
-  'Apple TV':    'https://images.justwatch.com/icon/190848813/s100/apple-tv-plus.webp',
-  'HBO Max':     'https://images.justwatch.com/icon/305458112/s100/max.webp',
-  'Viki':        'https://images.justwatch.com/icon/169478387/s100/viki.webp',
-  'iQIYI':       'https://images.justwatch.com/icon/279681649/s100/iqiyi.webp',
-  'Kocowa':      'https://images.justwatch.com/icon/215530567/s100/kocowa.webp',
-  'Telegram':    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/120px-Telegram_logo.svg.png',
-};
+function _platLogo(nome) {
+  const p = allPlataformas.find(x => (x.fields&&x.fields['Nome']||x.nome) === nome);
+  return p ? (p.fields&&p.fields['Logo']&&p.fields['Logo'][0]&&p.fields['Logo'][0].url) || p.logo || null : null;
+}
 
 async function renderDorama(id){
   const content=document.getElementById('dorama-content');
@@ -2486,7 +2479,7 @@ async function renderDorama(id){
         </div>
         ${(f['Plataformas']||[]).length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">
           ${(f['Plataformas']||[]).map(p=>{
-            const imgUrl = _platLogos[p];
+            const imgUrl = _platLogo(p);
             return imgUrl
               ? `<span title="${p}" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0"><img src="${imgUrl}" alt="${p}" style="width:100%;height:100%;object-fit:cover" loading="lazy"></span>`
               : `<span style="padding:4px 10px;border-radius:8px;font-size:.68rem;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.2)">${p}</span>`;
