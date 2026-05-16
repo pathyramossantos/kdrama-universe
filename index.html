@@ -4353,20 +4353,18 @@ function faPreviewBanner(url) {
   img.src = url;
   wrap.style.display = 'block';
   if(posWrap) posWrap.style.display = 'block';
-  // Carregar posição salva do ator em edição
-  if(faEditId) {
-    const saved = allAtores.find(a=>a.id===faEditId)?.fields?.['Banner_Position'] 
-               || localStorage.getItem(`kdrama_atorbannerpos_${faEditId}`) 
+  // Carregar posição salva (edição) ou padrão (novo)
+  const saved = (faEditId && (allAtores.find(a=>a.id===faEditId)?.fields?.['Banner_Position'] 
+               || localStorage.getItem(`kdrama_atorbannerpos_${faEditId}`))) 
                || '50% 20%';
-    const parts = saved.split(' ');
-    const x = parseInt(parts[0]) || 50;
-    const y = parseInt(parts[1]) || 20;
-    const slX = document.getElementById('fa-banner-pos-x');
-    const slY = document.getElementById('fa-banner-pos-y');
-    if(slX){ slX.value = x; document.getElementById('fa-banner-pos-x-val').textContent = x+'%'; }
-    if(slY){ slY.value = y; document.getElementById('fa-banner-pos-y-val').textContent = y+'%'; }
-    img.style.objectPosition = `${x}% ${y}%`;
-  }
+  const parts = saved.split(' ');
+  const x = parseInt(parts[0]) || 50;
+  const y = parseInt(parts[1]) || 20;
+  const slX = document.getElementById('fa-banner-pos-x');
+  const slY = document.getElementById('fa-banner-pos-y');
+  if(slX){ slX.value = x; document.getElementById('fa-banner-pos-x-val').textContent = x+'%'; }
+  if(slY){ slY.value = y; document.getElementById('fa-banner-pos-y-val').textContent = y+'%'; }
+  img.style.objectPosition = x+'% '+y+'%';
 }
 
 function faUpdateBannerPos() {
@@ -4392,15 +4390,10 @@ function faShowFoto(url){
   document.getElementById('fa-foto-txt').style.display='none';
   document.getElementById('fa-foto-del').style.display='flex';
   
-  // Atualiza o preview do banner automaticamente
-  const bannerWrap = document.getElementById('fa-banner-preview-wrap');
-  const bannerImg = document.getElementById('fa-banner-preview-img');
+  // Atualiza o preview do banner automaticamente (via faPreviewBanner pra mostrar sliders)
   const bannerInput = document.getElementById('fa-banner-url-preview');
-  if (bannerImg && bannerWrap) {
-    bannerImg.src = url;
-    bannerWrap.style.display = 'block';
-    if (bannerInput) bannerInput.value = url;
-  }
+  if (bannerInput) bannerInput.value = url;
+  faPreviewBanner(url);
 }
 function faClearFoto(){
   const img=document.getElementById('fa-foto-img');
