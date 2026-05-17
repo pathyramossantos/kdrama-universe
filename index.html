@@ -3502,7 +3502,7 @@ function acSelecionar(id, atorId, nome) {
 
 function acCriarNovo(id, nome) {
   document.getElementById(`cast-nome-${id}`).value = nome;
-  document.getElementById(`cast-row-${id}`).dataset.atorId = '';
+  document.getElementById(`cast-row-${id}`).dataset.atorId = '__NEW__';
   document.getElementById(`ac-list-${id}`).classList.remove('open');
   document.getElementById(`cast-personagem-${id}`)?.focus();
   showToast(`"${nome}" será criado como novo ator ao salvar`);
@@ -3816,10 +3816,14 @@ async function fdSalvarElenco(serieId, castData) {
         atorUUID = aRows[0]?.id;
       }
       if(!atorUUID){
-        const aRes = await fetch(`${SB_URL}/rest/v1/atores?nome=eq.${encodeURIComponent(membro.nome)}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
-        const aRows = await aRes.json();
-        if(aRows[0]) atorUUID = aRows[0].id;
-        else {
+        // Se usuário escolheu "Criar novo" explicitamente, não busca por nome — cria direto
+        const criarNovo = membro.atorId === '__NEW__';
+        if(!criarNovo){
+          const aRes = await fetch(`${SB_URL}/rest/v1/atores?nome=eq.${encodeURIComponent(membro.nome)}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+          const aRows = await aRes.json();
+          if(aRows[0]) atorUUID = aRows[0].id;
+        }
+        if(!atorUUID){
           const novoRes = await fetch(`${SB_URL}/rest/v1/atores`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify({nome:membro.nome})});
           const novo = await novoRes.json();
           atorUUID = novo[0]?.id;
