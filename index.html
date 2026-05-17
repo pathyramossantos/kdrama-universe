@@ -4598,14 +4598,13 @@ async function faBuscarTMDBPeloNome(){
       fetch(`${TMDB_BASE}/person/${id}/combined_credits?api_key=${tmdbKey}&language=pt-BR`).then(r=>r.json()),
     ]);
 
-    // 3. Nome romanizado
-    const nomeEl = document.getElementById('fa-nome');
-    if(nomeEl) nomeEl.value = enData.name || nome;
+    // 3. Nome romanizado — NÃO sobrescreve, usuário digita o nome como quer
+    // (TMDB às vezes usa nome diferente do HanCinema)
 
-    // 4. Nome coreano (also_known_as)
-    const korName = (enData.also_known_as||[]).find(n => /[가-힣]/.test(n)) || '';
+    // 4. Nome estrangeiro/coreano (also_known_as) — hangul, japonês, etc
+    const korName = (enData.also_known_as||[]).find(n => /[가-힣぀-ヿ一-鿿]/.test(n)) || '';
     const korEl = document.getElementById('fa-nome-kor');
-    if(korEl) korEl.value = korName;
+    if(korEl && korName) korEl.value = korName;
 
     // 5. Data de nascimento
     const nasc = ptData.birthday || enData.birthday || '';
