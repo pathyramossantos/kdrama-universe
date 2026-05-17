@@ -6382,11 +6382,13 @@ function renderAniversarios() {
     const nome = f['Nome'] || '';
     const nasc = f['Data de Nascimento'] || '';
     const idade = nasc ? (anoHoje - parseInt(nasc.split('-')[0])) + ' anos' : '';
-    return '<div class="aniv-item" onclick="navigate('ator',''+a.id+'')">'
-      + (foto ? '<img class="aniv-foto" src="'+foto+'" loading="lazy">' : '<div class="aniv-foto" style="background:var(--surface2)"></div>')
-      + '<span class="aniv-nome">'+nome+'</span>'
-      + (idade ? '<span class="aniv-idade">'+idade+'</span>' : '')
-      + '</div>';
+    const aid = a.id;
+    return ['<div class="aniv-item" onclick="navigate(\'ator\',\'',aid,'\')">',
+      foto ? '<img class="aniv-foto" src="'+foto+'" loading="lazy">' : '<div class="aniv-foto" style="background:var(--surface2)"></div>',
+      '<span class="aniv-nome">'+nome+'</span>',
+      idade ? '<span class="aniv-idade">'+idade+'</span>' : '',
+      '</div>'
+    ].join('');
   }).join('');
 }
 
