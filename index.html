@@ -285,6 +285,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 /* EDIT MODE */
 .edit-toggle{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:20px;font-size:.8rem;font-weight:600;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:var(--transition);margin:16px clamp(16px,4vw,48px) 0 0}
+.edit-toggle[data-keep-label]{margin:0}
 .edit-toggle:hover{color:var(--gold);border-color:var(--gold-dim)}
 .edit-toggle.active{background:var(--gold);color:#0a0a0c;border-color:var(--gold)}
 .editable{position:relative;transition:background .2s,outline .2s}
@@ -6353,18 +6354,19 @@ function renderAniversarios() {
   const list = document.getElementById('aniv-list');
   if (!section || !list || !allAtores.length) return;
 
-  const hoje = new Date();
-  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-  const dia = String(hoje.getDate()).padStart(2, '0');
-  const mdHoje = `${mes}-${dia}`; // formato MM-DD
+  // Usar horário local (evita bug de UTC virar dia seguinte no Brasil)
+  const agora = new Date();
+  const mes = String(agora.getMonth() + 1).padStart(2, '0');
+  const dia = String(agora.getDate()).padStart(2, '0');
+  const anoHoje = agora.getFullYear();
+  const mdHoje = mes + '-' + dia;
 
   const aniversariantes = allAtores.filter(a => {
     const nasc = a.fields['Data de Nascimento'] || '';
     if (!nasc) return false;
-    // nasc pode ser YYYY-MM-DD
     const partes = nasc.split('-');
     if (partes.length < 3) return false;
-    return `${partes[1]}-${partes[2]}` === mdHoje;
+    return partes[1] + '-' + partes[2] === mdHoje;
   });
 
   if (!aniversariantes.length) {
@@ -6375,15 +6377,16 @@ function renderAniversarios() {
   section.style.display = 'block';
   list.innerHTML = aniversariantes.map(a => {
     const f = a.fields;
-    const foto = f['Foto']?.[0]?.url || '';
+    // Supabase: foto é string direta; Airtable legado: array de objetos
+    const foto = getPhoto(a, 'Foto') || '';
     const nome = f['Nome'] || '';
     const nasc = f['Data de Nascimento'] || '';
-    const idade = nasc ? (hoje.getFullYear() - parseInt(nasc.split('-')[0])) + ' anos' : '';
-    return `<div class="aniv-item" onclick="navigate('ator','${a.id}')">
-      ${foto ? `<img class="aniv-foto" src="${foto}" loading="lazy">` : `<div class="aniv-foto" style="background:var(--surface2)"></div>`}
-      <span class="aniv-nome">${nome}</span>
-      ${idade ? `<span class="aniv-idade">${idade}</span>` : ''}
-    </div>`;
+    const idade = nasc ? (anoHoje - parseInt(nasc.split('-')[0])) + ' anos' : '';
+    return '<div class="aniv-item" onclick="navigate('ator',''+a.id+'')">'
+      + (foto ? '<img class="aniv-foto" src="'+foto+'" loading="lazy">' : '<div class="aniv-foto" style="background:var(--surface2)"></div>')
+      + '<span class="aniv-nome">'+nome+'</span>'
+      + (idade ? '<span class="aniv-idade">'+idade+'</span>' : '')
+      + '</div>';
   }).join('');
 }
 
