@@ -1631,6 +1631,10 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <h2 id="form-ator-titulo">✦ Cadastrar Ator/Atriz</h2>
       <button class="form-x" onclick="closeFormAtor()">✕</button>
     </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;padding:10px 32px;background:var(--surface);border-bottom:1px solid var(--border)">
+      <button class="btn-outline" onclick="closeFormAtor()">Cancelar</button>
+      <button class="btn-gold" onclick="faSalvar()">💾 Salvar</button>
+    </div>
     <div class="form-body">
 
       <!-- Foto + dados -->
@@ -4667,6 +4671,12 @@ function faBuscarFilmografia() { faBuscarFilmografiaMDL(); }
 async function faSalvar(){
   const nome=document.getElementById('fa-nome').value.trim();
   if(!nome){ showToast('Nome é obrigatório'); return; }
+  const dataCadastro=document.getElementById('fa-data-cadastro')?.value;
+  if(!dataCadastro){
+    showToast('⚠️ Coloque a data de cadastro antes de salvar');
+    document.getElementById('fa-data-cadastro')?.focus();
+    return;
+  }
 
   const status=document.getElementById('fa-status-msg');
   const prog=document.getElementById('fa-prog');
