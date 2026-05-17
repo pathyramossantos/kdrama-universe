@@ -2155,19 +2155,22 @@ async function loadAllData(){
         populatePlatformFilter();
         renderStats();
         renderHome();
-        // Atualiza em segundo plano
-        setTimeout(async () => {
-          try {
-            const [s,a,e,p] = await Promise.all([
-              fetchTable(TABLES.series),
-              fetchTable(TABLES.atores),
-              fetchTable(TABLES.elenco),
-              fetchTable(TABLES.plataformas)
-            ]);
-            allSeries=s; allAtores=a; allElenco=e; allPlataformas=p;
-            localStorage.setItem('kdrama_cache', JSON.stringify({v:CACHE_VERSION,data:{series:s,atores:a,elenco:e,plataformas:p},ts:Date.now()}));
-          } catch(_){}
-        }, 5000);
+        // Atualiza em segundo plano só se cache tiver mais de 6h
+        const BG_REFRESH_INTERVAL = 6 * 60 * 60 * 1000;
+        if (Date.now() - ts > BG_REFRESH_INTERVAL) {
+          setTimeout(async () => {
+            try {
+              const [s,a,e,p] = await Promise.all([
+                fetchTable(TABLES.series),
+                fetchTable(TABLES.atores),
+                fetchTable(TABLES.elenco),
+                fetchTable(TABLES.plataformas)
+              ]);
+              allSeries=s; allAtores=a; allElenco=e; allPlataformas=p;
+              localStorage.setItem('kdrama_cache', JSON.stringify({v:CACHE_VERSION,data:{series:s,atores:a,elenco:e,plataformas:p},ts:Date.now()}));
+            } catch(_){}
+          }, 5000);
+        }
         return;
       }
     }
@@ -2390,26 +2393,8 @@ async function renderDorama(id){
     const photo=getPhoto(serie);
     const gallery=getAllPhotos(serie,'Galeria');
 
-    // Load cast — buscar direto no Supabase pelo serie airtable_id
+    // Buscar UUID da série uma única vez e paralelizar elenco + direção
     let castRecords=[];
-    try{
-      const serieAtId = serie.id; // airtable_id da série
-      const sbSerieRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serieAtId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
-      const sbSeries = await sbSerieRes.json();
-      const sbSerieId = sbSeries[0]?.id;
-      if(sbSerieId){
-        const elencoRes = await fetch(`${SB_URL}/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,foto,data_nascimento)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
-        const elencoRows = await elencoRes.json();
-        castRecords = elencoRows.map(row => {
-          const atorRaw = row.atores ? {...row.atores, airtable_id: row.atores.airtable_id || row.atores.id} : null;
-          const ator = atorRaw ? sbToAt(atorRaw, 'atores') : null;
-          const elenco = sbToAt(row, 'elenco');
-          return {elenco, ator};
-        });
-      }
-    }catch(_){}
-
-    // Buscar direção relacionada ao dorama via serie_direcao
     let dirDorama = [];
     try{
       const serieAtId = serie.id;
@@ -2417,14 +2402,22 @@ async function renderDorama(id){
       const sbSeries = await sbSerieRes.json();
       const sbSerieId = sbSeries[0]?.id;
       if(sbSerieId){
-        const dirRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?select=papel,direcao:direcao_id(airtable_id,nome,nome_estrangeiro,foto,tipo)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
-        const dirRows = await dirRes.json();
+        const [elencoRows, dirRows] = await Promise.all([
+          fetch(`${SB_URL}/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,foto,data_nascimento)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}).then(r=>r.json()),
+          fetch(`${SB_URL}/rest/v1/serie_direcao?select=papel,direcao:direcao_id(airtable_id,nome,nome_estrangeiro,foto,tipo)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}).then(r=>r.json())
+        ]);
+        castRecords = elencoRows.map(row => {
+          const atorRaw = row.atores ? {...row.atores, airtable_id: row.atores.airtable_id || row.atores.id} : null;
+          const ator = atorRaw ? sbToAt(atorRaw, 'atores') : null;
+          const elenco = sbToAt(row, 'elenco');
+          return {elenco, ator};
+        });
         dirDorama = dirRows.map(row => ({
           ...sbToAt(row.direcao, 'direcao'),
           _tipoDisplay: row.papel === 'Roteirista' ? 'ROTEIRISTA' : 'DIRETOR'
         }));
       }
-    }catch(e){ console.warn('dirDorama error:', e); }
+    }catch(e){ console.warn('elenco/direcao error:', e); }
 
     // Buscar resenha do blog para este dorama
     const nomeDorama = f['Nome'] || '';
