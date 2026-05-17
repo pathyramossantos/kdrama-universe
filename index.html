@@ -3489,7 +3489,7 @@ async function acBuscar(id, q) {
 
     list.innerHTML = html;
     list.classList.add('open');
-  }, 300);
+  }, 150);
 }
 
 function acSelecionar(id, atorId, nome) {
@@ -3581,7 +3581,7 @@ function fdAddCastRow(data={}) {
       <input class="fi" id="cast-personagem-${id}" placeholder="Nome do personagem" value="${data.personagem||''}" style="font-size:.82rem;padding:6px 10px">
     </td>
     <td style="padding:4px 6px">
-      <select id="cast-tipo-${id}" class="fs" style="font-size:.82rem;padding:6px 10px" onchange="reordenarCastList()">
+      <select id="cast-tipo-${id}" class="fs" style="font-size:.82rem;padding:6px 10px" onchange="setTimeout(reordenarCastList,0)">
         <option value="Principal"${data.tipo==='Principal'?' selected':''}>Principal</option>
         <option value="Secundário"${(data.tipo||'Secundário')==='Secundário'?' selected':''}>Secundário</option>
         <option value="Participação especial"${data.tipo==='Participação especial'?' selected':''}>Part. especial</option>
