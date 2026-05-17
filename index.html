@@ -3592,6 +3592,7 @@ function fdAddCastRow(data={}) {
     </td>
   `;
   row.dataset.atorId = data.atorId || '';
+  row.dataset.atorSbId = data.atorSbId || '';
   row.dataset.elencoId = data.elencoId || '';
   const castList = document.getElementById('fd-cast-list');
   castList.insertBefore(row, castList.firstChild);
@@ -3781,9 +3782,10 @@ function fdGetCastData() {
       const personagem = document.getElementById(`cast-personagem-${id}`)?.value.trim();
       const tipo = document.getElementById(`cast-tipo-${id}`)?.value;
       const atorId = document.getElementById(`cast-row-${id}`)?.dataset.atorId || '';
+      const atorSbId = document.getElementById(`cast-row-${id}`)?.dataset.atorSbId || '';
       const elencoId = document.getElementById(`cast-row-${id}`)?.dataset.elencoId || '';
       if (!nome) return null;
-      return { nome, personagem, tipo, atorId, elencoId };
+      return { nome, personagem, tipo, atorId, atorSbId, elencoId };
     })
     .filter(Boolean);
 }
@@ -3808,9 +3810,9 @@ async function fdSalvarElenco(serieId, castData) {
   for (const membro of castData) {
     try {
 
-      // Buscar ator no Supabase pelo nome
-      let atorUUID = null;
-      if(membro.atorId){
+      // Usar UUID direto se disponível (evita busca por nome e confusão com homônimos)
+      let atorUUID = membro.atorSbId || null;
+      if(!atorUUID && membro.atorId){
         const aRes = await fetch(`${SB_URL}/rest/v1/atores?airtable_id=eq.${membro.atorId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
         const aRows = await aRes.json();
         atorUUID = aRows[0]?.id;
@@ -4132,6 +4134,7 @@ async function openFormDoramaEdit(serie){
           personagem: row.personagem || '',
           tipo: row.tipo || 'Secundário',
           atorId: row.atores?.airtable_id || '',
+          atorSbId: row.atores?.id || '',
           elencoId: row.id
         });
       });
