@@ -1849,8 +1849,8 @@ function navigate(page, id) {
   editMode = false;
   document.querySelectorAll('.edit-toggle').forEach(b => {
     b.classList.remove('active');
-    // Não reescrever botões com função própria
-    if (!b.dataset.keepLabel) {
+    // Não reescrever botões com data-keep-label
+    if (!b.hasAttribute('data-keep-label')) {
       b.textContent = '✏️ Editar';
     }
   });
@@ -2595,7 +2595,7 @@ function toggleEditMode(){
   const btns=document.querySelectorAll('.edit-toggle');
   btns.forEach(b=>{
     // Só muda active/texto nos botões genéricos de edição
-    if (!b.dataset.keepLabel) {
+    if (!b.hasAttribute('data-keep-label')) {
       b.classList.toggle('active',editMode);
       b.textContent=editMode?'✅ Modo Edição ON':'✏️ Editar';
     }
