@@ -1753,7 +1753,14 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         Adicionar ator
       </button>
-      <span style="font-size:.78rem;color:var(--text3);margin-left:auto" id="modal-cast-count"></span>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <div style="position:relative;display:flex;align-items:center">
+          <svg style="position:absolute;left:8px;opacity:.45;pointer-events:none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input id="cast-search" type="text" placeholder="Buscar no elenco..." oninput="filtrarCastModal(this.value)"
+            style="padding:6px 10px 6px 28px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text1);font-size:.8rem;width:200px;outline:none">
+        </div>
+        <span style="font-size:.78rem;color:var(--text3);white-space:nowrap" id="modal-cast-count"></span>
+      </div>
     </div>
     <div style="flex:1;overflow-y:auto;padding:0 8px">
       <table style="width:100%;border-collapse:collapse">
@@ -3526,7 +3533,25 @@ function openModalElenco() {
   atualizarContadorElenco();
 }
 
+function filtrarCastModal(q) {
+  const termo = q.toLowerCase().trim();
+  const rows = document.querySelectorAll('#fd-cast-list tr');
+  let visiveis = 0;
+  rows.forEach(row => {
+    const nome = (row.querySelector('input[id^="cast-nome"]')?.value || '').toLowerCase();
+    const personagem = (row.querySelector('input[id^="cast-per"]')?.value || '').toLowerCase();
+    const tipo = (row.querySelector('select[id^="cast-tipo"]')?.value || '').toLowerCase();
+    const bate = !termo || nome.includes(termo) || personagem.includes(termo) || tipo.includes(termo);
+    row.style.display = bate ? '' : 'none';
+    if (bate) visiveis++;
+  });
+  const count = document.getElementById('modal-cast-count');
+  if (count) count.textContent = termo ? visiveis + ' de ' + rows.length + ' atores' : rows.length + ' atores';
+}
+
 function closeModalElenco() {
+  const cs = document.getElementById('cast-search');
+  if(cs){ cs.value=''; filtrarCastModal(''); }
   document.getElementById('modal-elenco-overlay').classList.remove('open');
   atualizarContadorElenco();
 }
