@@ -2286,12 +2286,13 @@ function platformLogosHTML(platIds){
   if(!platIds) return'';
   if(!Array.isArray(platIds)) platIds=[platIds];
   if(!platIds.length) return'';
+  console.log('[logos] platIds:', platIds, 'allPlataformas count:', allPlataformas.length);
   const html=platIds.map(pid=>{
-    // plataformas nas series podem ser nomes ou UUIDs — tenta os dois
     const p=allPlataformas.find(x=>{
       const nome=(x.fields&&x.fields['Nome'])||x.nome||'';
       return x.id===pid || x.airtable_id===pid || nome===pid;
     });
+    console.log('[logos] pid:', pid, '-> encontrou:', p ? (p.fields&&p.fields['Nome'])||p.nome : 'NENHUM', '| logo:', p ? getPhoto(p,'Logo') : 'N/A');
     if(!p) return`<span class="plat-logo-text">${pid}</span>`;
     const logo=getPhoto(p,'Logo');
     const name=(p.fields&&p.fields['Nome'])||p.nome||pid;
