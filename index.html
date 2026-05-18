@@ -1619,7 +1619,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     </div>
     <div class="form-foot">
       <button class="btn-outline" onclick="closeMiniFormDir()">Cancelar</button>
-      <button class="btn-gold" onclick="salvarMiniFormDir()">💾 Criar e Adicionar</button>
+      <button class="btn-gold" id="fdir-btn-salvar" onclick="salvarMiniFormDir()">💾 Criar e Adicionar</button>
     </div>
   </div>
 </div>
@@ -3754,6 +3754,30 @@ function openMiniFormDirFromPage() {
   document.getElementById('form-dir-overlay').classList.add('open');
 }
 
+let _fdDirEditId = null; // ID do diretor em edição (null = criação)
+
+function openEditDir(id) {
+  const dir = allDirecao.find(d => d.id === id);
+  if (!dir) { showToast('Diretor não encontrado'); return; }
+  const f = dir.fields;
+  _fdDirEditId = id;
+  _fdDirCallback = null;
+  document.getElementById('form-dir-titulo').textContent = '✦ Editar Diretor/Roteirista';
+  document.getElementById('fdir-nome').value = f['Nome'] || '';
+  document.getElementById('fdir-nome-kor').value = f['Nome Estrangeiro'] || '';
+  document.getElementById('fdir-tipo').value = f['Tipo'] || 'Diretor';
+  // Foto
+  fdirClearFoto();
+  const foto = Array.isArray(f['Foto']) ? f['Foto'][0]?.url : f['Foto'];
+  if (foto) {
+    document.getElementById('fdir-foto-url').value = foto;
+    fdirPreviewFotoUrl(foto);
+  }
+  const btnSalvar = document.getElementById('fdir-btn-salvar');
+  if (btnSalvar) btnSalvar.textContent = '💾 Salvar Alterações';
+  document.getElementById('form-dir-overlay').classList.add('open');
+}
+
 async function salvarMiniFormDir() {
   const nome = document.getElementById('fdir-nome').value.trim();
   if (!nome) { showToast('Nome é obrigatório'); return; }
@@ -3769,12 +3793,29 @@ async function salvarMiniFormDir() {
       'Foto': fotoUrl || undefined,
       'Tipo': document.getElementById('fdir-tipo').value
     };
-    const record = await createRecord(TABLES.direcao, fields);
-    allDirecao.push(record);
-    fdirClearFoto();
-    if (_fdDirCallback) _fdDirCallback(record.id, nome);
-    closeMiniFormDir();
-    showToast(`✓ ${nome} criado!`);
+    if (_fdDirEditId) {
+      // MODO EDIÇÃO — atualiza registro existente
+      await updateRecord(TABLES.direcao, _fdDirEditId, fields);
+      const idx = allDirecao.findIndex(d => d.id === _fdDirEditId);
+      if (idx >= 0) allDirecao[idx] = { ...allDirecao[idx], fields: { ...allDirecao[idx].fields, ...fields } };
+      fdirClearFoto();
+      const editadoId = _fdDirEditId;
+      _fdDirEditId = null;
+      const btnSalvar = document.getElementById('fdir-btn-salvar');
+      if (btnSalvar) btnSalvar.textContent = '💾 Criar e Adicionar';
+      document.getElementById('form-dir-titulo').textContent = '✦ Novo Diretor';
+      closeMiniFormDir();
+      showToast(`✓ ${nome} atualizado!`);
+      navigate('diretor', editadoId);
+    } else {
+      // MODO CRIAÇÃO
+      const record = await createRecord(TABLES.direcao, fields);
+      allDirecao.push(record);
+      fdirClearFoto();
+      if (_fdDirCallback) _fdDirCallback(record.id, nome);
+      closeMiniFormDir();
+      showToast(`✓ ${nome} criado!`);
+    }
   } catch(e) { showToast('Erro: ' + e.message); }
 }
 
@@ -6725,6 +6766,7 @@ async function renderDiretor(id) {
       <div class="detail-banner-grad"></div>
       <div class="detail-banner-content">
         ${isOwner() ? `<button class="edit-toggle" style="background:rgba(10,10,12,.6);backdrop-filter:blur(10px)" onclick="toggleEditMode()">✏️ Editar</button>` : ''}
+        ${isOwner() ? `<button class="edit-toggle" data-keep-label style="background:rgba(10,10,12,.6);backdrop-filter:blur(10px);left:auto;right:160px" onclick="openEditDir('${id}')">✎ Editar Dados</button>` : ''}
         <button class="back-btn" onclick="navigate('direcao')">← Direção & Roteiro</button>
         <h1 class="detail-title">${f['Nome'] || '—'}</h1>
         ${f['Nome Estrangeiro'] ? `<div style="font-family:'Noto Serif KR',serif;font-size:1.1rem;color:rgba(255,255,255,.6);margin:-8px 0 10px">${f['Nome Estrangeiro']}</div>` : ''}
