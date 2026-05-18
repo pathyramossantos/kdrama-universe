@@ -4602,7 +4602,7 @@ async function faBuscarTMDBPeloNome(){
     // (TMDB às vezes usa nome diferente do HanCinema)
 
     // 4. Nome estrangeiro/coreano (also_known_as) — hangul, japonês, etc
-    const korName = (enData.also_known_as||[]).find(n => /[가-힣぀-ヿ一-鿿]/.test(n)) || '';
+    const korName = (enData.also_known_as||[]).find(n => /[\uAC00-\uD7A3\u3040-\u30FF\u4E00-\u9FFF]/.test(n)) || '';
     const korEl = document.getElementById('fa-nome-kor');
     if(korEl && korName) korEl.value = korName;
 
