@@ -2287,10 +2287,14 @@ function platformLogosHTML(platIds){
   if(!Array.isArray(platIds)) platIds=[platIds];
   if(!platIds.length) return'';
   const html=platIds.map(pid=>{
-    const p=allPlataformas.find(x=>x.id===pid);
-    if(!p) return'';
+    // plataformas nas series podem ser nomes ou UUIDs — tenta os dois
+    const p=allPlataformas.find(x=>{
+      const nome=(x.fields&&x.fields['Nome'])||x.nome||'';
+      return x.id===pid || x.airtable_id===pid || nome===pid;
+    });
+    if(!p) return`<span class="plat-logo-text">${pid}</span>`;
     const logo=getPhoto(p,'Logo');
-    const name=p.fields['Nome']||'';
+    const name=(p.fields&&p.fields['Nome'])||p.nome||pid;
     return logo
       ?`<img class="plat-logo" src="${logo}" alt="${name}" title="${name}">`
       :`<span class="plat-logo-text">${name}</span>`;
