@@ -2086,10 +2086,20 @@ async function fetchTable(tableId, options={}) {
     else if (ids.length > 1) url += `&airtable_id=in.(${ids.join(',')})`;
   }
 
-  url += '&limit=2000';
-  const res = await fetch(url, { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } });
-  if (!res.ok) throw new Error(`Supabase ${tabela}: HTTP ${res.status}`);
-  const rows = await res.json();
+  // Supabase retorna max 1000 por request — paginar se necessário
+  const PAGE = 1000;
+  let allRows = [];
+  let offset = 0;
+  while (true) {
+    const pageUrl = url + `&limit=${PAGE}&offset=${offset}`;
+    const res = await fetch(pageUrl, { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } });
+    if (!res.ok) throw new Error(`Supabase ${tabela}: HTTP ${res.status}`);
+    const rows = await res.json();
+    allRows = allRows.concat(rows);
+    if (rows.length < PAGE) break; // última página
+    offset += PAGE;
+  }
+  const rows = allRows;
 
   return rows.map(row => {
     if (tabela === 'elenco') {
@@ -2169,7 +2179,7 @@ async function bannerSalvarAirtable(id, tipo, { pos, url }) {
 }
 
 const CACHE_TTL = 48 * 60 * 60 * 1000; // 48 horas
-const CACHE_VERSION = 'v11'; // Supabase
+const CACHE_VERSION = 'v10'; // Supabase
 
 async function loadAllData(){
   // Tenta carregar do cache primeiro
@@ -3122,7 +3132,7 @@ function filterAtores(resetPage=true){
   if(resetPage) actorsPage=1;
   const q=document.getElementById('actor-search')?.value.toLowerCase()||'';
   const filtered=allAtores
-    .filter(a=>(a.fields['Nome']||'').toLowerCase().includes(q)||(a.fields['Nome Estrangeiro']||'').toLowerCase().includes(q)||(a.fields['Nome Alt']||'').toLowerCase().includes(q))
+    .filter(a=>(a.fields['Nome']||'').toLowerCase().includes(q)||(a.fields['Nome Estrangeiro']||'').toLowerCase().includes(q))
     .sort((a,b)=>(a.fields['Nome']||'').localeCompare(b.fields['Nome']||'','pt-BR'));
   const grid=document.getElementById('actors-grid');
   if(!filtered.length){
