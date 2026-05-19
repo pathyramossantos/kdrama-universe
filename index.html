@@ -2134,6 +2134,21 @@ async function createRecord(tableId, fields) {
   return created[0] ? sbToAt(created[0], tabela) : null;
 }
 
+async function updateRecord(tableId, recordId, fields) {
+  const tabela = SB_TABLE_MAP[tableId];
+  if (!tabela) throw new Error('Tabela não mapeada: ' + tableId);
+  const row = atToSb(fields, tabela);
+  Object.keys(row).forEach(k => row[k] === undefined && delete row[k]);
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/.test(recordId);
+  const filtro = isUUID ? `id=eq.${recordId}` : `airtable_id=eq.${recordId}`;
+  const res = await fetch(`${SB_URL}/rest/v1/${tabela}?${filtro}`, {
+    method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify(row)
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const updated = await res.json();
+  return updated[0] ? sbToAt(updated[0], tabela) : null;
+}
+
 async function bannerSalvarAirtable(id, tipo, { pos, url }) {
   let tabela;
   if (tipo === 'dorama') tabela = 'series';
