@@ -2450,7 +2450,7 @@ async function renderDorama(id){
       const sbSerieId = sbSeries[0]?.id;
       if(sbSerieId){
         const [elencoRows, dirRows] = await Promise.all([
-          fetch(`${SB_URL}/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,foto,data_nascimento)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}).then(r=>r.json()),
+          fetch(`${SB_URL}/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,nome_alt,foto,data_nascimento)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}).then(r=>r.json()),
           fetch(`${SB_URL}/rest/v1/serie_direcao?select=papel,direcao:direcao_id(airtable_id,nome,nome_estrangeiro,foto,tipo)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}).then(r=>r.json())
         ]);
         castRecords = elencoRows.map(row => {
@@ -3526,13 +3526,14 @@ async function acBuscar(id, q) {
     let html = matches.slice(0,8).map(a => {
       const foto = getPhoto(a, 'Foto');
       const nasc = a.fields['Data de Nascimento'] || '';
-      return `<div class="ac-item" onclick="acSelecionar(${id},'${a.id}','${(a.fields['Nome']||'').replace(/'/g,"\'")}')">
-        ${foto ? `<img src="${foto}" loading="lazy">` : '<div style="width:28px;height:36px;background:var(--bg3);border-radius:4px;flex-shrink:0"></div>'}
-        <div class="ac-item-info">
-          <div class="ac-item-nome">${a.fields['Nome']||''}</div>
-          ${nasc ? `<div class="ac-item-sub">${nasc}</div>` : ''}
-        </div>
-      </div>`;
+      const _ne = (a.fields['Nome']||'').replace(/'/g,"\'");
+      const _nae = (a.fields['Nome Alt']||'').replace(/'/g,"\'");
+      return '<div class="ac-item" onclick="acSelecionar(' + id + ',\'' + a.id + '\',\'' + _ne + '\',\'' + _nae + '\')">' +
+        (foto ? '<img src="' + foto + '" loading="lazy">' : '<div style="width:28px;height:36px;background:var(--bg3);border-radius:4px;flex-shrink:0"></div>') +
+        '<div class="ac-item-info">' +
+        '<div class="ac-item-nome">' + (a.fields['Nome']||'') + '</div>' +
+        (nasc ? '<div class="ac-item-sub">' + nasc + '</div>' : '') +
+        '</div></div>';
     }).join('');
 
     html += `<div class="ac-item" onclick="acCriarNovo(${id}, '${q.replace(/'/g,"\'")}')">
@@ -3548,9 +3549,13 @@ async function acBuscar(id, q) {
   }, 150);
 }
 
-function acSelecionar(id, atorId, nome) {
+function acSelecionar(id, atorId, nome, nomeAlt) {
   document.getElementById(`cast-nome-${id}`).value = nome;
   document.getElementById(`cast-row-${id}`).dataset.atorId = atorId;
+  if (nomeAlt !== undefined) {
+    document.getElementById(`cast-nomealt-${id}`).value = nomeAlt || '';
+    document.getElementById(`cast-row-${id}`).dataset.nomeAlt = nomeAlt || '';
+  }
   document.getElementById(`ac-list-${id}`).classList.remove('open');
   // Foca no personagem
   document.getElementById(`cast-personagem-${id}`)?.focus();
@@ -3650,6 +3655,8 @@ function fdAddCastRow(data={}) {
           oninput="document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)" onpaste="setTimeout(()=>{document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)},50)" onblur="setTimeout(()=>acFechar(${id}),200)" autocomplete="off">
         <div class="ac-list" id="ac-list-${id}"></div>
       </div>
+      <input class="fi" id="cast-nomealt-${id}" placeholder="Nome alternativo (MDL)" value="${data.nomeAlt||''}"
+        style="font-size:.75rem;padding:4px 10px;margin-top:4px;opacity:.7;color:var(--text2)">
     </td>
     <td style="padding:4px 6px">
       <input class="fi" id="cast-personagem-${id}" placeholder="Nome do personagem" value="${data.personagem||''}" style="font-size:.82rem;padding:6px 10px">
@@ -3668,6 +3675,7 @@ function fdAddCastRow(data={}) {
   row.dataset.atorId = data.atorId || '';
   row.dataset.atorSbId = data.atorSbId || '';
   row.dataset.elencoId = data.elencoId || '';
+  row.dataset.nomeAlt = data.nomeAlt || '';
   const castList = document.getElementById('fd-cast-list');
   castList.insertBefore(row, castList.firstChild);
   atualizarContadorElenco();
@@ -3899,8 +3907,9 @@ function fdGetCastData() {
       const atorId = document.getElementById(`cast-row-${id}`)?.dataset.atorId || '';
       const atorSbId = document.getElementById(`cast-row-${id}`)?.dataset.atorSbId || '';
       const elencoId = document.getElementById(`cast-row-${id}`)?.dataset.elencoId || '';
+      const nomeAlt = document.getElementById(`cast-nomealt-${id}`)?.value.trim() || '';
       if (!nome) return null;
-      return { nome, personagem, tipo, atorId, atorSbId, elencoId };
+      return { nome, personagem, tipo, atorId, atorSbId, elencoId, nomeAlt };
     })
     .filter(Boolean);
 }
@@ -3942,7 +3951,9 @@ async function fdSalvarElenco(serieId, castData) {
           if(aRows[0]) atorUUID = aRows[0].id;
         }
         if(!atorUUID){
-          const novoRes = await fetch(`${SB_URL}/rest/v1/atores`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify({nome:membro.nome})});
+          const novoPayload = {nome:membro.nome};
+          if(membro.nomeAlt) novoPayload.nome_alt = membro.nomeAlt;
+          const novoRes = await fetch(`${SB_URL}/rest/v1/atores`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify(novoPayload)});
           const novo = await novoRes.json();
           atorUUID = novo[0]?.id;
         }
@@ -4252,7 +4263,8 @@ async function openFormDoramaEdit(serie){
           tipo: row.tipo || 'Secundário',
           atorId: row.atores?.airtable_id || '',
           atorSbId: row.atores?.id || '',
-          elencoId: row.id
+          elencoId: row.id,
+          nomeAlt: row.atores?.nome_alt || ''
         });
       });
       reordenarCastList();
