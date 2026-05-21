@@ -3924,6 +3924,7 @@ async function fdSalvarElenco(serieId, castData) {
 
   for (const membro of castData) {
     try {
+      membro.nome = normalizarNome(membro.nome || '');
 
       // Usar UUID direto se disponível (evita busca por nome e confusão com homônimos)
       let atorUUID = membro.atorSbId || null;
@@ -4791,8 +4792,15 @@ async function faBuscarTMDBPeloNome(){
 // Manter nome antigo como alias por compatibilidade
 function faBuscarFilmografia() { faBuscarFilmografiaMDL(); }
 
+function normalizarNome(nome) {
+  // Após hífen, primeira letra sempre minúscula (padrão HanCinema)
+  return nome.replace(/-([A-Z])/g, (_, c) => '-' + c.toLowerCase());
+}
+
 async function faSalvar(){
-  const nome=document.getElementById('fa-nome').value.trim();
+  const nomeRaw=document.getElementById('fa-nome').value.trim();
+  const nome=normalizarNome(nomeRaw);
+  if(nomeRaw !== nome) document.getElementById('fa-nome').value = nome;
   if(!nome){ showToast('Nome é obrigatório'); return; }
   const dataCadastro=document.getElementById('fa-data-cadastro')?.value;
   if(!dataCadastro){
