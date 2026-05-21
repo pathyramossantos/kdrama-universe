@@ -4253,7 +4253,7 @@ async function openFormDoramaEdit(serie){
       // Elenco
       const loadingEl = document.getElementById('fd-cast-loading');
       if (loadingEl) loadingEl.style.display = '';
-      const ecRes = await fetch(`${SB_URL}/rest/v1/elenco?serie_id=eq.${sbSerieId}&select=id,personagem,tipo,atores:ator_id(airtable_id,nome)&order=tipo.asc`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const ecRes = await fetch(`${SB_URL}/rest/v1/elenco?serie_id=eq.${sbSerieId}&select=id,personagem,tipo,atores:ator_id(id,airtable_id,nome,nome_alt)&order=tipo.asc`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
       const ecRows = await ecRes.json();
       if (loadingEl) loadingEl.style.display = 'none';
       ecRows.forEach(row => {
