@@ -5982,9 +5982,50 @@ function bfInsertImagem() {
 }
 
 function bfInsertVideo() {
-  const url = prompt('URL do YouTube (ex: https://youtu.be/xxxxx ou https://www.youtube.com/watch?v=xxxxx):');
-  if (!url) return;
-  bfInsert(`\n\n[youtube](${url})\n\n`);
+  // Criar input file escondido
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'video/*';
+  input.style.display = 'none';
+  document.body.appendChild(input);
+  input.addEventListener('change', async () => {
+    const file = input.files[0];
+    if (!file) { document.body.removeChild(input); return; }
+    try {
+      showToast('Enviando vídeo para o GitHub…');
+      const url = await uploadFileGithub(file, 'blog');
+      bfInsert('\n\n:::html\n<video src="' + url + '" autoplay loop muted playsinline style="max-width:500px;width:100%;border-radius:10px;display:block;margin:0 auto"></video>\n:::  \n\n');
+      showToast('✓ Vídeo inserido!');
+    } catch(e) {
+      showToast('Erro no upload: ' + e.message);
+    }
+    document.body.removeChild(input);
+  });
+  input.click();
+}
+
+async function uploadFileGithub(file, pasta) {
+  const githubUser = localStorage.getItem('kdrama_github_user') || 'pathyramossantos';
+  const githubToken = localStorage.getItem('kdrama_github_token') || '';
+  const githubRepo = localStorage.getItem('kdrama_github_repo') || 'kdrama-media';
+  if (!githubToken) throw new Error('Configure o token do GitHub nas configurações');
+  const ts = Date.now();
+  const ext = file.name.split('.').pop();
+  const filename = ts + '_' + Math.random().toString(36).slice(2,7) + '.' + ext;
+  const path = pasta + '/' + filename;
+  const reader = new FileReader();
+  const b64 = await new Promise((res, rej) => {
+    reader.onload = e => res(e.target.result.split(',')[1]);
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+  const res = await fetch('https://api.github.com/repos/' + githubUser + '/' + githubRepo + '/contents/' + path, {
+    method: 'PUT',
+    headers: { 'Authorization': 'token ' + githubToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: 'upload ' + filename, content: b64 })
+  });
+  if (!res.ok) throw new Error('Erro GitHub: ' + res.status);
+  return 'https://raw.githubusercontent.com/' + githubUser + '/' + githubRepo + '/main/' + path;
 }
 
 // ── COMENTÁRIOS ───────────────────────────────────────────
