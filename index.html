@@ -586,7 +586,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-galeria-img:hover{opacity:.8}
 .post-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1001;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
 .post-lightbox.open{display:flex}
-.post-lightbox-img{max-width:90vw;max-height:85vh;min-width:min(600px,85vw);min-height:min(340px,50vh);border-radius:8px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.8)}
+.post-lightbox-img{max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.8);display:block}
 .post-lightbox-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.8rem;width:48px;height:48px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
 .post-lightbox-btn:hover{background:rgba(255,255,255,.3)}
 .post-lightbox-close{position:absolute;top:20px;right:24px;background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer;opacity:.7}
@@ -7890,7 +7890,9 @@ if (document.readyState === 'loading') {
 <div id="post-lightbox" class="post-lightbox" onclick="fecharLightbox()">
   <button class="post-lightbox-close" onclick="fecharLightbox()">✕</button>
   <button class="post-lightbox-btn" style="left:16px" onclick="event.stopPropagation();lightboxNav(-1)">‹</button>
-  <img id="post-lightbox-img" class="post-lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+  <div onclick="event.stopPropagation()" style="position:relative;display:inline-block;border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.8)">
+    <img id="post-lightbox-img" class="post-lightbox-img" src="" alt="">
+  </div>
   <button class="post-lightbox-btn" style="right:16px" onclick="event.stopPropagation();lightboxNav(1)">›</button>
   <div class="post-lightbox-counter" id="post-lightbox-counter"></div>
 </div>
