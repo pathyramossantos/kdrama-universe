@@ -5165,7 +5165,7 @@ async function renderPost(id) {
       '<img class="post-sidebar-capa" src="' + capaUrl + '" alt="' + (f['Título']||'').replace(/"/g,'&quot;') + '">' +
       (galeriaUrls.length ? '<div class="post-galeria">' + galeriaUrls.map(u => '<img class="post-galeria-img" src="' + u + '" loading="lazy" onclick="window.open(this.src)" alt="">').join('') + '</div>' : '') +
       (videosUrls.length ? '<div class="post-galeria" style="margin-top:16px"><div style="font-size:.72rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Vídeos</div>' +
-        videosUrls.map(u => { const vid=_ytId(u); return vid ? '<a href="' + u + '" target="_blank" style="display:block;position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border)"><img src="https://img.youtube.com/vi/' + vid + '/mqdefault.jpg" style="width:100%;display:block"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3)"><div style="width:36px;height:36px;background:rgba(255,0,0,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px">▶</div></div></a>' : ''; }).join('') +
+        videosUrls.map(u => { const vid=_ytId(u); return vid ? '<div onclick="abrirVideoModal(\'' + vid + '\')" style="display:block;position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);cursor:pointer"><img src="https://img.youtube.com/vi/' + vid + '/mqdefault.jpg" style="width:100%;display:block"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);transition:background .2s"><div style="width:44px;height:44px;background:rgba(255,0,0,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px">▶</div></div></div>' : ''; }).join('') +
         '</div>' : '') +
       '</div>'
     ) : '';
@@ -5500,6 +5500,30 @@ function bfVideoAdd() {
 }
 
 function bfVideoGetUrls() { return [..._bfVideosUrls]; }
+
+// ── MODAL DE VÍDEO ───────────────────────────────────────
+function abrirVideoModal(ytId) {
+  const overlay = document.getElementById('modal-video-overlay');
+  const iframe = document.getElementById('modal-video-iframe');
+  if (!overlay || !iframe) return;
+  iframe.src = 'https://www.youtube.com/embed/' + ytId + '?autoplay=1&rel=0';
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharVideoModal() {
+  const overlay = document.getElementById('modal-video-overlay');
+  const iframe = document.getElementById('modal-video-iframe');
+  if (!overlay || !iframe) return;
+  iframe.src = '';
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// Fechar com ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') fecharVideoModal();
+});
 function closeBlogForm() { document.getElementById('blog-form-overlay').classList.remove('open'); }
 function bfToggleDoramaRow() {
   const isResenha = document.getElementById('bf-tipo').value === 'Resenha';
@@ -7754,6 +7778,16 @@ if (document.readyState === 'loading') {
   initImgZoneDrops();
 }
 </script>
+
+<!-- MODAL VÍDEO -->
+<div id="modal-video-overlay" onclick="fecharVideoModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+  <div onclick="event.stopPropagation()" style="position:relative;width:min(900px,92vw)">
+    <button onclick="fecharVideoModal()" style="position:absolute;top:-40px;right:0;background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;opacity:.7;line-height:1">✕ Fechar</button>
+    <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.8)">
+      <iframe id="modal-video-iframe" src="" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL LOGIN ADMIN -->
 <div class="form-overlay" id="modal-login-overlay" style="z-index:900">
