@@ -5299,6 +5299,10 @@ if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
   const imgs = [...t.matchAll(/!\[([^\]]*)\]\(([^)]+)\)/g)];
   const html = imgs.map(([, cap, url]) => {
     const lower = cap.toLowerCase();
+    const hM = lower.match(/^h(\d+)$/);
+    const wM = lower.match(/^w(\d+)$/);
+    if (hM) return `<img src="${url}" alt="" loading="lazy" class="post-gif" style="height:${hM[1]}px;width:auto;border-radius:6px;object-fit:cover">`;
+    if (wM) return `<img src="${url}" alt="" loading="lazy" class="post-gif" style="width:${wM[1]}px;border-radius:6px">`;
     const maxW = lower === 'pequena' ? '150px'
                : lower === 'media' || lower === 'mídia' || lower === 'mdia' ? '250px'
                : lower === 'media2' ? '350px'
@@ -5319,6 +5323,12 @@ if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
       if (lower === 'pequena') return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif" style="max-width:300px"></p>`;
       if (lower === 'media' || lower === 'média') return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif" style="max-width:500px"></p>`;
       if (lower === 'grande') return `<img src="${url}" alt="" loading="lazy">`;
+      // Tamanho por altura: h200, h300, h400, h500
+      const hMatch = lower.match(/^h(\d+)$/);
+      if (hMatch) return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" style="height:${hMatch[1]}px;width:auto;max-width:100%;border-radius:8px;object-fit:cover"></p>`;
+      // Tamanho por largura: w300, w500, w700
+      const wMatch = lower.match(/^w(\d+)$/);
+      if (wMatch) return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" style="width:${wMatch[1]}px;max-width:100%;border-radius:8px"></p>`;
       // Legenda normal = imagem grande com legenda
       return `<img src="${url}" alt="${caption}" loading="lazy"><div class="post-img-caption">${caption}</div>`;
     }
