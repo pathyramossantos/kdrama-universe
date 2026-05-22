@@ -584,14 +584,17 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-galeria{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .post-galeria-img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:opacity .2s}
 .post-galeria-img:hover{opacity:.8}
-.post-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1001;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.post-lightbox{display:none;position:fixed;inset:0;z-index:1001;align-items:center;justify-content:center;pointer-events:none}
 .post-lightbox.open{display:flex}
-.post-lightbox-img{max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.8);display:block}
-.post-lightbox-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.8rem;width:48px;height:48px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.post-lightbox-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);cursor:pointer;pointer-events:all}
+.post-lightbox-window{position:relative;pointer-events:all;border-radius:12px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.7);background:#111;display:inline-flex;flex-direction:column;max-width:90vw;max-height:90vh}
+.post-lightbox-img{max-width:90vw;max-height:82vh;object-fit:contain;display:block}
+.post-lightbox-toolbar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(0,0,0,.7);gap:12px}
+.post-lightbox-counter{font-size:.78rem;color:rgba(255,255,255,.6);flex:1;text-align:center}
+.post-lightbox-btn{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.4rem;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0}
 .post-lightbox-btn:hover{background:rgba(255,255,255,.3)}
-.post-lightbox-close{position:absolute;top:20px;right:24px;background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer;opacity:.7}
-.post-lightbox-close:hover{opacity:1}
-.post-lightbox-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:.82rem}
+.post-lightbox-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:1.1rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.post-lightbox-close:hover{color:#fff;background:rgba(255,255,255,.1)}
 .post-body{font-size:.95rem;line-height:1.9;color:var(--text2)}
 .post-body p{margin-bottom:1.4em}
 .post-body h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);margin:2em 0 .8em;padding-bottom:8px;border-bottom:2px solid var(--gold-dim);display:flex;align-items:center;gap:8px}.post-body h2::before{content:'';display:block;width:3px;height:1em;background:var(--gold);border-radius:2px;flex-shrink:0}
@@ -7892,14 +7895,17 @@ if (document.readyState === 'loading') {
 </script>
 
 <!-- LIGHTBOX GALERIA -->
-<div id="post-lightbox" class="post-lightbox" onclick="fecharLightbox()">
-  <button class="post-lightbox-close" onclick="fecharLightbox()">✕</button>
-  <button class="post-lightbox-btn" style="left:16px" onclick="event.stopPropagation();lightboxNav(-1)">‹</button>
-  <div onclick="event.stopPropagation()" style="position:relative;display:inline-block;border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.8)">
+<div id="post-lightbox" class="post-lightbox">
+  <div class="post-lightbox-backdrop" onclick="fecharLightbox()"></div>
+  <div class="post-lightbox-window">
     <img id="post-lightbox-img" class="post-lightbox-img" src="" alt="">
+    <div class="post-lightbox-toolbar">
+      <button class="post-lightbox-btn" onclick="lightboxNav(-1)">‹</button>
+      <span class="post-lightbox-counter" id="post-lightbox-counter"></span>
+      <button class="post-lightbox-btn" onclick="lightboxNav(1)">›</button>
+      <button class="post-lightbox-close" onclick="fecharLightbox()">✕ Fechar</button>
+    </div>
   </div>
-  <button class="post-lightbox-btn" style="right:16px" onclick="event.stopPropagation();lightboxNav(1)">›</button>
-  <div class="post-lightbox-counter" id="post-lightbox-counter"></div>
 </div>
 
 <!-- MODAL VÍDEO -->
