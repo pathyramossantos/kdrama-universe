@@ -2042,7 +2042,9 @@ function sbToAt(row, tabela) {
   } else if (tabela === 'blog') {
     fields = {
       'Título': row.titulo, 'Tipo': row.tipo, 'Status': row.status,
-      'Kicker': row.kicker, 'Conteúdo': row.conteudo, 'Capa': row.capa, 'Galeria': row.galeria || [], 'Videos': row.videos || [],
+      'Kicker': row.kicker, 'Conteúdo': row.conteudo, 'Capa': row.capa,
+      'Galeria': (function(v){ if(Array.isArray(v)) return v; if(typeof v==='string'){ try{return JSON.parse(v);}catch(_){return v.split(',').map(s=>s.trim()).filter(Boolean);} } return []; })(row.galeria),
+      'Videos': (function(v){ if(Array.isArray(v)) return v; if(typeof v==='string'){ try{return JSON.parse(v);}catch(_){return v.split(',').map(s=>s.trim()).filter(Boolean);} } return []; })(row.videos),
       'Tags': row.tags || [], 'Nota': row.nota, 'Experiência': row.experiencia,
       'Autor': row.autor, 'Data': row.data,
       'Dorama ID': row.serie_airtable_id ? [row.serie_airtable_id] : [],
@@ -7647,7 +7649,7 @@ function cardContextMenu(e, page, id) {
           <label class="fl">Galeria de Imagens</label>
           <div id="bf-galeria-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
           <div style="display:flex;gap:8px">
-            <input type="url" id="bf-galeria-url" class="fi" placeholder="Cole URL ou use upload →" style="flex:1"
+            <input type="url" id="bf-galeria-url" class="fi" placeholder="Cole URL da imagem..." style="flex:1;min-width:0"
               onkeydown="if(event.key==='Enter'){event.preventDefault();bfGaleriaAddUrl()}">
             <button class="btn-outline btn-sm" onclick="bfGaleriaAddUrl()">+ URL</button>
             <button class="btn-outline btn-sm" onclick="bfGaleriaUpload()">⬆ Upload</button>
@@ -7660,7 +7662,7 @@ function cardContextMenu(e, page, id) {
           <label class="fl">Vídeos (YouTube)</label>
           <div id="bf-videos-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
           <div style="display:flex;gap:8px">
-            <input type="url" id="bf-video-url" class="fi" placeholder="https://youtube.com/watch?v=... ou youtu.be/..." style="flex:1"
+            <input type="url" id="bf-video-url" class="fi" placeholder="URL do YouTube..." style="flex:1;min-width:0"
               onkeydown="if(event.key==='Enter'){event.preventDefault();bfVideoAdd()}">
             <button class="btn-outline btn-sm" onclick="bfVideoAdd()">+ Adicionar</button>
           </div>
