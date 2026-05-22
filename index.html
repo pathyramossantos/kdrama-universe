@@ -714,6 +714,10 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-body img.post-icon{width:auto !important;height:auto !important;display:inline-block !important;margin:0 4px !important;border:none !important;border-radius:0 !important;vertical-align:middle !important}
 .post-body p:has(img.post-icon){margin-bottom:1em;line-height:2}
 .post-body .post-video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--radius);margin:1.5em 0;border:1px solid var(--border)}
+.post-video-inline{position:relative;display:inline-block;max-width:500px;width:100%;margin:1em auto;display:block}
+.post-video-inline video{width:100%;border-radius:10px;display:block}
+.post-video-sound-btn{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:background .2s}
+.post-video-sound-btn:hover{background:rgba(0,0,0,.85)}
 .post-body .post-video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
 .post-body .post-img-caption{font-size:.75rem;color:var(--text3);text-align:center;margin-top:-1em;margin-bottom:1.5em;font-style:italic}
 
@@ -5994,7 +5998,8 @@ function bfInsertVideo() {
     try {
       showToast('Enviando vídeo para o GitHub…');
       const url = await uploadFileGithub(file, 'blog');
-      bfInsert('\n\n:::html\n<video src="' + url + '" autoplay loop muted playsinline style="max-width:500px;width:100%;border-radius:10px;display:block;margin:0 auto"></video>\n:::  \n\n');
+      const vid_id = 'v' + Date.now();
+      bfInsert('\n\n:::html\n<div class="post-video-inline"><video id="' + vid_id + '" autoplay loop muted playsinline style="width:100%;border-radius:10px;display:block" src="' + url + '"></video><button class="post-video-sound-btn" onclick="(function(b){var v=document.getElementById(\'' + vid_id + '\');v.muted=!v.muted;b.textContent=v.muted?\'🔇\':\'🔊\'})(this)" title="Ativar/desativar som">🔇</button></div>\n:::  \n\n');
       showToast('✓ Vídeo inserido!');
     } catch(e) {
       showToast('Erro no upload: ' + e.message);
