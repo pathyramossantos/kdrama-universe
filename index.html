@@ -566,7 +566,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .blog-card-nota{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--gold);line-height:1;margin-left:auto;align-self:flex-start;flex-shrink:0}
 @media(max-width:560px){.blog-card{flex-direction:column}.blog-card-thumb{width:100%;height:140px}}
 /* POST DETAIL */
-.post-wrap{max-width:1200px;margin:0 auto;padding:40px clamp(16px,4vw,48px) 80px}
+.post-wrap{max-width:100%;margin:0;padding:40px clamp(16px,4vw,60px) 80px}
 .post-back{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:.82rem;font-weight:500;transition:var(--transition);cursor:pointer;margin-bottom:32px}
 .post-back:hover{color:var(--gold);border-color:var(--gold-dim)}
 .post-type-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
@@ -577,13 +577,21 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-nota-big{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:700;color:var(--gold);line-height:1}
 .post-nota-label{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
 .post-cover{width:100%;border-radius:var(--radius);aspect-ratio:16/7;object-fit:cover;margin-bottom:32px;border:1px solid var(--border)}
-.post-layout{display:grid;grid-template-columns:280px 1fr;gap:40px;align-items:start}
+.post-layout{display:grid;grid-template-columns:300px 1fr;gap:48px;align-items:start}
 @media(max-width:768px){.post-layout{grid-template-columns:1fr}}
-.post-sidebar{position:sticky;top:80px}
+.post-sidebar{position:sticky;top:72px;max-height:calc(100vh - 90px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}.post-sidebar::-webkit-scrollbar{width:4px}.post-sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .post-sidebar-capa{width:100%;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,.4);display:block}
-.post-galeria{margin-top:16px;display:flex;flex-direction:column;gap:8px}
-.post-galeria-img{width:100%;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:opacity .2s}
-.post-galeria-img:hover{opacity:.85}
+.post-galeria{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.post-galeria-img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:opacity .2s}
+.post-galeria-img:hover{opacity:.8}
+.post-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1001;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.post-lightbox.open{display:flex}
+.post-lightbox-img{max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.8)}
+.post-lightbox-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.8rem;width:48px;height:48px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.post-lightbox-btn:hover{background:rgba(255,255,255,.3)}
+.post-lightbox-close{position:absolute;top:20px;right:24px;background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer;opacity:.7}
+.post-lightbox-close:hover{opacity:1}
+.post-lightbox-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:.82rem}
 .post-body{font-size:.95rem;line-height:1.9;color:var(--text2)}
 .post-body p{margin-bottom:1.4em}
 .post-body h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);margin:2em 0 .8em;padding-bottom:8px;border-bottom:2px solid var(--gold-dim);display:flex;align-items:center;gap:8px}.post-body h2::before{content:'';display:block;width:3px;height:1em;background:var(--gold);border-radius:2px;flex-shrink:0}
@@ -5165,7 +5173,7 @@ async function renderPost(id) {
     const sidebarHTML = capaUrl ? (
       '<div class="post-sidebar">' +
       '<img class="post-sidebar-capa" src="' + capaUrl + '" alt="' + (f['Título']||'').replace(/"/g,'&quot;') + '">' +
-      (galeriaUrls.length ? '<div class="post-galeria">' + galeriaUrls.map(u => '<img class="post-galeria-img" src="' + u + '" loading="lazy" onclick="window.open(this.src)" alt="">').join('') + '</div>' : '') +
+      (galeriaUrls.length ? '<div class="post-galeria">' + galeriaUrls.map((u,i) => '<img class="post-galeria-img" src="' + u + '" loading="lazy" onclick="abrirLightbox(' + JSON.stringify(galeriaUrls) + ',' + i + ')" alt="">').join('') + '</div>' : '') +
       (videosUrls.length ? '<div class="post-galeria" style="margin-top:16px"><div style="font-size:.72rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Vídeos</div>' +
         videosUrls.map(u => { const vid=_ytId(u); return vid ? '<div onclick="abrirVideoModal(\'' + vid + '\')" style="display:block;position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);cursor:pointer"><img src="https://img.youtube.com/vi/' + vid + '/mqdefault.jpg" style="width:100%;display:block"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);transition:background .2s"><div style="width:44px;height:44px;background:rgba(255,0,0,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px">▶</div></div></div>' : ''; }).join('') +
         '</div>' : '') +
@@ -5502,6 +5510,48 @@ function bfVideoAdd() {
 }
 
 function bfVideoGetUrls() { return [..._bfVideosUrls]; }
+
+// ── LIGHTBOX GALERIA ─────────────────────────────────────
+let _lightboxImgs = [];
+let _lightboxIdx = 0;
+
+function abrirLightbox(imgs, idx) {
+  _lightboxImgs = imgs;
+  _lightboxIdx = idx;
+  const lb = document.getElementById('post-lightbox');
+  if (!lb) return;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  lightboxMostrar();
+}
+
+function fecharLightbox() {
+  const lb = document.getElementById('post-lightbox');
+  if (!lb) return;
+  lb.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function lightboxNav(dir) {
+  _lightboxIdx = (_lightboxIdx + dir + _lightboxImgs.length) % _lightboxImgs.length;
+  lightboxMostrar();
+}
+
+function lightboxMostrar() {
+  const img = document.getElementById('post-lightbox-img');
+  const counter = document.getElementById('post-lightbox-counter');
+  if (img) img.src = _lightboxImgs[_lightboxIdx];
+  if (counter) counter.textContent = (_lightboxIdx + 1) + ' / ' + _lightboxImgs.length;
+}
+
+// Fechar lightbox com ESC / navegar com setas
+document.addEventListener('keydown', e => {
+  const lb = document.getElementById('post-lightbox');
+  if (!lb?.classList.contains('open')) return;
+  if (e.key === 'Escape') fecharLightbox();
+  if (e.key === 'ArrowRight') lightboxNav(1);
+  if (e.key === 'ArrowLeft') lightboxNav(-1);
+});
 
 // ── MODAL DE VÍDEO ───────────────────────────────────────
 function abrirVideoModal(ytId) {
@@ -7780,6 +7830,15 @@ if (document.readyState === 'loading') {
   initImgZoneDrops();
 }
 </script>
+
+<!-- LIGHTBOX GALERIA -->
+<div id="post-lightbox" class="post-lightbox" onclick="fecharLightbox()">
+  <button class="post-lightbox-close" onclick="fecharLightbox()">✕</button>
+  <button class="post-lightbox-btn" style="left:16px" onclick="event.stopPropagation();lightboxNav(-1)">‹</button>
+  <img id="post-lightbox-img" class="post-lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+  <button class="post-lightbox-btn" style="right:16px" onclick="event.stopPropagation();lightboxNav(1)">›</button>
+  <div class="post-lightbox-counter" id="post-lightbox-counter"></div>
+</div>
 
 <!-- MODAL VÍDEO -->
 <div id="modal-video-overlay" onclick="fecharVideoModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
