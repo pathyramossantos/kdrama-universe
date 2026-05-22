@@ -2042,7 +2042,7 @@ function sbToAt(row, tabela) {
   } else if (tabela === 'blog') {
     fields = {
       'Título': row.titulo, 'Tipo': row.tipo, 'Status': row.status,
-      'Kicker': row.kicker, 'Conteúdo': row.conteudo, 'Capa': row.capa,
+      'Kicker': row.kicker, 'Conteúdo': row.conteudo, 'Capa': row.capa, 'Galeria': row.galeria || [], 'Videos': row.videos || [],
       'Tags': row.tags || [], 'Nota': row.nota, 'Experiência': row.experiencia,
       'Autor': row.autor, 'Data': row.data,
       'Dorama ID': row.serie_airtable_id ? [row.serie_airtable_id] : [],
@@ -2089,7 +2089,7 @@ function atToSb(fields, tabela) {
   if (tabela === 'blog') {
     const blogRow = {
       titulo: fields['Título'], tipo: fields['Tipo'], status: fields['Status'],
-      kicker: fields['Kicker'], conteudo: fields['Conteúdo'], capa: fields['Capa'],
+      kicker: fields['Kicker'], conteudo: fields['Conteúdo'], capa: fields['Capa'], galeria: fields['Galeria'] || null, videos: fields['Videos'] || null,
       tags: Array.isArray(fields['Tags']) ? fields['Tags'] : (fields['Tags'] ? String(fields['Tags']).split(',').map(t=>t.trim()) : []),
       nota: fields['Nota'], experiencia: fields['Experiência'],
       autor: fields['Autor'], data: fields['Data'] || null
@@ -5157,11 +5157,16 @@ async function renderPost(id) {
     const date = f['Data'] ? new Date(f['Data']).toLocaleDateString('pt-BR', {day:'numeric',month:'long',year:'numeric'}) : '';
     const capaUrl = Array.isArray(f['Capa']) ? f['Capa'][0]?.url : f['Capa'];
     const galeriaUrls = Array.isArray(f['Galeria']) ? f['Galeria'] : (f['Galeria'] ? String(f['Galeria']).split(',').map(s=>s.trim()).filter(Boolean) : []);
+    const videosUrls = Array.isArray(f['Videos']) ? f['Videos'] : (f['Videos'] ? String(f['Videos']).split(',').map(s=>s.trim()).filter(Boolean) : []);
     const tags = parseTags(f['Tags']);
+    function _ytId(u){ const m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/); return m?m[1]:null; }
     const sidebarHTML = capaUrl ? (
       '<div class="post-sidebar">' +
-      '<img class="post-sidebar-capa" src="' + capaUrl + '" alt="' + (f['Título']||'') + '">' +
-      (galeriaUrls.length ? '<div class="post-galeria">' + galeriaUrls.map(u => '<img class="post-galeria-img" src="' + u + '" loading="lazy" onclick="window.open(\'' + u + '\')" alt="">').join('') + '</div>' : '') +
+      '<img class="post-sidebar-capa" src="' + capaUrl + '" alt="' + (f['Título']||'').replace(/"/g,'&quot;') + '">' +
+      (galeriaUrls.length ? '<div class="post-galeria">' + galeriaUrls.map(u => '<img class="post-galeria-img" src="' + u + '" loading="lazy" onclick="window.open(this.src)" alt="">').join('') + '</div>' : '') +
+      (videosUrls.length ? '<div class="post-galeria" style="margin-top:16px"><div style="font-size:.72rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Vídeos</div>' +
+        videosUrls.map(u => { const vid=_ytId(u); return vid ? '<a href="' + u + '" target="_blank" style="display:block;position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border)"><img src="https://img.youtube.com/vi/' + vid + '/mqdefault.jpg" style="width:100%;display:block"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3)"><div style="width:36px;height:36px;background:rgba(255,0,0,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px">▶</div></div></a>' : ''; }).join('') +
+        '</div>' : '') +
       '</div>'
     ) : '';
     content.innerHTML = '<div class="post-layout">' + sidebarHTML + '<div class="post-main">' + `
@@ -5392,6 +5397,10 @@ function openBlogForm(editId) {
       bfSet('bf-kicker', f['Kicker'] || '');
       bfSet('bf-autor', f['Autor'] || '');
       bfSet('bf-capa', capaUrl);
+      const galeriaEdit = Array.isArray(f['Galeria']) ? f['Galeria'] : (f['Galeria'] ? String(f['Galeria']).split(',').map(s=>s.trim()).filter(Boolean) : []);
+      bfGaleriaRender(galeriaEdit);
+      const videosEdit = Array.isArray(f['Videos']) ? f['Videos'] : (f['Videos'] ? String(f['Videos']).split(',').map(s=>s.trim()).filter(Boolean) : []);
+      bfVideoRender(videosEdit);
       bfSet('bf-tags', Array.isArray(f['Tags']) ? f['Tags'].join(', ') : (f['Tags'] || ''));
       // Dorama — pode vir como array de IDs (Dorama ID) ou array de nomes (Dorama)
       const doramaId = Array.isArray(f['Dorama ID']) ? f['Dorama ID'][0] : (f['Dorama ID'] || '');
@@ -5405,6 +5414,8 @@ function openBlogForm(editId) {
     }
   } else {
     ['bf-titulo','bf-kicker','bf-autor','bf-capa','bf-tags','bf-conteudo','bf-exp'].forEach(id => bfSet(id, ''));
+    bfGaleriaRender([]);
+    bfVideoRender([]);
     bfSet('bf-tipo', 'Resenha');
     bfSet('bf-status-select', 'Publicado');
     bfClearStars();
@@ -5416,6 +5427,79 @@ function openBlogForm(editId) {
 }
 
 function bfSet(id, val) { const el = document.getElementById(id); if (el) el.value = val == null ? '' : val; }
+
+// ── GALERIA DO BLOG ──────────────────────────────────────
+let _bfGaleriaUrls = [];
+
+function bfGaleriaRender(urls) {
+  _bfGaleriaUrls = Array.isArray(urls) ? [...urls] : [];
+  const list = document.getElementById('bf-galeria-list');
+  if (!list) return;
+  list.innerHTML = _bfGaleriaUrls.map((url, i) =>
+    '<div style="position:relative;width:72px;flex-shrink:0">' +
+    '<img src="' + url + '" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">' +
+    '<button onclick="bfGaleriaRemove(' + i + ')" style="position:absolute;top:-6px;right:-6px;background:var(--red,#e74c3c);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;padding:0;line-height:1">✕</button>' +
+    '</div>'
+  ).join('');
+}
+
+function bfGaleriaRemove(i) { _bfGaleriaUrls.splice(i, 1); bfGaleriaRender(_bfGaleriaUrls); }
+
+function bfGaleriaAddUrl() {
+  const input = document.getElementById('bf-galeria-url');
+  const url = input?.value.trim();
+  if (!url) return;
+  _bfGaleriaUrls.push(url);
+  bfGaleriaRender(_bfGaleriaUrls);
+  input.value = '';
+}
+
+async function bfGaleriaUpload() {
+  try {
+    const url = await uploadImagemGithub('blog');
+    _bfGaleriaUrls.push(url);
+    bfGaleriaRender(_bfGaleriaUrls);
+    showToast('✓ Imagem adicionada à galeria!');
+  } catch(e) { showToast('Erro upload: ' + e.message); }
+}
+
+function bfGaleriaGetUrls() { return [..._bfGaleriaUrls]; }
+
+// ── VÍDEOS DO BLOG ───────────────────────────────────────
+let _bfVideosUrls = [];
+
+function bfVideoYTId(url) {
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function bfVideoRender(urls) {
+  _bfVideosUrls = Array.isArray(urls) ? [...urls] : [];
+  const list = document.getElementById('bf-videos-list');
+  if (!list) return;
+  list.innerHTML = _bfVideosUrls.map((url, i) => {
+    const ytId = bfVideoYTId(url);
+    const thumb = ytId ? '<img src="https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg" style="width:80px;height:45px;object-fit:cover;border-radius:4px;flex-shrink:0">' : '';
+    return '<div style="display:flex;align-items:center;gap:8px;background:var(--surface2,#1a2840);padding:6px 10px;border-radius:8px">' +
+      thumb +
+      '<span style="font-size:.78rem;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + url + '</span>' +
+      '<button onclick="bfVideoRemove(' + i + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem;padding:0">✕</button>' +
+      '</div>';
+  }).join('');
+}
+
+function bfVideoRemove(i) { _bfVideosUrls.splice(i, 1); bfVideoRender(_bfVideosUrls); }
+
+function bfVideoAdd() {
+  const input = document.getElementById('bf-video-url');
+  const url = input?.value.trim();
+  if (!url) return;
+  _bfVideosUrls.push(url);
+  bfVideoRender(_bfVideosUrls);
+  input.value = '';
+}
+
+function bfVideoGetUrls() { return [..._bfVideosUrls]; }
 function closeBlogForm() { document.getElementById('blog-form-overlay').classList.remove('open'); }
 function bfToggleDoramaRow() {
   const isResenha = document.getElementById('bf-tipo').value === 'Resenha';
@@ -5598,6 +5682,8 @@ async function bfSalvar() {
       } catch(_) {}
     }
     const capa = document.getElementById('bf-capa').value.trim(); if (capa) fields['Capa'] = capa;
+    const galeriaArr = bfGaleriaGetUrls(); if (galeriaArr.length) fields['Galeria'] = galeriaArr;
+    const videosArr = bfVideoGetUrls(); if (videosArr.length) fields['Videos'] = videosArr;
     bar.style.width = '70%';
     let record;
     if (bfEditId) {
@@ -7530,6 +7616,31 @@ function cardContextMenu(e, page, id) {
             <input type="url" id="bf-capa" class="fi" placeholder="https://… ou faça upload →" style="flex:1">
             <button class="btn-outline btn-sm" onclick="uploadImagemGithub('capas').then(url=>{bfSet('bf-capa',url);showToast('✓ Capa definida!')}).catch(e=>showToast('Erro upload: ' + e.message))" title="Upload via GitHub">⬆ Upload</button>
           </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg">
+          <label class="fl">Galeria de Imagens</label>
+          <div id="bf-galeria-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
+          <div style="display:flex;gap:8px">
+            <input type="url" id="bf-galeria-url" class="fi" placeholder="Cole URL ou use upload →" style="flex:1"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();bfGaleriaAddUrl()}">
+            <button class="btn-outline btn-sm" onclick="bfGaleriaAddUrl()">+ URL</button>
+            <button class="btn-outline btn-sm" onclick="bfGaleriaUpload()">⬆ Upload</button>
+          </div>
+          <p class="fl" style="margin-top:4px;font-size:.72rem;color:var(--text3)">Aparecem abaixo da capa. Clique na miniatura para remover.</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg">
+          <label class="fl">Vídeos (YouTube)</label>
+          <div id="bf-videos-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+          <div style="display:flex;gap:8px">
+            <input type="url" id="bf-video-url" class="fi" placeholder="https://youtube.com/watch?v=... ou youtu.be/..." style="flex:1"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();bfVideoAdd()}">
+            <button class="btn-outline btn-sm" onclick="bfVideoAdd()">+ Adicionar</button>
+          </div>
+          <p class="fl" style="margin-top:4px;font-size:.72rem;color:var(--text3)">Trailers ou vídeos relacionados. Aparecem abaixo da galeria.</p>
         </div>
       </div>
       <div class="form-row">
