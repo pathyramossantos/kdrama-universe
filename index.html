@@ -5319,6 +5319,11 @@ if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
       const [, caption, url] = imgMatch;
       const lower = (caption||'').toLowerCase().trim();
       // Sem legenda ou legenda especial = tamanho natural centralizado
+      // gif com tamanho: "gif h300" ou "gif w400"
+      const gifHMatch = lower.match(/^gif h(\d+)$/);
+      const gifWMatch = lower.match(/^gif w(\d+)$/);
+      if (gifHMatch) return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif" style="height:${gifHMatch[1]}px;width:auto;max-width:100%"></p>`;
+      if (gifWMatch) return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif" style="width:${gifWMatch[1]}px;max-width:100%"></p>`;
       if (!caption || lower === 'gif') return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif"></p>`;
       if (lower === 'pequena') return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif" style="max-width:300px"></p>`;
       if (lower === 'media' || lower === 'média') return `<p style="text-align:center;margin:1em 0"><img src="${url}" alt="" loading="lazy" class="post-gif" style="max-width:500px"></p>`;
