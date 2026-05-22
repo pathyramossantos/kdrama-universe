@@ -577,6 +577,13 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-nota-big{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:700;color:var(--gold);line-height:1}
 .post-nota-label{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
 .post-cover{width:100%;border-radius:var(--radius);aspect-ratio:16/7;object-fit:cover;margin-bottom:32px;border:1px solid var(--border)}
+.post-layout{display:grid;grid-template-columns:280px 1fr;gap:40px;align-items:start}
+@media(max-width:768px){.post-layout{grid-template-columns:1fr}}
+.post-sidebar{position:sticky;top:80px}
+.post-sidebar-capa{width:100%;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,.4);display:block}
+.post-galeria{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.post-galeria-img{width:100%;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:opacity .2s}
+.post-galeria-img:hover{opacity:.85}
 .post-body{font-size:.95rem;line-height:1.9;color:var(--text2)}
 .post-body p{margin-bottom:1.4em}
 .post-body h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);margin:2em 0 .8em;padding-bottom:8px;border-bottom:2px solid var(--gold-dim);display:flex;align-items:center;gap:8px}.post-body h2::before{content:'';display:block;width:3px;height:1em;background:var(--gold);border-radius:2px;flex-shrink:0}
@@ -5149,8 +5156,15 @@ async function renderPost(id) {
     const tipo = f['Tipo'] || 'Post';
     const date = f['Data'] ? new Date(f['Data']).toLocaleDateString('pt-BR', {day:'numeric',month:'long',year:'numeric'}) : '';
     const capaUrl = Array.isArray(f['Capa']) ? f['Capa'][0]?.url : f['Capa'];
+    const galeriaUrls = Array.isArray(f['Galeria']) ? f['Galeria'] : (f['Galeria'] ? String(f['Galeria']).split(',').map(s=>s.trim()).filter(Boolean) : []);
     const tags = parseTags(f['Tags']);
-    content.innerHTML = `
+    const sidebarHTML = capaUrl ? (
+      '<div class="post-sidebar">' +
+      '<img class="post-sidebar-capa" src="' + capaUrl + '" alt="' + (f['Título']||'') + '">' +
+      (galeriaUrls.length ? '<div class="post-galeria">' + galeriaUrls.map(u => '<img class="post-galeria-img" src="' + u + '" loading="lazy" onclick="window.open(\'' + u + '\')" alt="">').join('') + '</div>' : '') +
+      '</div>'
+    ) : '';
+    content.innerHTML = '<div class="post-layout">' + sidebarHTML + '<div class="post-main">' + `
       <span class="post-type-badge blog-type-badge blog-type-${tipo === 'Resenha' ? 'resenha' : 'post'}">${tipo}</span>
       ${f['Kicker'] ? `<div class="post-kicker">${f['Kicker']}</div>` : ''}
       <h1 class="post-h1">${f['Título'] || 'Sem título'}</h1>
@@ -5160,31 +5174,12 @@ async function renderPost(id) {
         ${f['Autor'] ? `<span style="color:var(--text3);font-size:.78rem">· Escrito por <span style="color:var(--gold-dim)">${f['Autor']}</span></span>` : ''}
         ${f['Nota'] ? `<span style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end"><span class="post-nota-big">${parseFloat(f['Nota']).toFixed(1)}</span><span class="post-nota-label">nota / 10</span></span>` : ''}
         ${expBadge(f['Experiência'])}
-        <button class="btn-outline btn-sm" onclick="openBlogForm('${id}')" style="margin-left:8px">✏️ Editar</button>
+        ${isOwner() ? `<button class="btn-outline btn-sm" onclick="openBlogForm('${id}')" style="margin-left:8px">✏️ Editar</button>` : ''}
       </div>
-      ${capaUrl ? `
-      <div class="post-cover-wrap" id="post-cover-wrap-${id}">
-        <img class="post-cover" id="post-cover-img-${id}" src="${capaUrl}" style="object-position:center center">
-        <div class="post-cover-controls">
-          <button class="post-cover-ctrl" onclick="togglePostCoverPanel('${id}')">⊹ Ajustar posição</button>
-        </div>
-        <div class="post-cover-pos-panel" id="post-cover-panel-${id}">
-          <div style="font-size:.68rem;color:rgba(255,255,255,.5);margin-bottom:10px;text-align:center">Ajustar posição da imagem</div>
-          <div class="post-cover-slider-row">
-            <span class="post-cover-slider-label">↕</span>
-            <input type="range" class="post-cover-slider" id="post-cover-y-${id}" min="0" max="100" value="50" oninput="setPostCoverPosSlider('${id}')">
-            <span class="post-cover-slider-val" id="post-cover-y-val-${id}">50%</span>
-          </div>
-          <div class="post-cover-slider-row">
-            <span class="post-cover-slider-label">↔</span>
-            <input type="range" class="post-cover-slider" id="post-cover-x-${id}" min="0" max="100" value="50" oninput="setPostCoverPosSlider('${id}')">
-            <span class="post-cover-slider-val" id="post-cover-x-val-${id}">50%</span>
-          </div>
-        </div>
-      </div>` : ''}
       <div class="post-body">${renderPostBody(f['Conteúdo'] || '')}</div>
       ${tags.length ? `<div class="post-tags">${tags.map(t => `<span class="post-tag" style="cursor:pointer" onclick="navigate('blog');setTimeout(()=>{_blogTagFilter='${t}';filterBlog()},400)">${t}</span>`).join('')}</div>` : ''}
-      <div id="post-comments-placeholder"></div>`;
+      <div id="post-comments-placeholder"></div>
+    ` + '</div></div>';
 
     restorePostCoverPos(id);
     // Carregar comentários depois do HTML estar pronto
