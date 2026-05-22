@@ -7711,12 +7711,11 @@ function cardContextMenu(e, page, id) {
         <div class="fg">
           <label class="fl">Vídeos (YouTube)</label>
           <div id="bf-videos-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
-          <div style="display:flex;gap:8px">
-            <input type="url" id="bf-video-url" class="fi" placeholder="URL do YouTube..." style="flex:1;min-width:0"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();bfVideoAdd()}">
-            <button class="btn-outline btn-sm" onclick="bfVideoAdd()">+ Adicionar</button>
-          </div>
-          <p class="fl" style="margin-top:4px;font-size:.72rem;color:var(--text3)">Trailers ou vídeos relacionados. Aparecem abaixo da galeria.</p>
+          <input type="url" id="bf-video-url" class="fi" placeholder="https://youtube.com/watch?v=..."
+            style="width:100%;margin-bottom:6px"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();bfVideoAdd()}">
+          <button class="btn-outline btn-sm" onclick="bfVideoAdd()" style="width:100%">+ Adicionar vídeo</button>
+          <p class="fl" style="margin-top:6px;font-size:.72rem;color:var(--text3)">Trailers ou vídeos relacionados. Aparecem abaixo da galeria.</p>
         </div>
       </div>
       <div class="form-row">
