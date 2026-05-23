@@ -1813,9 +1813,9 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 <!-- LIGHTBOX -->
 <div id="lightbox">
   <span id="lightbox-close" onclick="closeLightbox()">✕</span>
-  <span id="lightbox-prev" onclick="lightboxNav(-1)">‹</span>
+  <span id="lightbox-prev" onclick="dramaLightboxNav(-1)">‹</span>
   <img id="lightbox-img" src="" alt="">
-  <span id="lightbox-next" onclick="lightboxNav(1)">›</span>
+  <span id="lightbox-next" onclick="dramaLightboxNav(1)">›</span>
 </div>
 
 <div id="toast"></div>
@@ -2094,8 +2094,8 @@ function atToSb(fields, tabela) {
     capa: fields['Capa'], sinopse: fields['Sinopse'],
     ano_lancamento: fields['Ano Lançamento'], episodios: fields['Episódios'],
     pais: fields['País'], status: fields['Status'], nota: fields['Nota'],
-    generos: fields['Gêneros'], galeria: fields['Galeria'],
-    videos: fields['Videos'] ? JSON.stringify(fields['Videos']) : null,
+    generos: fields['Gêneros'], galeria: fields['Galeria'] ? (typeof fields['Galeria'] === 'string' ? fields['Galeria'] : JSON.stringify(fields['Galeria'])) : null,
+    videos: fields['Videos'] ? (typeof fields['Videos'] === 'string' ? fields['Videos'] : JSON.stringify(fields['Videos'])) : null,
     plataformas: fields['Plataformas'],
     romance: fields['Romance'], comedia: fields['Comédia'],
     fantasia: fields['Fantasia'], quimica_casal: fields['Química do Casal'],
@@ -3169,20 +3169,20 @@ function openLightbox(idx,src){
   lightboxIndex=idx;
   document.getElementById('lightbox-img').src=imgs[idx];
   document.getElementById('lightbox').classList.add('open');
-  document.addEventListener('keydown',lightboxKey);
+  document.addEventListener('keydown',dramaLightboxKey);
 }
 function closeLightbox(){
   document.getElementById('lightbox').classList.remove('open');
-  document.removeEventListener('keydown',lightboxKey);
+  document.removeEventListener('keydown',dramaLightboxKey);
 }
-function lightboxNav(dir){
+function dramaLightboxNav(dir){
   lightboxIndex=(lightboxIndex+dir+lightboxImages.length)%lightboxImages.length;
   document.getElementById('lightbox-img').src=lightboxImages[lightboxIndex];
 }
-function lightboxKey(e){
+function dramaLightboxKey(e){
   if(e.key==='Escape') closeLightbox();
-  if(e.key==='ArrowLeft') lightboxNav(-1);
-  if(e.key==='ArrowRight') lightboxNav(1);
+  if(e.key==='ArrowLeft') dramaLightboxNav(-1);
+  if(e.key==='ArrowRight') dramaLightboxNav(1);
 }
 document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===document.getElementById('lightbox')) closeLightbox();});
 
@@ -4465,7 +4465,7 @@ async function fdSalvar(){
     const plataformasSel = fdGetPlataformas();
     if(plataformasSel.length) fields['Plataformas']=plataformasSel;
     const _videosArr = fdVideoGetUrls();
-    fields['Videos'] = _videosArr.length ? JSON.stringify(_videosArr) : null;
+    fields['Videos'] = _videosArr.length ? _videosArr : null;
 
     // Ratings
     ['Romance','Comédia','Drama','Fantasia','Química do Casal','Ação','Roteiro','OST'].forEach(r=>{
