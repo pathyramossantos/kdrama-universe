@@ -5512,10 +5512,10 @@ function bfVideoRender(urls) {
   list.innerHTML = _bfVideosUrls.map((url, i) => {
     const ytId = bfVideoYTId(url);
     const thumb = ytId ? '<img src="https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg" style="width:80px;height:45px;object-fit:cover;border-radius:4px;flex-shrink:0">' : '';
-    return '<div style="display:flex;align-items:center;gap:8px;background:var(--surface2,#1a2840);padding:6px 10px;border-radius:8px">' +
+    return '<div style="display:flex;align-items:center;gap:8px;background:var(--surface2,#1a2840);padding:6px 10px;border-radius:8px;min-width:0;overflow:hidden">' +
       thumb +
-      '<span style="font-size:.78rem;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + url + '</span>' +
-      '<button onclick="bfVideoRemove(' + i + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem;padding:0">✕</button>' +
+      '<span style="font-size:.78rem;color:var(--text2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + url + '</span>' +
+      '<button onclick="bfVideoRemove(' + i + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem;padding:0;flex-shrink:0">✕</button>' +
       '</div>';
   }).join('');
 }
