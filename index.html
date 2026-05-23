@@ -2623,7 +2623,7 @@ async function renderDorama(id){
             if(!vids.length) return '';
             const items = vids.map(u => {
               const vid = _ytId(u);
-              return vid ? ('<div onclick="abrirVideoModal('' + vid + '')" style="position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3)">' +
+              return vid ? ('<div onclick="abrirVideoModal(\'' + vid + '\')" style="position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3)">' +
                 '<img src="https://img.youtube.com/vi/' + vid + '/hqdefault.jpg" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover">' +
                 '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)">' +
                 '<div style="width:52px;height:52px;background:rgba(255,0,0,.95);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.5)">&#9654;</div>' +
@@ -2653,7 +2653,7 @@ async function renderDorama(id){
               const name=a?(a.fields['Nome']||''):'';
               const ph=a?getPhoto(a,'Foto'):null;
               const aid=a?a.id:'';
-              const click=a?[' onclick="navigate('ator','',aid,'');return false;" oncontextmenu="cardContextMenu(event,'ator','',aid,'');return false;"'].join(''):'';
+              const click=a?[' onclick="navigate(\'ator\',\'',aid,'\');return false;" oncontextmenu="cardContextMenu(event,\'ator\',\'',aid,'\');return false;"'].join(''):'';
               const photoEl=ph?'<img class="cast-photo" src="'+ph+'" alt="'+name+'" loading="lazy">':'<div class="cast-photo-placeholder">?</div>';
               const info='<div class="cast-info"><div class="cast-name">'+name+'</div><div class="cast-char">'+(ef['Personagem']||'')+'</div><div class="cast-type">'+(ef['Tipo']||'')+'</div></div>';
               return '<div class="cast-card" style="position:relative;cursor:'+(a?'pointer':'default')+'"'+click+'>'+photoEl+info+'</div>';
