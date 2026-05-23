@@ -179,7 +179,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .detail-badges{display:flex;gap:8px;flex-wrap:wrap}
 
 /* DETAIL BODY */
-.detail-body{max-width:1100px;margin:0 auto;padding:40px clamp(16px,4vw,48px);display:grid;grid-template-columns:280px 1fr;gap:40px}
+.detail-body{max-width:1200px;margin:0 auto;padding:40px clamp(16px,4vw,48px);display:grid;grid-template-columns:360px 1fr;gap:40px}
 @media(max-width:768px){.detail-body{grid-template-columns:1fr}.ator-body-grid{grid-template-columns:1fr!important}}
 .detail-poster{width:100%;border-radius:var(--card-r);box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid var(--border);object-fit:cover;aspect-ratio:2/3}
 .detail-meta-list{margin-top:20px;display:flex;flex-direction:column;gap:10px}
@@ -1544,6 +1544,17 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <div class="gal-wrap" id="fd-galeria-preview"></div>
       </div>
 
+      <!-- Vídeos -->
+      <div class="form-sect">
+        <div class="form-sect-title">Vídeos (YouTube)</div>
+        <div id="fd-videos-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;width:100%;overflow:hidden"></div>
+        <input type="url" id="fd-video-url" class="fi" placeholder="https://youtube.com/watch?v=..."
+          style="width:100%;margin-bottom:6px"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();fdVideoAdd()}">
+        <button class="btn-outline btn-sm" onclick="fdVideoAdd()" style="width:100%">+ Adicionar vídeo</button>
+        <p class="fl" style="margin-top:6px;font-size:.72rem;color:var(--text3)">Trailers e vídeos relacionados ao dorama.</p>
+      </div>
+
       <!-- URL HanCinema (campo oculto) -->
       <input type="hidden" id="fd-hancinema">
 
@@ -2007,6 +2018,7 @@ function sbToAt(row, tabela) {
       'País': row.pais, 'Status': row.status, 'Nota': row.nota,
       'Avaliação': row.avaliacao, 'Experiência': row.experiencia,
       'Gêneros': row.generos || [], 'Galeria': row.galeria || [],
+      'Videos': (function(v){ if(Array.isArray(v)) return v; if(typeof v==='string'){ try{return JSON.parse(v);}catch(_){return v.split(',').map(s=>s.trim()).filter(Boolean);} } return []; })(row.videos),
       'Romance': row.romance, 'Comédia': row.comedia,
       'Fantasia': row.fantasia, 'Química do Casal': row.quimica_casal,
       'OST': row.ost_nota, 'Ação': row.acao, 'Drama': row.drama,
@@ -2083,6 +2095,7 @@ function atToSb(fields, tabela) {
     ano_lancamento: fields['Ano Lançamento'], episodios: fields['Episódios'],
     pais: fields['País'], status: fields['Status'], nota: fields['Nota'],
     generos: fields['Gêneros'], galeria: fields['Galeria'],
+    videos: fields['Videos'] ? JSON.stringify(fields['Videos']) : null,
     plataformas: fields['Plataformas'],
     romance: fields['Romance'], comedia: fields['Comédia'],
     fantasia: fields['Fantasia'], quimica_casal: fields['Química do Casal'],
@@ -2598,28 +2611,37 @@ async function renderDorama(id){
     </div>
     <div class="detail-body">
       <div class="detail-sidebar">
-        ${photo?`<img class="detail-poster" src="${photo}" alt="${f['Nome']||''}">`:''}
+        ${photo?`<img class="detail-poster" src="${photo}" alt="${f['Nome']||''}">` : ''}
         <div class="detail-meta-list">
           ${f['Ano Lançamento']?`<div class="detail-meta-item"><span class="detail-meta-label">Ano</span><span class="detail-meta-value editable" contenteditable="false" data-field="Ano Lançamento">${f['Ano Lançamento']}</span></div>`:''}
           ${f['Episódios']?`<div class="detail-meta-item"><span class="detail-meta-label">Episódios</span><span class="detail-meta-value editable" contenteditable="false" data-field="Episódios">${f['Episódios']}</span></div>`:''}
           ${f['País']?`<div class="detail-meta-item"><span class="detail-meta-label">País</span><span class="detail-meta-value editable" contenteditable="false" data-field="País">${f['País']}</span></div>`:''}
         </div>
+        ${gallery.length ? `
+          <div style="font-size:.75rem;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Imagens</div>
+          <div class="post-galeria" id="drama-gallery">
+            ${gallery.map((url,i)=>`<img class="post-galeria-img" src="${url}" loading="lazy" onclick="openLightbox(${i},'drama')">`).join('')}
+          </div>` : ''}
+        ${(()=>{
+            const vids = (function(v){ if(Array.isArray(v)) return v; if(typeof v==='string'){ try{return JSON.parse(v);}catch(_){return v.split(',').map(s=>s.trim()).filter(Boolean);} } return []; })(f['Videos']);
+            if(!vids.length) return '';
+            const items = vids.map(u => {
+              const vid = _ytId(u);
+              return vid ? ('<div onclick="abrirVideoModal('' + vid + '')" style="position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3)">' +
+                '<img src="https://img.youtube.com/vi/' + vid + '/hqdefault.jpg" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover">' +
+                '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)">' +
+                '<div style="width:52px;height:52px;background:rgba(255,0,0,.95);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.5)">&#9654;</div>' +
+                '</div></div>') : '';
+            }).filter(Boolean).join('');
+            return items ? '<div style="font-size:.75rem;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Videos</div><div style="display:flex;flex-direction:column;gap:10px">' + items + '</div>' : '';
+          })()}
       </div>
       <div class="detail-main">
-        ${resenhaPost ? `
-          <button class="btn-gold btn-sm" onclick="navigate('post','${resenhaPost}')" style="margin-bottom:24px;display:inline-flex;align-items:center;gap:8px">
-            ✍️ Ver Resenha
-          </button>` : ''}
-        ${currentSerie?`<button class="btn-outline btn-sm" onclick="navigate('ost-detail','${currentSerie.id}')" style="margin-bottom:16px;display:inline-flex;align-items:center;gap:6px">🎵 OST</button>`:``}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+          ${resenhaPost ? `<button class="btn-gold btn-sm" onclick="navigate('post','${resenhaPost}')" style="display:inline-flex;align-items:center;gap:8px">Ver Resenha</button>` : ''}
+          ${currentSerie?`<button class="btn-outline btn-sm" onclick="navigate('ost-detail','${currentSerie.id}')" style="display:inline-flex;align-items:center;gap:6px">OST</button>`:''}
+        </div>
         ${f['Sinopse']?`<div class="section-title">Sinopse</div><p class="detail-sinopse editable" contenteditable="false" data-field="Sinopse">${f['Sinopse']}</p>`:''}
-
-
-        ${gallery.length?`
-          <div class="section-title">Galeria</div>
-          <div class="gallery-grid" id="drama-gallery">
-            ${gallery.map((url,i)=>`<img class="gallery-img" src="${url}" loading="lazy" onclick="openLightbox(${i},'drama')">`).join('')}
-          </div>`:
-          `<div class="section-title">Galeria</div><p style="color:var(--text3);font-size:.85rem;margin-bottom:24px">Nenhuma foto na galeria ainda.</p>`}
         ${(()=>{
             if(!castRecords.length) return '';
             const grupos = {'Principal':[], 'Secundário':[], 'Participação especial':[]};
@@ -2635,8 +2657,8 @@ async function renderDorama(id){
               const name=a?(a.fields['Nome']||''):'';
               const ph=a?getPhoto(a,'Foto'):null;
               const aid=a?a.id:'';
-              const click=a?[' onclick="navigate(\'ator\',\'',aid,'\');return false;" oncontextmenu="cardContextMenu(event,\'ator\',\'',aid,'\');return false;"'].join(''):'';
-              const photoEl=ph?'<img class="cast-photo" src="'+ph+'" alt="'+name+'" loading="lazy">':'<div class="cast-photo-placeholder">👤</div>';
+              const click=a?[' onclick="navigate('ator','',aid,'');return false;" oncontextmenu="cardContextMenu(event,'ator','',aid,'');return false;"'].join(''):'';
+              const photoEl=ph?'<img class="cast-photo" src="'+ph+'" alt="'+name+'" loading="lazy">':'<div class="cast-photo-placeholder">?</div>';
               const info='<div class="cast-info"><div class="cast-name">'+name+'</div><div class="cast-char">'+(ef['Personagem']||'')+'</div><div class="cast-type">'+(ef['Tipo']||'')+'</div></div>';
               return '<div class="cast-card" style="position:relative;cursor:'+(a?'pointer':'default')+'"'+click+'>'+photoEl+info+'</div>';
             }
@@ -2651,21 +2673,21 @@ async function renderDorama(id){
             return html;
           })()}
         ${dirDorama.length ? `
-          <div class="section-title" style="margin-top:32px">Direção & Roteiro</div>
+          <div class="section-title" style="margin-top:32px">Direção e Roteiro</div>
           <div class="cast-grid">
             ${dirDorama.map(d => {
               const foto = Array.isArray(d.fields['Foto']) ? d.fields['Foto'][0]?.url : d.fields['Foto'];
               const tipo = d._tipoDisplay || d.fields['Tipo'] || '';
               return `<div class="cast-card" onclick="navigate('diretor','${d.id}')">
-                ${foto ? `<img class="cast-photo" src="${foto}" alt="${d.fields['Nome']||''}" loading="lazy">` : `<div class="cast-photo-placeholder">🎬</div>`}
+                ${foto ? `<img class="cast-photo" src="${foto}" alt="${d.fields['Nome']||''}" loading="lazy">` : `<div class="cast-photo-placeholder">D</div>`}
                 <div class="cast-info">
-                  <div class="cast-name">${d.fields['Nome']||'—'}</div>
+                  <div class="cast-name">${d.fields['Nome']||'-'}</div>
                   <div class="cast-char">${d.fields['Nome Estrangeiro']||''}</div>
                   <div class="cast-type">${tipo}</div>
                 </div>
               </div>`;
             }).join('')}
-          </div>` : ''}​      </div>
+          </div>` : ''}      </div>
     </div>`;
   setTimeout(() => applyEditModeToDOM(), 100);
   setTimeout(() => applyEditModeToDOM(), 500);
@@ -4199,6 +4221,7 @@ function openFormDorama(data={}, editId=null){
   fdCapaFile = null;
   fdCapaUrlFinal = null;
   fdGaleriaFiles = [];
+  _fdVideosUrls = [];
 
   // Título do form
   document.getElementById('form-dorama-titulo').innerHTML = editId
@@ -4216,6 +4239,7 @@ function openFormDorama(data={}, editId=null){
   setVal('fd-hancinema', data.hancinema||'');
   setVal('fd-capa-url', data.capaUrl||'');
   document.getElementById('fd-galeria-preview').innerHTML = '';
+  fdVideoRender(data.videos || []);
   document.getElementById('fd-status-msg').textContent = '';
   document.getElementById('fd-prog').style.display = 'none';
   document.getElementById('fd-cast-list').innerHTML = ''; fdCastRows = []; fdCastCounter = 0; fdCastDeleted = []; atualizarContadorElenco();
@@ -4273,7 +4297,8 @@ async function openFormDoramaEdit(serie){
     plataformas: f['Plataformas']||[],
     'Romance':f['Romance'],'Comédia':f['Comédia'],'Drama':f['Drama'],
     'Fantasia':f['Fantasia'],'Química do Casal':f['Química do Casal'],
-    'Ação':f['Ação'],'Roteiro':f['Roteiro'],'OST':f['OST']
+    'Ação':f['Ação'],'Roteiro':f['Roteiro'],'OST':f['OST'],
+    videos: (function(v){ if(Array.isArray(v)) return v; if(typeof v==='string'){ try{return JSON.parse(v);}catch(_){return v.split(',').map(s=>s.trim()).filter(Boolean);} } return []; })(f['Videos'])
   }, serie.id);
 
   // Carregar direção e elenco existentes
@@ -4359,6 +4384,42 @@ function fdAddGaleria(input){
   });
 }
 
+// VIDEOS DO DORAMA
+let _fdVideosUrls = [];
+
+function fdVideoYTId(url) {
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function fdVideoRender(urls) {
+  _fdVideosUrls = Array.isArray(urls) ? [...urls] : [];
+  const list = document.getElementById('fd-videos-list');
+  if (!list) return;
+  list.innerHTML = _fdVideosUrls.map((url, i) => {
+    const ytId = fdVideoYTId(url);
+    const thumb = ytId ? '<img src="https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg" style="width:80px;height:45px;object-fit:cover;border-radius:4px;flex-shrink:0">' : '';
+    return '<div style="display:flex;align-items:center;gap:8px;background:var(--surface2,#1a2840);padding:6px 10px;border-radius:8px;min-width:0;overflow:hidden">' +
+      thumb +
+      '<span style="font-size:.78rem;color:var(--text2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + url + '</span>' +
+      '<button onclick="fdVideoRemove(' + i + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem;padding:0;flex-shrink:0">x</button>' +
+      '</div>';
+  }).join('');
+}
+
+function fdVideoRemove(i) { _fdVideosUrls.splice(i, 1); fdVideoRender(_fdVideosUrls); }
+
+function fdVideoAdd() {
+  const input = document.getElementById('fd-video-url');
+  const url = input ? input.value.trim() : '';
+  if (!url) return;
+  _fdVideosUrls.push(url);
+  fdVideoRender(_fdVideosUrls);
+  input.value = '';
+}
+
+function fdVideoGetUrls() { return [..._fdVideosUrls]; }
+
 function fdToggleGenre(el, genre){
   el.classList.toggle('on');
   if(el.classList.contains('on')){ if(!fdGenerosSel.includes(genre)) fdGenerosSel.push(genre); }
@@ -4407,6 +4468,8 @@ async function fdSalvar(){
     if(fdGenerosSel.length) fields['Gêneros']=fdGenerosSel;
     const plataformasSel = fdGetPlataformas();
     if(plataformasSel.length) fields['Plataformas']=plataformasSel;
+    const _videosArr = fdVideoGetUrls();
+    fields['Videos'] = _videosArr.length ? JSON.stringify(_videosArr) : null;
 
     // Ratings
     ['Romance','Comédia','Drama','Fantasia','Química do Casal','Ação','Roteiro','OST'].forEach(r=>{
