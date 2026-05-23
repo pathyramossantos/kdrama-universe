@@ -228,7 +228,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .cast-card{border-radius:var(--radius);overflow:hidden;background:#000;border:1px solid var(--border);cursor:pointer;transition:transform .3s ease,box-shadow .3s ease;text-align:center}
 .cast-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.4)}
 .cast-photo{width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--bg3)}
-.cast-photo-placeholder{width:100%;aspect-ratio:3/4;background:#0a0a0c;border:1px solid rgba(184,148,66,.25);display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-family:Georgia,serif;font-weight:700;color:rgba(184,148,66,.45);position:relative;overflow:hidden}.cast-photo-placeholder::after{content:'';position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to top,rgba(184,148,66,.05),transparent)}
+.cast-photo-placeholder{width:100%;aspect-ratio:3/4;background:#0f1923;border:1px solid rgba(184,148,66,.35);display:flex;align-items:center;justify-content:center;font-size:2.6rem;font-family:Georgia,serif;font-weight:700;color:rgba(184,148,66,.6);position:relative;overflow:hidden;border-radius:var(--card-r)}.cast-photo-placeholder::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,rgba(184,148,66,.08),transparent)}
 .cast-info{padding:10px 8px}
 .cast-name{font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:3px}
 .cast-char{font-size:.7rem;color:var(--text2);margin-bottom:4px}
@@ -308,7 +308,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .actor-card{border-radius:var(--card-r);overflow:hidden;background:#000;border:1px solid var(--border);cursor:pointer;transition:transform .3s ease,box-shadow .3s ease}
 .actor-card:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.5),0 0 0 1px var(--gold-dim)}
 .actor-photo{width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--bg3)}
-.actor-photo-placeholder{width:100%;aspect-ratio:3/4;background:linear-gradient(135deg,var(--bg3),var(--surface2));display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--text3)}
+.actor-photo-placeholder{width:100%;aspect-ratio:3/4;background:#0f1923;border:1px solid rgba(184,148,66,.35);display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-family:Georgia,serif;font-weight:700;color:rgba(184,148,66,.6);position:relative;overflow:hidden;border-radius:var(--card-r)}
 .actor-info{padding:12px}
 .actor-name{font-family:'Playfair Display',serif;font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:4px}
 .actor-dob{font-size:.73rem;color:var(--text3)}
@@ -3237,7 +3237,7 @@ function filterAtores(resetPage=true){
     const f=a.fields;
     const photo=getPhoto(a,'Foto');
     return`<div class="actor-card" onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')" style="animation-delay:${i*0.03}s;position:relative">
-      ${photo?`<img class="actor-photo" src="${photo}" alt="${f['Nome']||''}" loading="lazy">`:`<div class="actor-photo-placeholder">👤</div>`}
+      ${photo?`<img class="actor-photo" src="${photo}" alt="${f['Nome']||''}" loading="lazy">`:`<div class="actor-photo-placeholder">${(n=>{const p=(n||'?').trim().split(/\s+/);return(p.length>1?p[0][0]+p[p.length-1][0]:(n||'?').slice(0,2)).toUpperCase()})(f['Nome'])}</div>`}
       ${f['Data do cadastro']?`<div style="position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:#4caf50;box-shadow:0 0 6px rgba(76,175,80,.7)" title="Revisado"></div>`:''}
       <div class="actor-info"><div class="actor-name">${f['Nome']||'—'}</div>${f['Nome Estrangeiro']?`<div style="font-family:'Noto Serif KR',serif;font-size:.73rem;color:var(--text3);margin-bottom:2px">${f['Nome Estrangeiro']}</div>`:''}<div class="actor-dob">${f['Data de Nascimento']?`${parseDateBR(f['Data de Nascimento'])} · ${calcAge(f['Data de Nascimento'])} anos`:''}</div></div>
     </div>`;
@@ -7123,7 +7123,7 @@ function filterDirecao(q) {
     const f = d.fields;
     const foto = Array.isArray(f['Foto']) ? f['Foto'][0]?.url : f['Foto'];
     return `<div class="actor-card" onclick="navigate('diretor','${d.id}')" style="animation-delay:${i*0.03}s">
-      ${foto ? `<img class="actor-photo" src="${foto}" alt="${f['Nome']||''}" loading="lazy">` : `<div class="actor-photo-placeholder">🎬</div>`}
+      ${foto ? `<img class="actor-photo" src="${foto}" alt="${f['Nome']||''}" loading="lazy">` : `<div class="actor-photo-placeholder">${(n=>{const p=(n||'?').trim().split(/\s+/);return(p.length>1?p[0][0]+p[p.length-1][0]:(n||'?').slice(0,2)).toUpperCase()})(f['Nome'])}</div>`}
       <div class="actor-info">
         <div class="actor-name">${f['Nome'] || '—'}</div>
         ${f['Tipo'] ? `<div style="font-size:.73rem;color:var(--text3);margin-bottom:2px">${f['Tipo']}</div>` : ''}
