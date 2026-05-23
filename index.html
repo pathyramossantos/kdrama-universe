@@ -5250,8 +5250,23 @@ async function renderPost(id) {
     const sidebarHTML = capaUrl ? (
       '<div class="post-sidebar">' +
       '<img class="post-sidebar-capa" src="' + capaUrl + '" alt="' + (f['Título']||'').replace(/"/g,'&quot;') + '">' +
-
-
+      (f['Experiência'] ? '<div style="margin-top:16px;padding:12px;background:var(--surface2,#1a2840);border-radius:10px;border:1px solid var(--border)">' +
+        '<div style="font-size:.65rem;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Experiência</div>' +
+        '<div style="font-size:.82rem;color:var(--text2);font-weight:500">' + f['Experiência'] + '</div>' +
+        '</div>' : '') +
+      ((['Romance','Comédia','Drama','Fantasia','Química do Casal','Roteiro','OST','Çaão'].some(r => f[r])) ? (
+        '<div style="margin-top:12px;padding:12px;background:var(--surface2,#1a2840);border-radius:10px;border:1px solid var(--border)">' +
+        '<div style="font-size:.65rem;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Notas por Categoria</div>' +
+        ['Romance','Comédia','Drama','Fantasia','Química do Casal','Roteiro','OST','Çaão'].filter(r => f[r]).map(r => {
+          const val = parseFloat(f[r]) || 0;
+          const stars = Array.from({length:5},(_,i) => '<span style="color:' + (i < val ? 'var(--gold)' : 'var(--border)') + ';font-size:.9rem">★</span>').join('');
+          return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">' +
+            '<span style="font-size:.75rem;color:var(--text2)">' + r + '</span>' +
+            '<div style="display:flex;gap:2px">' + stars + '</div>' +
+            '</div>';
+        }).join('') +
+        '</div>'
+      ) : '') +
       '</div>'
     ) : '';
     content.innerHTML = '<div class="post-layout">' + sidebarHTML + '<div class="post-main">' + `
