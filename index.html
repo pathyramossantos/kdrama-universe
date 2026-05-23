@@ -3907,7 +3907,7 @@ async function salvarMiniFormDir() {
     const fields = {
       'Nome': nome,
       'Nome Estrangeiro': document.getElementById('fdir-nome-kor').value.trim() || undefined,
-      'Foto': fotoUrl || undefined,
+      'Foto': fotoUrl || null,
       'Tipo': document.getElementById('fdir-tipo').value
     };
     if (_fdDirEditId) {
@@ -4838,8 +4838,10 @@ function fdirPreviewFotoUrl(url) {
 }
 function fdirRemoveFoto(e) {
   e.stopPropagation();
+  const oldUrl = document.getElementById('fdir-foto-url').value;
   fdirClearFoto();
   document.getElementById('fdir-foto-url').value = '';
+  deleteFromSupabase(oldUrl);
 }
 
 function faPreviewFoto(input){
