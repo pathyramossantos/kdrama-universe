@@ -582,7 +582,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-sidebar{position:sticky;top:88px;max-height:calc(100vh - 108px);overflow-y:auto;padding-bottom:40px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}.post-sidebar::-webkit-scrollbar{width:4px}.post-sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .post-sidebar-capa{width:100%;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,.4);display:block}
 .post-galeria{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.post-galeria-img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:opacity .2s}
+.post-galeria-img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:opacity .2s;background:var(--surface2)}
 .post-galeria-img:hover{opacity:.8}
 .post-lightbox{display:none;position:fixed;inset:0;z-index:1001;align-items:center;justify-content:center;pointer-events:none}
 .post-lightbox.open{display:flex}
@@ -2508,18 +2508,28 @@ async function renderDorama(id){
     const photo=getPhoto(serie);
     const gallery=getAllPhotos(serie,'Galeria');
 
-    // Buscar UUID da série uma única vez e paralelizar elenco + direção
+    // Paralelizar: elenco+direcao + posts do blog ao mesmo tempo
     let castRecords=[];
     let dirDorama = [];
+    const serieAtId = serie.id;
+    const nomeDorama = f['Nome'] || '';
+
+    const [sbSerieRes, postsRes] = await Promise.all([
+      fetch(SB_URL+'/rest/v1/series?airtable_id=eq.'+serieAtId+'&select=id',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}),
+      (!allPosts.length && TABLES.blog)
+        ? fetchTable(TABLES.blog, {fields:['Título','Tipo','Status','Dorama']}).catch(()=>[])
+        : Promise.resolve(null)
+    ]);
+
+    if (postsRes) allPosts = postsRes.filter(p=>p.fields['Status']==='Publicado');
+
     try{
-      const serieAtId = serie.id;
-      const sbSerieRes = await fetch(`${SB_URL}/rest/v1/series?airtable_id=eq.${serieAtId}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
       const sbSeries = await sbSerieRes.json();
       const sbSerieId = sbSeries[0]?.id;
       if(sbSerieId){
         const [elencoRows, dirRows] = await Promise.all([
-          fetch(`${SB_URL}/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,nome_alt,foto,data_nascimento)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}).then(r=>r.json()),
-          fetch(`${SB_URL}/rest/v1/serie_direcao?select=papel,direcao:direcao_id(airtable_id,nome,nome_estrangeiro,foto,tipo)&serie_id=eq.${sbSerieId}`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}).then(r=>r.json())
+          fetch(SB_URL+'/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,nome_alt,foto,data_nascimento)&serie_id=eq.'+sbSerieId,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).then(r=>r.json()),
+          fetch(SB_URL+'/rest/v1/serie_direcao?select=papel,direcao:direcao_id(airtable_id,nome,nome_estrangeiro,foto,tipo)&serie_id=eq.'+sbSerieId,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).then(r=>r.json())
         ]);
         castRecords = elencoRows.map(row => {
           const atorRaw = row.atores ? {...row.atores, airtable_id: row.atores.airtable_id || row.atores.id} : null;
@@ -2533,12 +2543,6 @@ async function renderDorama(id){
         }));
       }
     }catch(e){ console.warn('elenco/direcao error:', e); }
-
-    // Buscar resenha do blog para este dorama
-    const nomeDorama = f['Nome'] || '';
-    if (!allPosts.length && TABLES.blog) {
-      try { const br = await fetchTable(TABLES.blog, {fields:['Título','Tipo','Status','Dorama']}); allPosts = br.filter(p=>p.fields['Status']==='Publicado'); } catch(_){}
-    }
     const resenhaPost = allPosts.find(p => {
       const doramaVal = Array.isArray(p.fields['Dorama']) ? (p.fields['Dorama'][0]||'') : (p.fields['Dorama']||'');
       return p.fields['Tipo'] === 'Resenha' && doramaVal.toLowerCase() === nomeDorama.toLowerCase();
