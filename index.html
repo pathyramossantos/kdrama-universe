@@ -4455,7 +4455,7 @@ function fdGaleriaRender(urls) {
   ).join('');
 }
 
-function fdGaleriaRemove(i) { _fdGaleriaUrls.splice(i, 1); fdGaleriaRender(_fdGaleriaUrls); }
+function fdGaleriaRemove(i) { const url = _fdGaleriaUrls[i]; _fdGaleriaUrls.splice(i, 1); fdGaleriaRender(_fdGaleriaUrls); deleteFromSupabase(url); }
 
 async function fdGaleriaAddUrl() {
   const input = document.getElementById('fd-galeria-url');
@@ -4585,7 +4585,10 @@ async function fdSalvar(){
     // Atualiza cache local
     if(fdEditId){
       const idx=allSeries.findIndex(s=>s.id===fdEditId);
-      if(idx>-1) Object.assign(allSeries[idx].fields, fields);
+      if(idx>-1){
+        Object.assign(allSeries[idx].fields, fields);
+        currentSerie = allSeries[idx];
+      }
     } else {
       allSeries.unshift(record);
     }
@@ -4729,8 +4732,20 @@ function faClearFoto(){
   if (bannerImg) bannerImg.src = '';
   if (bannerInput) bannerInput.value = '';
 }
-function faRemoveFoto(e){ e.stopPropagation(); faClearFoto(); document.getElementById('fa-foto-url').value=''; }
+function faRemoveFoto(e){ e.stopPropagation(); const oldUrl = document.getElementById('fa-foto-url').value; faClearFoto(); document.getElementById('fa-foto-url').value=''; deleteFromSupabase(oldUrl); }
 // ── UPLOAD SUPABASE STORAGE ─────────────────────────────────────────
+async function deleteFromSupabase(url) {
+  if (!url || !url.includes('supabase.co/storage')) return;
+  try {
+    const path = url.split('/storage/v1/object/public/imagens/')[1];
+    if (!path) return;
+    await fetch(SB_URL + '/storage/v1/object/imagens/' + path, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+  } catch(_) {}
+}
+
 async function uploadToSupabase(file, pasta = 'fotos') {
   const ext = file.name.split('.').pop() || 'jpg';
   const nome = `${pasta}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
