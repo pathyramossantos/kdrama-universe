@@ -4433,13 +4433,42 @@ function fdGaleriaRender(urls) {
 
 function fdGaleriaRemove(i) { _fdGaleriaUrls.splice(i, 1); fdGaleriaRender(_fdGaleriaUrls); }
 
-function fdGaleriaAddUrl() {
+async function fdGaleriaAddUrl() {
   const input = document.getElementById('fd-galeria-url');
   const url = input ? input.value.trim() : '';
   if (!url) return;
-  _fdGaleriaUrls.push(url);
-  fdGaleriaRender(_fdGaleriaUrls);
   input.value = '';
+  const isSafe = url.includes('supabase.co') || url.includes('googleusercontent') || url.includes('ggpht') || url.includes('lh3.google');
+  if (isSafe) {
+    _fdGaleriaUrls.push(url);
+    fdGaleriaRender(_fdGaleriaUrls);
+    return;
+  }
+  showToast('Baixando imagem...');
+  try {
+    let res = await fetch(url).catch(() => null);
+    if (!res || !res.ok) {
+      res = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+    }
+    if (!res.ok) throw new Error('Erro ao baixar');
+    const blob = await res.blob();
+    const ext = url.split('.').pop().split('?')[0].slice(0,4) || 'jpg';
+    const nome = 'galerias/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
+    const upRes = await fetch(SB_URL + '/storage/v1/object/imagens/' + nome, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': blob.type || 'image/jpeg' },
+      body: blob
+    });
+    if (!upRes.ok) throw new Error('Upload falhou');
+    const finalUrl = SB_URL + '/storage/v1/object/public/imagens/' + nome;
+    _fdGaleriaUrls.push(finalUrl);
+    fdGaleriaRender(_fdGaleriaUrls);
+    showToast('\u2713 Imagem adicionada!');
+  } catch(e) {
+    _fdGaleriaUrls.push(url);
+    fdGaleriaRender(_fdGaleriaUrls);
+    showToast('Adicionada sem upload: ' + e.message);
+  }
 }
 
 function fdGaleriaGetUrls() { return [..._fdGaleriaUrls]; }
