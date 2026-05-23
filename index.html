@@ -578,7 +578,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .post-nota-label{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
 .post-cover{width:100%;border-radius:var(--radius);aspect-ratio:16/7;object-fit:cover;margin-bottom:32px;border:1px solid var(--border)}
 .post-layout{display:grid;grid-template-columns:380px minmax(0,800px);gap:48px;align-items:start;justify-content:center}
-@media(max-width:768px){.post-layout{grid-template-columns:1fr;gap:24px}.post-sidebar{position:static;max-height:none;overflow-y:visible}.post-galeria{grid-template-columns:1fr 1fr 1fr}.post-wrap{padding:20px 16px 60px}}
+@media(max-width:768px){.post-layout{grid-template-columns:1fr;gap:0}.post-sidebar{position:static;max-height:none;overflow-y:visible;margin-bottom:24px}.post-galeria{grid-template-columns:1fr 1fr 1fr}.post-wrap{padding:20px 16px 60px}.post-main{min-width:0;width:100%}}
 .post-sidebar{position:sticky;top:88px;max-height:calc(100vh - 108px);overflow-y:auto;padding-bottom:40px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}.post-sidebar::-webkit-scrollbar{width:4px}.post-sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .post-sidebar-capa{width:100%;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,.4);display:block}
 .post-galeria{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -2624,7 +2624,14 @@ async function renderDorama(id){
           ${f['Episódios']?`<div class="detail-meta-item"><span class="detail-meta-label">Episódios</span><span class="detail-meta-value editable" contenteditable="false" data-field="Episódios">${f['Episódios']}</span></div>`:''}
           ${f['País']?`<div class="detail-meta-item"><span class="detail-meta-label">País</span><span class="detail-meta-value editable" contenteditable="false" data-field="País">${f['País']}</span></div>`:''}
         </div>
-        ${gallery.length ? '<div style="font-size:.75rem;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Imagens</div><div class="post-galeria" id="drama-gallery">' + (() => { window._dramaGallery = gallery; return gallery.map((u,i) => '<img class="post-galeria-img" src="' + u + '" loading="lazy" onclick="abrirLightbox(window._dramaGallery,' + i + ')" alt="">').join(''); })() + '</div>' : ''}
+        ${gallery.length ? (() => {
+            window._dramaGallery = gallery;
+            const shown = gallery.slice(0, 8);
+            const rest = gallery.length - 8;
+            const imgs = shown.map((u,i) => '<img class="post-galeria-img" data-src="' + u + '" src="" loading="lazy" onclick="abrirLightbox(window._dramaGallery,' + i + ')" alt="" style="background:var(--surface2)">').join('');
+            const mais = rest > 0 ? '<div onclick="abrirLightbox(window._dramaGallery,8)" style="aspect-ratio:4/3;background:var(--surface2);border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.75rem;color:var(--text3)">+' + rest + ' fotos</div>' : '';
+            return '<div style="font-size:.75rem;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Imagens</div><div class="post-galeria" id="drama-gallery">' + imgs + mais + '</div>';
+          })() : ''}
         ${(()=>{
             function _dytId(u){ const m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/); return m?m[1]:null; }
             const vids = Array.isArray(f['Videos']) ? f['Videos'] : [];
@@ -2698,6 +2705,18 @@ async function renderDorama(id){
   }catch(e){
     content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Erro: ${e.message}</p></div>`;
   }
+  setTimeout(() => {
+    const imgs = document.querySelectorAll('#drama-gallery img[data-src]');
+    if (!imgs.length) return;
+    if ('IntersectionObserver' in window) {
+      const obs = new IntersectionObserver((en) => {
+        en.forEach(e => { if (e.isIntersecting) { e.target.src = e.target.dataset.src; obs.unobserve(e.target); } });
+      }, {rootMargin: '300px'});
+      imgs.forEach(img => obs.observe(img));
+    } else {
+      imgs.forEach(img => { img.src = img.dataset.src; });
+    }
+  }, 50);
 }
 
 // ── EDIT MODE ─────────────────────────────────────────────
