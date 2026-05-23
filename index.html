@@ -475,7 +475,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .form-row.cols-2{grid-template-columns:1fr 1fr}
 .form-row.cols-3{grid-template-columns:1fr 1fr 1fr}
 .form-row.poster-row{grid-template-columns:160px 1fr}
-.fg{display:flex;flex-direction:column;gap:5px}
+.fg{display:flex;flex-direction:column;gap:5px;min-width:0;overflow:hidden}
 .fl{font-size:.72rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em}
 .fi,.fs,.fta{background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:.88rem;padding:10px 13px;outline:none;transition:border-color .2s,box-shadow .2s;width:100%}
 .fi:focus,.fs:focus,.fta:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px var(--gold-glow)}
@@ -7774,7 +7774,7 @@ function cardContextMenu(e, page, id) {
       <div class="form-row">
         <div class="fg">
           <label class="fl">Vídeos (YouTube)</label>
-          <div id="bf-videos-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+          <div id="bf-videos-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;width:100%;overflow:hidden"></div>
           <input type="url" id="bf-video-url" class="fi" placeholder="https://youtube.com/watch?v=..."
             style="width:100%;margin-bottom:6px"
             onkeydown="if(event.key==='Enter'){event.preventDefault();bfVideoAdd()}">
