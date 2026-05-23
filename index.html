@@ -2094,8 +2094,8 @@ function atToSb(fields, tabela) {
     capa: fields['Capa'], sinopse: fields['Sinopse'],
     ano_lancamento: fields['Ano Lançamento'], episodios: fields['Episódios'],
     pais: fields['País'], status: fields['Status'], nota: fields['Nota'],
-    generos: fields['Gêneros'], galeria: fields['Galeria'] ? (typeof fields['Galeria'] === 'string' ? fields['Galeria'] : JSON.stringify(fields['Galeria'])) : null,
-    videos: fields['Videos'] ? (typeof fields['Videos'] === 'string' ? fields['Videos'] : JSON.stringify(fields['Videos'])) : null,
+    generos: fields['Gêneros'], galeria: Array.isArray(fields['Galeria']) ? fields['Galeria'] : (fields['Galeria'] ? (function(v){try{return JSON.parse(v);}catch(_){return [];}})(fields['Galeria']) : null),
+    videos: fields['Videos'] ? (Array.isArray(fields['Videos']) ? JSON.stringify(fields['Videos']) : fields['Videos']) : null,
     plataformas: fields['Plataformas'],
     romance: fields['Romance'], comedia: fields['Comédia'],
     fantasia: fields['Fantasia'], quimica_casal: fields['Química do Casal'],
@@ -4483,6 +4483,21 @@ async function fdSalvar(){
     }
     const capaUrl = fdCapaUrlFinal || document.getElementById('fd-capa-url').value.trim();
     if(capaUrl) fields['Capa']=[{url:capaUrl}];
+
+    // Upload galeria se tiver novos arquivos
+    if (fdGaleriaFiles.length) {
+      try {
+        const uploaded = [];
+        for (const gf of fdGaleriaFiles) {
+          const url = await uploadToSupabase(gf, 'galerias');
+          uploaded.push(url);
+        }
+        // Manter URLs já existentes + novas
+        const existing = Array.isArray(currentSerie?.fields['Galeria']) ? currentSerie.fields['Galeria'] : [];
+        fields['Galeria'] = [...existing, ...uploaded];
+        fdGaleriaFiles = [];
+      } catch(e) { showToast('Erro no upload da galeria: ' + e.message); }
+    }
 
     bar.style.width='60%';
 
