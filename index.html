@@ -1537,11 +1537,13 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       <!-- Galeria -->
       <div class="form-sect">
         <div class="form-sect-title">Galeria</div>
-        <div class="img-zone" style="min-height:60px;border-radius:8px" onclick="document.getElementById('fd-galeria-file').click()">
-          <input type="file" id="fd-galeria-file" accept="image/*" multiple style="display:none" onchange="fdAddGaleria(this)">
-          <div class="img-zone-txt">+ Adicionar fotos</div>
+        <div id="fd-galeria-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px">
+          <input type="url" id="fd-galeria-url" class="fi" placeholder="Cole URL da imagem..." style="flex:1;min-width:0"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();fdGaleriaAddUrl()}">
+          <button class="btn-outline btn-sm" onclick="fdGaleriaAddUrl()">+ URL</button>
         </div>
-        <div class="gal-wrap" id="fd-galeria-preview"></div>
+        <p class="fl" style="margin-top:4px;font-size:.72rem;color:var(--text3)">Cole a URL da imagem e pressione Enter ou clique + URL.</p>
       </div>
 
       <!-- Vídeos -->
@@ -4214,6 +4216,7 @@ function openFormDorama(data={}, editId=null){
   fdCapaUrlFinal = null;
   fdGaleriaFiles = [];
   _fdVideosUrls = [];
+  _fdGaleriaUrls = [];
 
   // Título do form
   document.getElementById('form-dorama-titulo').innerHTML = editId
@@ -4230,7 +4233,7 @@ function openFormDorama(data={}, editId=null){
   setVal('fd-sinopse', data.sinopse||'');
   setVal('fd-hancinema', data.hancinema||'');
   setVal('fd-capa-url', data.capaUrl||'');
-  document.getElementById('fd-galeria-preview').innerHTML = '';
+  fdGaleriaRender(data.galeria || []);
   fdVideoRender(data.videos || []);
   document.getElementById('fd-status-msg').textContent = '';
   document.getElementById('fd-prog').style.display = 'none';
@@ -4290,7 +4293,8 @@ async function openFormDoramaEdit(serie){
     'Romance':f['Romance'],'Comédia':f['Comédia'],'Drama':f['Drama'],
     'Fantasia':f['Fantasia'],'Química do Casal':f['Química do Casal'],
     'Ação':f['Ação'],'Roteiro':f['Roteiro'],'OST':f['OST'],
-    videos: (function(v){ if(Array.isArray(v)) return v; if(typeof v==='string'){ try{return JSON.parse(v);}catch(_){return v.split(',').map(s=>s.trim()).filter(Boolean);} } return []; })(f['Videos'])
+    videos: (function(v){ if(Array.isArray(v)) return v; if(typeof v==='string'){ try{return JSON.parse(v);}catch(_){return v.split(',').map(s=>s.trim()).filter(Boolean);} } return []; })(f['Videos']),
+    galeria: Array.isArray(f['Galeria']) ? f['Galeria'] : []
   }, serie.id);
 
   // Carregar direção e elenco existentes
@@ -4412,6 +4416,34 @@ function fdVideoAdd() {
 
 function fdVideoGetUrls() { return [..._fdVideosUrls]; }
 
+// ── GALERIA DO DORAMA (por URL) ──────────────────
+let _fdGaleriaUrls = [];
+
+function fdGaleriaRender(urls) {
+  _fdGaleriaUrls = Array.isArray(urls) ? [...urls] : [];
+  const list = document.getElementById('fd-galeria-list');
+  if (!list) return;
+  list.innerHTML = _fdGaleriaUrls.map((url, i) =>
+    '<div style="position:relative;width:72px;flex-shrink:0">' +
+    '<img src="' + url + '" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">' +
+    '<button onclick="fdGaleriaRemove(' + i + ')" style="position:absolute;top:-6px;right:-6px;background:var(--red,#e74c3c);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;padding:0;line-height:1">✕</button>' +
+    '</div>'
+  ).join('');
+}
+
+function fdGaleriaRemove(i) { _fdGaleriaUrls.splice(i, 1); fdGaleriaRender(_fdGaleriaUrls); }
+
+function fdGaleriaAddUrl() {
+  const input = document.getElementById('fd-galeria-url');
+  const url = input ? input.value.trim() : '';
+  if (!url) return;
+  _fdGaleriaUrls.push(url);
+  fdGaleriaRender(_fdGaleriaUrls);
+  input.value = '';
+}
+
+function fdGaleriaGetUrls() { return [..._fdGaleriaUrls]; }
+
 function fdToggleGenre(el, genre){
   el.classList.toggle('on');
   if(el.classList.contains('on')){ if(!fdGenerosSel.includes(genre)) fdGenerosSel.push(genre); }
@@ -4480,20 +4512,9 @@ async function fdSalvar(){
     const capaUrl = fdCapaUrlFinal || document.getElementById('fd-capa-url').value.trim();
     if(capaUrl) fields['Capa']=[{url:capaUrl}];
 
-    // Upload galeria se tiver novos arquivos
-    if (fdGaleriaFiles.length) {
-      try {
-        const uploaded = [];
-        for (const gf of fdGaleriaFiles) {
-          const url = await uploadToSupabase(gf, 'galerias');
-          uploaded.push(url);
-        }
-        // Manter URLs já existentes + novas
-        const existing = Array.isArray(currentSerie?.fields['Galeria']) ? currentSerie.fields['Galeria'] : [];
-        fields['Galeria'] = [...existing, ...uploaded];
-        fdGaleriaFiles = [];
-      } catch(e) { showToast('Erro no upload da galeria: ' + e.message); }
-    }
+    // Galeria por URL
+    const _galeriaArr = fdGaleriaGetUrls();
+    if (_galeriaArr.length) fields['Galeria'] = _galeriaArr;
 
     bar.style.width='60%';
 
