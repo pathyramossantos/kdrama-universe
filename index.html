@@ -5250,23 +5250,37 @@ async function renderPost(id) {
     const sidebarHTML = capaUrl ? (
       '<div class="post-sidebar">' +
       '<img class="post-sidebar-capa" src="' + capaUrl + '" alt="' + (f['Título']||'').replace(/"/g,'&quot;') + '">' +
-      (f['Experiência'] ? '<div style="margin-top:16px;padding:12px;background:var(--surface2,#1a2840);border-radius:10px;border:1px solid var(--border)">' +
-        '<div style="font-size:.65rem;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Experiência</div>' +
-        '<div style="font-size:.82rem;color:var(--text2);font-weight:500">' + f['Experiência'] + '</div>' +
-        '</div>' : '') +
-      ((['Romance','Comédia','Drama','Fantasia','Química do Casal','Roteiro','OST','Çaão'].some(r => f[r])) ? (
-        '<div style="margin-top:12px;padding:12px;background:var(--surface2,#1a2840);border-radius:10px;border:1px solid var(--border)">' +
-        '<div style="font-size:.65rem;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Notas por Categoria</div>' +
-        ['Romance','Comédia','Drama','Fantasia','Química do Casal','Roteiro','OST','Çaão'].filter(r => f[r]).map(r => {
-          const val = parseFloat(f[r]) || 0;
-          const stars = Array.from({length:5},(_,i) => '<span style="color:' + (i < val ? 'var(--gold)' : 'var(--border)') + ';font-size:.9rem">★</span>').join('');
-          return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">' +
-            '<span style="font-size:.75rem;color:var(--text2)">' + r + '</span>' +
-            '<div style="display:flex;gap:2px">' + stars + '</div>' +
-            '</div>';
-        }).join('') +
-        '</div>'
-      ) : '') +
+      (()=>{
+        const doramaAtId = Array.isArray(f['Dorama ID']) ? f['Dorama ID'][0] : (f['Dorama ID']||'');
+        const serie = allSeries.find(s => s.id === doramaAtId || (s.fields && s.fields['_atId'] === doramaAtId));
+        const sf = serie ? serie.fields : {};
+        const exp = f['Experiência'] || sf['Experiência'];
+        const nota = f['Nota'];
+        const ratingFields = ['Romance','Comédia','Drama','Fantasia','Química do Casal','Roteiro','OST','Çaão'];
+        const hasRatings = ratingFields.some(r => sf[r]);
+        let html = '';
+        // Card nota + experiencia juntos
+        if (nota || exp) {
+          html += '<div style="margin-top:16px;padding:12px;background:var(--surface2,#1a2840);border-radius:10px;border:1px solid var(--border);display:flex;flex-direction:column;gap:8px">';
+          if (nota) html += '<div><div style="font-size:.65rem;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px">Nota</div><div style="font-size:1.6rem;font-weight:700;color:var(--gold);line-height:1">' + parseFloat(nota).toFixed(1) + '<span style="font-size:.75rem;font-weight:400;color:var(--text3);margin-left:4px">/ 10</span></div></div>';
+          if (exp) html += '<div style="border-top:1px solid var(--border);padding-top:8px"><div style="font-size:.65rem;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px">Experiência</div><div style="font-size:.82rem;color:var(--text2);font-weight:500">' + exp + '</div></div>';
+          html += '</div>';
+        }
+        // Card notas por categoria (da serie)
+        if (hasRatings) {
+          html += '<div style="margin-top:10px;padding:12px;background:var(--surface2,#1a2840);border-radius:10px;border:1px solid var(--border)">';
+          html += '<div style="font-size:.65rem;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">Notas por Categoria</div>';
+          html += ratingFields.filter(r => sf[r]).map(r => {
+            const val = parseFloat(sf[r]) || 0;
+            const stars = Array.from({length:5},(_,i) => '<span style="color:' + (i < val ? 'var(--gold)' : 'rgba(255,255,255,.15)') + ';font-size:.85rem">★</span>').join('');
+            return '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)">' +
+              '<span style="font-size:.73rem;color:var(--text2)">' + r + '</span>' +
+              '<div style="display:flex;gap:1px">' + stars + '</div></div>';
+          }).join('');
+          html += '</div>';
+        }
+        return html;
+      })() +
       '</div>'
     ) : '';
     content.innerHTML = '<div class="post-layout">' + sidebarHTML + '<div class="post-main">' + `
@@ -5277,8 +5291,6 @@ async function renderPost(id) {
         ${date ? `<span class="post-meta-date">${date}</span>` : ''}
         ${(f['Dorama'] && f['Dorama'] !== '— Selecione o dorama —') ? `<span style="color:var(--text3);font-size:.78rem">· <span style="color:var(--gold);cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold-dim)" onclick="navegarParaDorama('${f['Dorama']}','${f['Dorama ID']||''}')">${f['Dorama']}</span></span>` : ''}
         ${f['Autor'] ? `<span style="color:var(--text3);font-size:.78rem">· Escrito por <span style="color:var(--gold-dim)">${f['Autor']}</span></span>` : ''}
-        ${f['Nota'] ? `<span style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end"><span class="post-nota-big">${parseFloat(f['Nota']).toFixed(1)}</span><span class="post-nota-label">nota / 10</span></span>` : ''}
-        ${expBadge(f['Experiência'])}
         ${isOwner() ? `<button class="btn-outline btn-sm" onclick="openBlogForm('${id}')" style="margin-left:8px">✏️ Editar</button>` : ''}
       </div>
       <div class="post-body">${renderPostBody(f['Conteúdo'] || '')}</div>
