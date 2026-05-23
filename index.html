@@ -228,7 +228,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .cast-card{border-radius:var(--radius);overflow:hidden;background:#000;border:1px solid var(--border);cursor:pointer;transition:transform .3s ease,box-shadow .3s ease;text-align:center}
 .cast-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.4)}
 .cast-photo{width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--bg3)}
-.cast-photo-placeholder{width:100%;aspect-ratio:3/4;background:linear-gradient(135deg,var(--bg3),var(--surface2));display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--text3)}
+.cast-photo-placeholder{width:100%;aspect-ratio:3/4;background:#0a0a0c;border:1px solid rgba(184,148,66,.25);display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-family:Georgia,serif;font-weight:700;color:rgba(184,148,66,.45);position:relative;overflow:hidden}.cast-photo-placeholder::after{content:'';position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to top,rgba(184,148,66,.05),transparent)}
 .cast-info{padding:10px 8px}
 .cast-name{font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:3px}
 .cast-char{font-size:.7rem;color:var(--text2);margin-bottom:4px}
@@ -2663,7 +2663,8 @@ async function renderDorama(id){
               const ph=a?getPhoto(a,'Foto'):null;
               const aid=a?a.id:'';
               const click=a?[' onclick="navigate(\'ator\',\'',aid,'\');return false;" oncontextmenu="cardContextMenu(event,\'ator\',\'',aid,'\');return false;"'].join(''):'';
-              const photoEl=ph?'<img class="cast-photo" src="'+ph+'" alt="'+name+'" loading="lazy">':'<div class="cast-photo-placeholder">?</div>';
+              const initials=(n=>{ const p=n.trim().split(/\s+/); return p.length>1?p[0][0]+p[p.length-1][0]:p[0].slice(0,2); })(name||'?').toUpperCase();
+              const photoEl=ph?'<img class="cast-photo" src="'+ph+'" alt="'+name+'" loading="lazy">':'<div class="cast-photo-placeholder">'+initials+'</div>';
               const info='<div class="cast-info"><div class="cast-name">'+name+'</div><div class="cast-char">'+(ef['Personagem']||'')+'</div><div class="cast-type">'+(ef['Tipo']||'')+'</div></div>';
               return '<div class="cast-card" style="position:relative;cursor:'+(a?'pointer':'default')+'"'+click+'>'+photoEl+info+'</div>';
             }
@@ -2684,7 +2685,7 @@ async function renderDorama(id){
               const foto = Array.isArray(d.fields['Foto']) ? d.fields['Foto'][0]?.url : d.fields['Foto'];
               const tipo = d._tipoDisplay || d.fields['Tipo'] || '';
               return `<div class="cast-card" onclick="navigate('diretor','${d.id}')">
-                ${foto ? `<img class="cast-photo" src="${foto}" alt="${d.fields['Nome']||''}" loading="lazy">` : `<div class="cast-photo-placeholder">D</div>`}
+                ${foto ? `<img class="cast-photo" src="${foto}" alt="${d.fields['Nome']||''}" loading="lazy">` : `<div class="cast-photo-placeholder">${(n=>(n.trim().split(/\s+/).length>1?n.trim().split(/\s+/)[0][0]+n.trim().split(/\s+/).pop()[0]:n.trim().slice(0,2)).toUpperCase())(d.fields['Nome']||'?')}</div>`}
                 <div class="cast-info">
                   <div class="cast-name">${d.fields['Nome']||'-'}</div>
                   <div class="cast-char">${d.fields['Nome Estrangeiro']||''}</div>
