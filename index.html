@@ -2617,11 +2617,7 @@ async function renderDorama(id){
           ${f['Episódios']?`<div class="detail-meta-item"><span class="detail-meta-label">Episódios</span><span class="detail-meta-value editable" contenteditable="false" data-field="Episódios">${f['Episódios']}</span></div>`:''}
           ${f['País']?`<div class="detail-meta-item"><span class="detail-meta-label">País</span><span class="detail-meta-value editable" contenteditable="false" data-field="País">${f['País']}</span></div>`:''}
         </div>
-        ${gallery.length ? `
-          <div style="font-size:.75rem;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Imagens</div>
-          <div class="post-galeria" id="drama-gallery">
-            ${gallery.map((url,i)=>`<img class="post-galeria-img" src="${url}" loading="lazy" onclick="openLightbox(${i},'drama')">`).join('')}
-          </div>` : ''}
+        ${gallery.length ? '<div style="font-size:.75rem;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Imagens</div><div class="post-galeria" id="drama-gallery">' + gallery.map((url,i)=>'<img class="post-galeria-img" src="' + url + '" loading="lazy" onclick="openLightbox(' + i + ',\'drama\')">').join('') + '</div>' : ''}
         ${(()=>{
             const vids = (function(v){ if(Array.isArray(v)) return v; if(typeof v==='string'){ try{return JSON.parse(v);}catch(_){return v.split(',').map(s=>s.trim()).filter(Boolean);} } return []; })(f['Videos']);
             if(!vids.length) return '';
