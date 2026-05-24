@@ -3662,6 +3662,8 @@ let fdCastDeleted = []; // elencoIds removidos para deletar no Supabase
 
 function openModalElenco() {
   document.getElementById('modal-elenco-overlay').classList.add('open');
+  const rf = document.getElementById('radio-footer');
+  if (rf) rf.style.display = 'none';
   atualizarContadorElenco();
 }
 
@@ -3685,6 +3687,8 @@ function closeModalElenco() {
   const cs = document.getElementById('cast-search');
   if(cs){ cs.value=''; filtrarCastModal(''); }
   document.getElementById('modal-elenco-overlay').classList.remove('open');
+  const rf = document.getElementById('radio-footer');
+  if (rf) rf.style.display = '';
   atualizarContadorElenco();
 }
 
