@@ -1770,7 +1770,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 
 <!-- MODAL ELENCO -->
-<div class="form-overlay" id="modal-elenco-overlay" style="z-index:600">
+<div class="form-overlay" id="modal-elenco-overlay" style="z-index:1000">
   <div class="form-panel" style="width:960px;max-width:95vw;height:90vh;max-height:95vh;min-width:600px;min-height:400px;display:flex;flex-direction:column;resize:both;overflow:hidden">
     <div class="form-head">
       <h2>🎭 Elenco</h2>
@@ -3662,6 +3662,7 @@ let fdCastDeleted = []; // elencoIds removidos para deletar no Supabase
 
 function openModalElenco() {
   document.getElementById('modal-elenco-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
   atualizarContadorElenco();
 }
 
@@ -3685,6 +3686,7 @@ function closeModalElenco() {
   const cs = document.getElementById('cast-search');
   if(cs){ cs.value=''; filtrarCastModal(''); }
   document.getElementById('modal-elenco-overlay').classList.remove('open');
+  document.body.style.overflow = '';
   atualizarContadorElenco();
 }
 
