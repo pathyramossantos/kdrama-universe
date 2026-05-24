@@ -1770,7 +1770,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 
 <!-- MODAL ELENCO -->
-<div class="form-overlay" id="modal-elenco-overlay" style="z-index:9999">
+<div class="form-overlay" id="modal-elenco-overlay" style="z-index:600">
   <div class="form-panel" style="width:960px;max-width:95vw;height:90vh;max-height:95vh;min-width:600px;min-height:400px;display:flex;flex-direction:column;resize:both;overflow:hidden">
     <div class="form-head">
       <h2>🎭 Elenco</h2>
@@ -2642,7 +2642,7 @@ async function renderDorama(id){
       <div class="detail-main">
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
           ${resenhaPost ? `<button class="btn-gold btn-sm" onclick="navigate('post','${resenhaPost}')" style="display:inline-flex;align-items:center;gap:8px">Ver Resenha</button>` : ''}
-          ${currentSerie?`<button class="btn-outline btn-sm" onclick="navigate('ost-detail','${currentSerie.id}')" style="display:inline-flex;align-items:center;gap:6px">🎵 OST</button>`:''}
+          ${currentSerie?`<button class="btn-outline btn-sm" onclick="navigate('ost-detail','${currentSerie.id}')" style="display:inline-flex;align-items:center;gap:6px">OST</button>`:''}
         </div>
         ${f['Sinopse']?`<div class="section-title">Sinopse</div><p class="detail-sinopse editable" contenteditable="false" data-field="Sinopse">${f['Sinopse']}</p>`:''}
         ${(()=>{
