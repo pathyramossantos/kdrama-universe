@@ -4462,13 +4462,14 @@ async function fdGaleriaAddUrl() {
   const url = input ? input.value.trim() : '';
   if (!url) return;
   input.value = '';
-  const isSafe = url.includes('supabase.co') || url.includes('googleusercontent') || url.includes('ggpht') || url.includes('lh3.google');
-  if (isSafe) {
+  // Apenas HanCinema precisa de proxy/upload -- todo o resto adiciona direto
+  const needsProxy = url.includes('hancinema.net') || url.includes('hancinema.fr');
+  if (!needsProxy) {
     _fdGaleriaUrls.push(url);
     fdGaleriaRender(_fdGaleriaUrls);
     return;
   }
-  showToast('Baixando imagem...');
+  showToast('Baixando do HanCinema...');
   try {
     let res = await fetch(url).catch(() => null);
     if (!res || !res.ok) {
