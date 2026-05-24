@@ -882,7 +882,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 
 /* ── RÁDIO RODAPÉ ─────────────────────────────────────────── */
-#radio-footer{position:fixed;bottom:0;left:0;right:0;z-index:9999;transform:translateZ(0);will-change:transform;background:linear-gradient(90deg,rgba(10,10,12,.98),rgba(26,26,46,.98));backdrop-filter:blur(20px);border-top:1px solid var(--gold-dim);box-shadow:0 -4px 24px rgba(0,0,0,.5)}
+#radio-footer{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,rgb(10,10,12),rgb(26,26,46));border-top:1px solid var(--gold-dim);box-shadow:0 -4px 24px rgba(0,0,0,.5)}
 .radio-footer-bar{display:flex;align-items:center;gap:12px;padding:8px clamp(16px,4vw,48px);height:52px}
 .radio-label{font-family:'Playfair Display',serif;font-size:.68rem;font-weight:700;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;flex-shrink:0;opacity:.8}
 .radio-sep{width:1px;height:24px;background:var(--border);flex-shrink:0}
@@ -1598,7 +1598,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             Roteirista
           </button>
         </div>
-      </div>
     </div>
     <div class="form-foot">
       <div style="flex:1">
@@ -1791,15 +1790,14 @@ select.filter-select:focus{border-color:var(--gold-dim)}
       </div>
     </div>
     <div style="flex:1;overflow-y:auto;padding:0 8px">
-      <table style="width:100%;border-collapse:collapse">
-        <div style="display:grid;grid-template-columns:44px 1fr 1fr 180px 36px;gap:8px;padding:8px 8px 10px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:2">
-          <div></div>
-          <div style="font-size:.65rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Ator/Atriz</div>
-          <div style="font-size:.65rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Personagem</div>
-          <div style="font-size:.65rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Tipo</div>
-          <div></div>
-        </div>
-        <div id="fd-cast-list"></div>
+      <div style="display:grid;grid-template-columns:44px 1fr 1fr 180px 36px;gap:8px;padding:8px 8px 10px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:2">
+        <div></div>
+        <div style="font-size:.65rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Ator/Atriz</div>
+        <div style="font-size:.65rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Personagem</div>
+        <div style="font-size:.65rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Tipo</div>
+        <div></div>
+      </div>
+      <div id="fd-cast-list"></div>
       <div id="fd-cast-empty" style="display:none;text-align:center;padding:40px;color:var(--text3);font-size:.85rem">
         Nenhum ator adicionado ainda.<br>Clique em "+ Adicionar ator" para começar.
       </div>
