@@ -1792,16 +1792,14 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     </div>
     <div style="flex:1;overflow-y:auto;padding:0 8px">
       <table style="width:100%;border-collapse:collapse">
-        <thead style="position:sticky;top:0;background:var(--bg2);z-index:2">
-          <tr style="border-bottom:1px solid var(--border)">
-            <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:10px 8px;text-transform:uppercase;letter-spacing:.06em">Ator/Atriz</th>
-            <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:10px 8px;text-transform:uppercase;letter-spacing:.06em">Personagem</th>
-            <th style="text-align:left;font-size:.65rem;color:var(--text3);font-weight:600;padding:10px 8px;text-transform:uppercase;letter-spacing:.06em">Tipo</th>
-            <th style="width:36px"></th>
-          </tr>
-        </thead>
-        <tbody id="fd-cast-list"></tbody>
-      </table>
+        <div style="display:grid;grid-template-columns:44px 1fr 1fr 180px 36px;gap:8px;padding:8px 8px 10px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:2">
+          <div></div>
+          <div style="font-size:.65rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Ator/Atriz</div>
+          <div style="font-size:.65rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Personagem</div>
+          <div style="font-size:.65rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Tipo</div>
+          <div></div>
+        </div>
+        <div id="fd-cast-list"></div>
       <div id="fd-cast-empty" style="display:none;text-align:center;padding:40px;color:var(--text3);font-size:.85rem">
         Nenhum ator adicionado ainda.<br>Clique em "+ Adicionar ator" para começar.
       </div>
@@ -3669,7 +3667,7 @@ function openModalElenco() {
 
 function filtrarCastModal(q) {
   const termo = q.toLowerCase().trim();
-  const rows = document.querySelectorAll('#fd-cast-list tr');
+  const rows = document.querySelectorAll('#fd-cast-list > div');
   let visiveis = 0;
   rows.forEach(row => {
     const nome = (row.querySelector('input[id^="cast-nome"]')?.value || '').toLowerCase();
@@ -3708,7 +3706,7 @@ function reordenarCastList() {
   const tbody = document.getElementById('fd-cast-list');
   if (!tbody) return;
   const ordemTipo = t => t === 'Principal' ? 0 : t === 'Secundário' ? 1 : 2;
-  const rows = [...tbody.querySelectorAll('tr')];
+  const rows = [...tbody.querySelectorAll(':scope > div[id^="cast-row-"]')];
   rows.sort((a, b) => {
     const tipoA = ordemTipo(a.querySelector('select')?.value || '');
     const tipoB = ordemTipo(b.querySelector('select')?.value || '');
@@ -3724,38 +3722,36 @@ function fdAddCastRow(data={}) {
   const id = ++fdCastCounter;
   fdCastRows.push(id);
 
-  const row = document.createElement('tr');
+  const row = document.createElement('div');
   row.id = `cast-row-${id}`;
-  row.style.cssText = 'border-bottom:1px solid var(--border)';
+  row.style.cssText = 'display:grid;grid-template-columns:44px 1fr 1fr 180px 36px;gap:8px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--border)';
   row.innerHTML = `
-    <td style="padding:4px 6px;vertical-align:middle">
-      <div id="cast-foto-${id}" style="display:flex;align-items:center;justify-content:center">
-        ${data.foto ? '<img src="' + data.foto + '" style="width:36px;height:46px;object-fit:cover;border-radius:5px;border:1px solid var(--border)">' : '<div style="width:36px;height:46px;background:#0f1923;border:1px solid rgba(184,148,66,.2);border-radius:5px"></div>'}
-      </div>
-    </td>
-    <td style="padding:4px 6px">
+    <div id="cast-foto-${id}" style="display:flex;align-items:center;justify-content:center">
+      ${data.foto ? '<img src="' + data.foto + '" style="width:40px;height:50px;object-fit:cover;border-radius:5px;border:1px solid var(--border)">' : '<div style="width:40px;height:50px;background:#0f1923;border:1px solid rgba(184,148,66,.2);border-radius:5px"></div>'}
+    </div>
+    <div>
       <div class="ac-wrap" style="position:relative">
-        <input class="fi" id="cast-nome-${id}" placeholder="Nome do ator" value="${data.nome||''}" 
-          style="font-size:.82rem;padding:6px 10px"
+        <input class="fi" id="cast-nome-${id}" placeholder="Nome do ator" value="${data.nome||''}"
+          style="font-size:.82rem;padding:6px 10px;width:100%"
           oninput="document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)" onpaste="setTimeout(()=>{document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)},50)" onblur="setTimeout(()=>acFechar(${id}),200)" autocomplete="off">
         <div class="ac-list" id="ac-list-${id}"></div>
       </div>
       <input class="fi" id="cast-nomealt-${id}" placeholder="Nome alternativo (MDL)" value="${data.nomeAlt||''}"
-        style="font-size:.75rem;padding:4px 10px;margin-top:4px;opacity:.7;color:var(--text2)">
-    </td>
-    <td style="padding:4px 6px">
-      <input class="fi" id="cast-personagem-${id}" placeholder="Nome do personagem" value="${data.personagem||''}" style="font-size:.82rem;padding:6px 10px">
-    </td>
-    <td style="padding:4px 6px">
-      <select id="cast-tipo-${id}" class="fs" style="font-size:.82rem;padding:6px 8px;width:100%" onchange="setTimeout(reordenarCastList,0)">
+        style="font-size:.75rem;padding:4px 10px;margin-top:4px;opacity:.7;color:var(--text2);width:100%">
+    </div>
+    <div>
+      <input class="fi" id="cast-personagem-${id}" placeholder="Nome do personagem" value="${data.personagem||''}" style="font-size:.82rem;padding:6px 10px;width:100%">
+    </div>
+    <div>
+      <select id="cast-tipo-${id}" style="font-size:.82rem;padding:6px 8px;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;outline:none;cursor:pointer" onchange="setTimeout(reordenarCastList,0)">
         <option value="Principal"${data.tipo==='Principal'?' selected':''}>Principal</option>
         <option value="Secundário"${(data.tipo||'Secundário')==='Secundário'?' selected':''}>Secundário</option>
         <option value="Participação especial"${data.tipo==='Participação especial'?' selected':''}>Part. especial</option>
       </select>
-    </td>
-    <td style="padding:4px 6px;text-align:center">
+    </div>
+    <div style="text-align:center">
       <button onclick="fdRemoveCastRow(${id})" title="Remover" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem;line-height:1">✕</button>
-    </td>
+    </div>
   `;
   row.dataset.atorId = data.atorId || '';
   row.dataset.atorSbId = data.atorSbId || '';
