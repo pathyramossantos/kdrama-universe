@@ -1688,7 +1688,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
               </div>
             </div>
             <div class="fg"><label class="fl">Nome Coreano</label><input class="fi" id="fa-nome-kor" placeholder="박서준"></div>
-            <div class="fg"><label class="fl">Romanização Alternativa</label><input class="fi" id="fa-nome-alt" placeholder="Ex: Jung In Kyu (MyDramaList)"></div>
+            <div class="fg"><label class="fl">Também conhecido como</label><input class="fi" id="fa-nome-alt" placeholder="Ex: Jung In Kyu, Jeong In Gyu (separar por vírgula)"></div>
             <div class="fg"><label class="fl">Data de Nascimento</label><input class="fi" id="fa-nasc" type="date"></div>
             <div class="fg">
               <label class="fl">Data de Cadastro</label>
@@ -3735,7 +3735,7 @@ function fdAddCastRow(data={}) {
           oninput="document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)" onpaste="setTimeout(()=>{document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)},50)" onblur="setTimeout(()=>acFechar(${id}),200)" autocomplete="off">
         <div class="ac-list" id="ac-list-${id}"></div>
       </div>
-      <input class="fi" id="cast-nomealt-${id}" placeholder="Nome alternativo (MDL)" value="${data.nomeAlt||''}"
+      <input class="fi" id="cast-nomealt-${id}" placeholder="Também conhecido como (separar por vírgula)" value="${data.nomeAlt||''}"
         style="font-size:.75rem;padding:4px 10px;margin-top:4px;opacity:.7;color:var(--text2);width:100%">
     </div>
     <div>
