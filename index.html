@@ -460,7 +460,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 /* ── FORMULÁRIO COMPLETO ─────────────────────────────────── */
 .form-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);z-index:300;display:none;overflow-y:auto;padding:60px 20px 40px}
 .form-overlay.open{display:block}
-.form-panel{max-width:780px;margin:0 auto;background:var(--bg2);border:1px solid var(--gold-dim);border-radius:20px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.7);animation:formSlide .35s cubic-bezier(.34,1.2,.64,1)}
+.form-panel{max-width:780px;margin:0 auto;background:var(--bg2);border:1px solid var(--gold-dim);border-radius:20px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.7);animation:formSlide .35s cubic-bezier(.34,1.2,.64,1)}#modal-elenco-overlay .form-panel{overflow:auto;resize:both;border-radius:16px}
 @keyframes formSlide{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 .form-head{display:flex;align-items:center;justify-content:space-between;padding:22px 32px;background:linear-gradient(to right,var(--surface),var(--bg3));border-bottom:1px solid var(--border)}
 .form-head h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--gold);display:flex;align-items:center;gap:10px}
@@ -1771,7 +1771,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 <!-- MODAL ELENCO -->
 <div class="form-overlay" id="modal-elenco-overlay" style="z-index:600">
-  <div class="form-panel" style="max-width:960px;height:90vh;display:flex;flex-direction:column">
+  <div class="form-panel" style="width:960px;max-width:95vw;height:90vh;max-height:95vh;min-width:600px;min-height:400px;display:flex;flex-direction:column;resize:both;overflow:hidden">
     <div class="form-head">
       <h2>🎭 Elenco</h2>
       <button class="form-x" onclick="closeModalElenco()">✕</button>
