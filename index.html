@@ -443,7 +443,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 /* ── ELENCO NO FORM ─────────────────────────────────────────── */
 .cast-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-.cast-row{display:grid;grid-template-columns:44px 1fr 1fr 170px 36px;gap:8px;align-items:center}
+.cast-row{display:grid;grid-template-columns:36px minmax(160px,1fr) minmax(160px,1fr) 180px 32px;gap:8px;align-items:center}
 .cast-row .fi{padding:8px 10px;font-size:.82rem}
 .cast-row select{padding:6px 8px;font-size:.82rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;outline:none;cursor:pointer;width:100%}
 .cast-row select:focus{border-color:var(--gold-dim)}
@@ -3747,7 +3747,7 @@ function fdAddCastRow(data={}) {
       <input class="fi" id="cast-personagem-${id}" placeholder="Nome do personagem" value="${data.personagem||''}" style="font-size:.82rem;padding:6px 10px">
     </td>
     <td style="padding:4px 6px">
-      <select id="cast-tipo-${id}" class="fs" style="font-size:.82rem;padding:6px 10px" onchange="setTimeout(reordenarCastList,0)">
+      <select id="cast-tipo-${id}" class="fs" style="font-size:.82rem;padding:6px 8px;width:100%" onchange="setTimeout(reordenarCastList,0)">
         <option value="Principal"${data.tipo==='Principal'?' selected':''}>Principal</option>
         <option value="Secundário"${(data.tipo||'Secundário')==='Secundário'?' selected':''}>Secundário</option>
         <option value="Participação especial"${data.tipo==='Participação especial'?' selected':''}>Part. especial</option>
