@@ -882,7 +882,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 
 /* ── RÁDIO RODAPÉ ─────────────────────────────────────────── */
-#radio-footer{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,rgb(10,10,12),rgb(26,26,46));border-top:1px solid var(--gold-dim);box-shadow:0 -4px 24px rgba(0,0,0,.5)}
+#radio-footer{position:fixed;bottom:0;left:0;right:0;z-index:9999;transform:translateZ(0);will-change:transform;background:linear-gradient(90deg,rgba(10,10,12,.98),rgba(26,26,46,.98));backdrop-filter:blur(20px);border-top:1px solid var(--gold-dim);box-shadow:0 -4px 24px rgba(0,0,0,.5)}
 .radio-footer-bar{display:flex;align-items:center;gap:12px;padding:8px clamp(16px,4vw,48px);height:52px}
 .radio-label{font-family:'Playfair Display',serif;font-size:.68rem;font-weight:700;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;flex-shrink:0;opacity:.8}
 .radio-sep{width:1px;height:24px;background:var(--border);flex-shrink:0}
@@ -8041,6 +8041,28 @@ function cardContextMenu(e, page, id) {
 </div>
 
 
+<!-- RÁDIO K-DRAMA - RODAPÉ -->
+<div id="radio-footer">
+  <div class="radio-footer-bar">
+    <span class="radio-label">K·RADIO</span>
+    <div class="radio-sep"></div>
+    <button class="radio-play-btn" id="radio-play-btn" onclick="radioToggle()">▶</button>
+    <div class="radio-track-info">
+      <div class="radio-track-name" id="radio-track">Carregando OSTs…</div>
+      <div class="radio-track-status">
+        <span class="radio-live-dot" id="radio-dot"></span>
+        <span id="radio-status-txt">K-Drama OST Radio</span>
+      </div>
+    </div>
+    <button class="radio-next-btn" onclick="radioNext()" title="Próxima">⏭</button>
+    <div class="radio-vol-wrap">
+      <span style="font-size:.75rem;color:var(--text3)">🔊</span>
+      <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
+    </div>
+    <audio id="radio-audio" preload="none"></audio>
+  </div>
+</div>
+
 <script>
 // Inicializar drag and drop nas img-zones após DOM pronto
 if (document.readyState === 'loading') {
@@ -8101,29 +8123,6 @@ if (document.readyState === 'loading') {
   </div>
 </div>
 
-
-
-<!-- RÁDIO K-DRAMA - RODAPÉ -->
-<div id="radio-footer">
-  <div class="radio-footer-bar">
-    <span class="radio-label">K·RADIO</span>
-    <div class="radio-sep"></div>
-    <button class="radio-play-btn" id="radio-play-btn" onclick="radioToggle()">▶</button>
-    <div class="radio-track-info">
-      <div class="radio-track-name" id="radio-track">Carregando OSTs…</div>
-      <div class="radio-track-status">
-        <span class="radio-live-dot" id="radio-dot"></span>
-        <span id="radio-status-txt">K-Drama OST Radio</span>
-      </div>
-    </div>
-    <button class="radio-next-btn" onclick="radioNext()" title="Próxima">⏭</button>
-    <div class="radio-vol-wrap">
-      <span style="font-size:.75rem;color:var(--text3)">🔊</span>
-      <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
-    </div>
-    <audio id="radio-audio" preload="none"></audio>
-  </div>
-</div>
 </body>
 
 </html>
