@@ -8041,28 +8041,6 @@ function cardContextMenu(e, page, id) {
 </div>
 
 
-<!-- RÁDIO K-DRAMA - RODAPÉ -->
-<div id="radio-footer">
-  <div class="radio-footer-bar">
-    <span class="radio-label">K·RADIO</span>
-    <div class="radio-sep"></div>
-    <button class="radio-play-btn" id="radio-play-btn" onclick="radioToggle()">▶</button>
-    <div class="radio-track-info">
-      <div class="radio-track-name" id="radio-track">Carregando OSTs…</div>
-      <div class="radio-track-status">
-        <span class="radio-live-dot" id="radio-dot"></span>
-        <span id="radio-status-txt">K-Drama OST Radio</span>
-      </div>
-    </div>
-    <button class="radio-next-btn" onclick="radioNext()" title="Próxima">⏭</button>
-    <div class="radio-vol-wrap">
-      <span style="font-size:.75rem;color:var(--text3)">🔊</span>
-      <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
-    </div>
-    <audio id="radio-audio" preload="none"></audio>
-  </div>
-</div>
-
 <script>
 // Inicializar drag and drop nas img-zones após DOM pronto
 if (document.readyState === 'loading') {
@@ -8123,6 +8101,29 @@ if (document.readyState === 'loading') {
   </div>
 </div>
 
+
+
+<!-- RÁDIO K-DRAMA - RODAPÉ -->
+<div id="radio-footer">
+  <div class="radio-footer-bar">
+    <span class="radio-label">K·RADIO</span>
+    <div class="radio-sep"></div>
+    <button class="radio-play-btn" id="radio-play-btn" onclick="radioToggle()">▶</button>
+    <div class="radio-track-info">
+      <div class="radio-track-name" id="radio-track">Carregando OSTs…</div>
+      <div class="radio-track-status">
+        <span class="radio-live-dot" id="radio-dot"></span>
+        <span id="radio-status-txt">K-Drama OST Radio</span>
+      </div>
+    </div>
+    <button class="radio-next-btn" onclick="radioNext()" title="Próxima">⏭</button>
+    <div class="radio-vol-wrap">
+      <span style="font-size:.75rem;color:var(--text3)">🔊</span>
+      <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
+    </div>
+    <audio id="radio-audio" preload="none"></audio>
+  </div>
+</div>
 </body>
 
 </html>
