@@ -443,7 +443,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 /* ── ELENCO NO FORM ─────────────────────────────────────────── */
 .cast-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-.cast-row{display:grid;grid-template-columns:1fr 1fr 130px 36px;gap:8px;align-items:center}
+.cast-row{display:grid;grid-template-columns:40px 1fr 1fr 130px 36px;gap:8px;align-items:center}
 .cast-row .fi{padding:8px 10px;font-size:.82rem}
 .cast-row select{padding:8px 10px;font-size:.82rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;outline:none;appearance:none;cursor:pointer}
 .cast-row select:focus{border-color:var(--gold-dim)}
@@ -3597,7 +3597,8 @@ async function acBuscar(id, q) {
       const nasc = a.fields['Data de Nascimento'] || '';
       const _ne = (a.fields['Nome']||'').replace(/'/g,"\'");
       const _nae = (a.fields['Nome Alt']||'').replace(/'/g,"\'");
-      return '<div class="ac-item" onclick="acSelecionar(' + id + ',\'' + a.id + '\',\'' + _ne + '\',\'' + _nae + '\')">' +
+      const _foto = (getPhoto(a,'Foto')||'').replace(/'/g,"'");
+      return '<div class="ac-item" onclick="acSelecionar(' + id + ',\'' + a.id + '\',\'' + _ne + '\',\'' + _nae + '\',\'' + _foto + '\')">' +
         (foto ? '<img src="' + foto + '" loading="lazy">' : '<div style="width:28px;height:36px;background:var(--bg3);border-radius:4px;flex-shrink:0"></div>') +
         '<div class="ac-item-info">' +
         '<div class="ac-item-nome">' + (a.fields['Nome']||'') + '</div>' +
@@ -3618,15 +3619,25 @@ async function acBuscar(id, q) {
   }, 150);
 }
 
-function acSelecionar(id, atorId, nome, nomeAlt) {
+function acSelecionar(id, atorId, nome, nomeAlt, foto) {
   document.getElementById(`cast-nome-${id}`).value = nome;
   document.getElementById(`cast-row-${id}`).dataset.atorId = atorId;
   if (nomeAlt !== undefined) {
     document.getElementById(`cast-nomealt-${id}`).value = nomeAlt || '';
     document.getElementById(`cast-row-${id}`).dataset.nomeAlt = nomeAlt || '';
   }
+  // Atualizar foto na linha
+  const fotoEl = document.getElementById(`cast-foto-${id}`);
+  if (fotoEl) {
+    if (foto) {
+      fotoEl.innerHTML = '<img src="' + foto + '" style="width:36px;height:46px;object-fit:cover;border-radius:5px;border:1px solid var(--border)">';
+    } else {
+      const ini = (nome||'?').trim().split(/\s+/).filter(Boolean);
+      const letters = ini.length > 1 ? ini[0][0]+ini[ini.length-1][0] : (nome||'?').slice(0,2);
+      fotoEl.innerHTML = '<div style="width:36px;height:46px;background:#0f1923;border:1px solid rgba(184,148,66,.35);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:rgba(184,148,66,.6);font-family:Georgia,serif">' + letters.toUpperCase() + '</div>';
+    }
+  }
   document.getElementById(`ac-list-${id}`).classList.remove('open');
-  // Foca no personagem
   document.getElementById(`cast-personagem-${id}`)?.focus();
 }
 
@@ -3717,6 +3728,11 @@ function fdAddCastRow(data={}) {
   row.id = `cast-row-${id}`;
   row.style.cssText = 'border-bottom:1px solid var(--border)';
   row.innerHTML = `
+    <td style="padding:4px 6px;vertical-align:middle">
+      <div id="cast-foto-${id}" style="display:flex;align-items:center;justify-content:center">
+        ${data.foto ? '<img src="' + data.foto + '" style="width:36px;height:46px;object-fit:cover;border-radius:5px;border:1px solid var(--border)">' : '<div style="width:36px;height:46px;background:#0f1923;border:1px solid rgba(184,148,66,.2);border-radius:5px"></div>'}
+      </div>
+    </td>
     <td style="padding:4px 6px">
       <div class="ac-wrap" style="position:relative">
         <input class="fi" id="cast-nome-${id}" placeholder="Nome do ator" value="${data.nome||''}" 
@@ -4337,7 +4353,7 @@ async function openFormDoramaEdit(serie){
       // Elenco
       const loadingEl = document.getElementById('fd-cast-loading');
       if (loadingEl) loadingEl.style.display = '';
-      const ecRes = await fetch(`${SB_URL}/rest/v1/elenco?serie_id=eq.${sbSerieId}&select=id,personagem,tipo,atores:ator_id(id,airtable_id,nome,nome_alt)&order=tipo.asc`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const ecRes = await fetch(`${SB_URL}/rest/v1/elenco?serie_id=eq.${sbSerieId}&select=id,personagem,tipo,atores:ator_id(id,airtable_id,nome,nome_alt,foto)&order=tipo.asc`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
       const ecRows = await ecRes.json();
       if (loadingEl) loadingEl.style.display = 'none';
       ecRows.forEach(row => {
@@ -4348,7 +4364,8 @@ async function openFormDoramaEdit(serie){
           atorId: row.atores?.airtable_id || '',
           atorSbId: row.atores?.id || '',
           elencoId: row.id,
-          nomeAlt: row.atores?.nome_alt || ''
+          nomeAlt: row.atores?.nome_alt || '',
+          foto: row.atores?.foto || ''
         });
       });
       reordenarCastList();
