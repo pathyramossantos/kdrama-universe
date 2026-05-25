@@ -5057,9 +5057,9 @@ async function faSalvar(){
       'Nome Alt': document.getElementById('fa-nome-alt')?.value.trim()||undefined,
       'Data de Nascimento': document.getElementById('fa-nasc').value||undefined,
       'Biografia': document.getElementById('fa-bio').value.trim()||undefined,
-      'Instagram': document.getElementById('fa-instagram')?.value.trim()||undefined,
-      'Site': document.getElementById('fa-site')?.value.trim()||undefined,
-      'Url Hancinema': document.getElementById('fa-hancinema')?.value.trim()||undefined,
+      'Instagram': document.getElementById('fa-instagram')?.value.trim()||null,
+      'Site': document.getElementById('fa-site')?.value.trim()||null,
+      'Url Hancinema': document.getElementById('fa-hancinema')?.value.trim()||null,
       'Data do cadastro': document.getElementById('fa-data-cadastro')?.value||undefined,
     };
     if(fotoUrl) fields['Foto']=fotoUrl;
