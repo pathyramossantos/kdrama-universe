@@ -3408,7 +3408,6 @@ async function renderAtor(id){
         ${photo?`<img src="${photo}" alt="${f['Nome']||''}" style="width:100%;border-radius:var(--card-r);box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid var(--border);object-fit:cover;aspect-ratio:3/4">`:`<div class="cast-photo-placeholder" style="border-radius:var(--card-r);aspect-ratio:3/4">${(n=>{ const p=(n||'?').trim().split(/\s+/); return (p.length>1?p[0][0]+p[p.length-1][0]:(n||'?').slice(0,2)).toUpperCase(); })(f['Nome'])}</div>`}
         <div style="margin-top:14px;display:flex;flex-direction:column;gap:4px;padding:0 2px">
           <div style="font-size:.85rem;font-weight:600;color:var(--text1)">${f['Nome']||''}</div>
-          ${f['Nome Alt']?`<div style="font-size:.78rem;color:var(--text3)">${f['Nome Alt']}</div>`:''}
           ${f['Nome Estrangeiro']?`<div style="font-family:'Noto Serif KR',serif;font-size:.78rem;color:var(--text3)">${f['Nome Estrangeiro']}</div>`:''}
         </div>
       </div>
