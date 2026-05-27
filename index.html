@@ -7014,68 +7014,56 @@ function radioPlay() {
 
 // Busca metadados ICY do stream a cada 15 segundos
 let _radioMetaInterval = null;
+const RADIO_STATUS_URL = 'http://uk25freenew.listen2myradio.com:31230/status.xsl';
+const RADIO_STATUS_PROXY = 'https://api.allorigins.win/get?url=' + encodeURIComponent(RADIO_STATUS_URL);
+
+function radioRenderTrack(title) {
+  var el = document.getElementById('radio-track');
+  if (!el || !title) return;
+  var artistPart = '';
+  var restPart = title;
+  var dashIdx = title.indexOf(' - ');
+  if (dashIdx > -1) {
+    artistPart = title.substring(0, dashIdx).trim();
+    restPart = title.substring(dashIdx + 3).trim();
+  }
+  var trackTitle = restPart;
+  var dramaPart = '';
+  var dotIdx = restPart.indexOf(' \xb7 ');
+  if (dotIdx > -1) {
+    trackTitle = restPart.substring(0, dotIdx).trim();
+    dramaPart = restPart.substring(dotIdx + 3).trim();
+  }
+  var html = '\ud83c\udfb5 ';
+  if (artistPart) {
+    html += '<span class="radio-tn-artist">' + artistPart + '</span>';
+    html += '<span class="radio-tn-sep">\u2014</span>';
+  }
+  html += '<span class="radio-tn-title">' + trackTitle + '</span>';
+  if (dramaPart) {
+    html += '<span class="radio-tn-dot">\xb7</span>';
+    html += '<span class="radio-tn-drama">' + dramaPart + '</span>';
+  }
+  el.innerHTML = html;
+}
+
+async function radioFetchNowPlaying() {
+  try {
+    var res = await fetch(RADIO_STATUS_PROXY, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return;
+    var data = await res.json();
+    var html = data.contents || '';
+    var match = html.match(/Current Song:<\/td>\s*<td[^>]*>([^<]+)<\/td>/);
+    if (match && match[1]) {
+      radioRenderTrack(match[1].trim());
+    }
+  } catch(e) {}
+}
+
 async function radioFetchMetadata() {
   if (_radioMetaInterval) clearInterval(_radioMetaInterval);
-  const fetchMeta = async () => {
-    if (!radioPlaying) return;
-    try {
-      const res = await fetch(RADIO_STREAM_URL, {
-        headers: { 'Icy-MetaData': '1' },
-        signal: AbortSignal.timeout(5000)
-      });
-      const metaInt = parseInt(res.headers.get('icy-metaint') || '0');
-      if (!metaInt) return;
-      const reader = res.body.getReader();
-      let buf = new Uint8Array(0);
-      while (buf.length < metaInt + 5) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const tmp = new Uint8Array(buf.length + value.length);
-        tmp.set(buf); tmp.set(value, buf.length);
-        buf = tmp;
-      }
-      reader.cancel();
-      const metaLen = buf[metaInt] * 16;
-      if (!metaLen) return;
-      const metaBytes = buf.slice(metaInt + 1, metaInt + 1 + metaLen);
-      const meta = new TextDecoder().decode(metaBytes);
-      const match = meta.match(/StreamTitle='([^']*)'/);
-      if (match && match[1]) {
-        const title = match[1].trim();
-        const el = document.getElementById('radio-track');
-        if (el && title) {
-          // Formato esperado: "Artist - Título da Música · Nome do Dorama"
-          var artistPart = '';
-          var restPart = title;
-          var dashIdx = title.indexOf(' - ');
-          if (dashIdx > -1) {
-            artistPart = title.substring(0, dashIdx).trim();
-            restPart = title.substring(dashIdx + 3).trim();
-          }
-          var trackTitle = restPart;
-          var dramaPart = '';
-          var dotIdx = restPart.indexOf(' · ');
-          if (dotIdx > -1) {
-            trackTitle = restPart.substring(0, dotIdx).trim();
-            dramaPart = restPart.substring(dotIdx + 3).trim();
-          }
-          var html = '🎵 ';
-          if (artistPart) {
-            html += '<span class="radio-tn-artist">' + artistPart + '</span>';
-            html += '<span class="radio-tn-sep">—</span>';
-          }
-          html += '<span class="radio-tn-title">' + trackTitle + '</span>';
-          if (dramaPart) {
-            html += '<span class="radio-tn-dot">·</span>';
-            html += '<span class="radio-tn-drama">' + dramaPart + '</span>';
-          }
-          el.innerHTML = html;
-        }
-      }
-    } catch(e) {}
-  };
-  fetchMeta();
-  _radioMetaInterval = setInterval(fetchMeta, 15000);
+  radioFetchNowPlaying();
+  _radioMetaInterval = setInterval(radioFetchNowPlaying, 15000);
 }
 
 function radioStop() {
@@ -8105,8 +8093,10 @@ function cardContextMenu(e, page, id) {
 // Inicializar drag and drop nas img-zones após DOM pronto
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initImgZoneDrops);
+  document.addEventListener('DOMContentLoaded', radioFetchNowPlaying);
 } else {
   initImgZoneDrops();
+  radioFetchNowPlaying();
 }
 </script>
 
