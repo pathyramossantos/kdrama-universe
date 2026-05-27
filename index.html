@@ -6991,11 +6991,8 @@ function radioUpdateUI(playing) {
   document.getElementById('radio-status-txt').textContent = playing ? 'Ao vivo' : 'K-Drama OST Radio';
   const el = document.getElementById('radio-track');
   if (el) {
-    if (!playing) {
-      el.innerHTML = 'K-Drama OST Radio';
-    } else if (!el.querySelector('.radio-tn-artist, .radio-tn-title')) {
-      el.innerHTML = '🎵 <span class="radio-tn-title">K-Drama OST Radio</span>';
-    }
+    if (!playing) el.innerHTML = 'K-Drama OST Radio';
+    // quando playing, não mexe — radioFetchNowPlaying cuida do título
   }
   const btn = document.getElementById('radio-page-play');
   if (btn) btn.textContent = playing ? '⏸' : '▶';
