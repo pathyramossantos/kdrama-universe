@@ -7055,9 +7055,9 @@ function radioRenderTrack(title) {
 
 async function radioFetchNowPlaying() {
   try {
-    var res = await fetch(RADIO_STATUS_PROXY, {
-      signal: AbortSignal.timeout(8000),
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    var bust = 'http://uk25freenew.listen2myradio.com:31230/status.xsl?_=' + Date.now();
+    var res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(bust), {
+      signal: AbortSignal.timeout(8000)
     });
     if (!res.ok) return;
     var data = await res.json();
