@@ -7055,7 +7055,10 @@ function radioRenderTrack(title) {
 
 async function radioFetchNowPlaying() {
   try {
-    var res = await fetch(RADIO_STATUS_PROXY, { signal: AbortSignal.timeout(8000) });
+    var res = await fetch(RADIO_STATUS_PROXY, {
+      signal: AbortSignal.timeout(8000),
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
     if (!res.ok) return;
     var data = await res.json();
     var html = data.contents || '';
