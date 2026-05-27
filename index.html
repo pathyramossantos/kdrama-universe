@@ -3337,6 +3337,7 @@ async function renderAtor(id){
             try { const arr = JSON.parse(capa); capa = arr[0]?.url || arr[0] || capa; } catch(_) {}
           }
           return {
+            elencoId: row.id || null,
             serieId: row.series?.airtable_id || null,
             serieName: row.series?.nome || '—',
             serieAno: row.series?.ano_lancamento || '',
@@ -3380,14 +3381,14 @@ async function renderAtor(id){
         </div>
         <div class="filmografia-grid">
           ${filmografia.map(item=>`
-            <div class="filmografia-card" ${item.serieId?`onclick="navigate('dorama','${item.serieId}')"`:''}
-                 style="${item.serieId?'cursor:pointer':''}">
-              <div class="filmografia-poster">
+            <div class="filmografia-card" ${item.serieId&&!isOwner()?`onclick="navigate('dorama','${item.serieId}')"`:''}\n                 style="${item.serieId&&!isOwner()?'cursor:pointer':'position:relative'}">
+              ${isOwner()&&item.elencoId?`<button onclick="excluirFilmografiaItem('${item.elencoId}',event)" title="Remover do elenco" style="position:absolute;top:6px;right:6px;background:rgba(220,50,50,.15);border:1px solid rgba(220,50,50,.3);color:#e57373;border-radius:50%;width:20px;height:20px;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;line-height:1">✕</button>`:''}
+              <div class="filmografia-poster" ${item.serieId&&isOwner()?`onclick="navigate('dorama','${item.serieId}')" style="cursor:pointer"`:''}>
                 ${item.seriePoster
                   ?`<img src="${item.seriePoster}" alt="${item.serieName}" loading="lazy">`
                   :`<div class="cast-photo-placeholder" style="font-size:1.2rem;aspect-ratio:2/3">드</div>`}
               </div>
-              <div class="filmografia-info">
+              <div class="filmografia-info" ${item.serieId&&isOwner()?`onclick="navigate('dorama','${item.serieId}')" style="cursor:pointer"`:''}>
                 <div class="filmografia-serie">${item.serieName}</div>
                 ${item.serieAno?`<div class="filmografia-ano">${item.serieAno}</div>`:''}
                 ${item.personagem?`<div class="filmografia-personagem">✦ ${item.personagem}</div>`:''}
@@ -5142,6 +5143,23 @@ async function faSalvar(){
 // Botões editar nas páginas de detalhe
 function editCurrentDorama(){ if(currentSerie) openFormDoramaEdit(currentSerie); }
 function editCurrentAtor(){ if(currentAtor) openFormAtor(currentAtor); }
+
+async function excluirFilmografiaItem(elencoId, evt) {
+  evt.stopPropagation();
+  if (!confirm('Remover este dorama da filmografia?')) return;
+  try {
+    var res = await fetch(SB_URL + '/rest/v1/elenco?id=eq.' + elencoId, {
+      method: 'DELETE',
+      headers: {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    if (!res.ok) { var e = await res.text(); throw new Error(e); }
+    showToast('✓ Removido da filmografia!');
+    localStorage.removeItem('kdrama_cache');
+    setTimeout(function(){ renderAtor(currentAtor.id); }, 400);
+  } catch(e) {
+    showToast('Erro: ' + e.message);
+  }
+}
 
 function toggleAddElencoForm() {
   var form = document.getElementById('add-elenco-form');
