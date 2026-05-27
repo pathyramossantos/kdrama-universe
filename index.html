@@ -7055,7 +7055,8 @@ async function radioFetchNowPlaying() {
     var html = data.contents || '';
     var match = html.match(/Current Song:<\/td>\s*<td[^>]*>([^<]+)<\/td>/);
     if (match && match[1]) {
-      radioRenderTrack(match[1].trim());
+      var song = match[1].replace(/\s+/g, ' ').trim();
+      radioRenderTrack(song);
     }
   } catch(e) {}
 }
