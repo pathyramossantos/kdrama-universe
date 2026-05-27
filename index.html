@@ -890,6 +890,11 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .radio-play-btn:hover{transform:scale(1.1)}
 .radio-track-info{flex:1;min-width:0}
 .radio-track-name{font-size:.8rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.radio-tn-artist{color:var(--gold);font-weight:600}
+.radio-tn-sep{color:var(--text3);margin:0 4px}
+.radio-tn-title{color:var(--text)}
+.radio-tn-dot{color:var(--gold-dim);margin:0 5px}
+.radio-tn-drama{color:var(--gold);font-style:italic;opacity:.85}
 .radio-track-status{font-size:.65rem;color:var(--gold);display:flex;align-items:center;gap:5px}
 .radio-live-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 1.5s ease-in-out infinite;display:none}
 .radio-next-btn{background:none;border:none;color:var(--text3);font-size:.95rem;cursor:pointer;padding:4px 6px;transition:color .2s;flex-shrink:0}
@@ -6984,7 +6989,8 @@ function radioUpdateUI(playing) {
   document.getElementById('radio-play-btn').textContent = playing ? '⏸' : '▶';
   document.getElementById('radio-dot').style.display = playing ? 'block' : 'none';
   document.getElementById('radio-status-txt').textContent = playing ? 'Ao vivo' : 'K-Drama OST Radio';
-  document.getElementById('radio-track').textContent = playing ? '🎵 K-Drama OST Radio' : 'K-Drama OST Radio';
+  const el = document.getElementById('radio-track');
+  if (el) el.innerHTML = playing ? '🎵 <span class="radio-tn-title">K-Drama OST Radio</span>' : 'K-Drama OST Radio';
   const btn = document.getElementById('radio-page-play');
   if (btn) btn.textContent = playing ? '⏸' : '▶';
 }
@@ -7037,7 +7043,34 @@ async function radioFetchMetadata() {
       if (match && match[1]) {
         const title = match[1].trim();
         const el = document.getElementById('radio-track');
-        if (el && title) el.textContent = '🎵 ' + title;
+        if (el && title) {
+          // Formato esperado: "Artist - Título da Música · Nome do Dorama"
+          var artistPart = '';
+          var restPart = title;
+          var dashIdx = title.indexOf(' - ');
+          if (dashIdx > -1) {
+            artistPart = title.substring(0, dashIdx).trim();
+            restPart = title.substring(dashIdx + 3).trim();
+          }
+          var trackTitle = restPart;
+          var dramaPart = '';
+          var dotIdx = restPart.indexOf(' · ');
+          if (dotIdx > -1) {
+            trackTitle = restPart.substring(0, dotIdx).trim();
+            dramaPart = restPart.substring(dotIdx + 3).trim();
+          }
+          var html = '🎵 ';
+          if (artistPart) {
+            html += '<span class="radio-tn-artist">' + artistPart + '</span>';
+            html += '<span class="radio-tn-sep">—</span>';
+          }
+          html += '<span class="radio-tn-title">' + trackTitle + '</span>';
+          if (dramaPart) {
+            html += '<span class="radio-tn-dot">·</span>';
+            html += '<span class="radio-tn-drama">' + dramaPart + '</span>';
+          }
+          el.innerHTML = html;
+        }
       }
     } catch(e) {}
   };
