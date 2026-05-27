@@ -408,6 +408,13 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .filmografia-personagem{font-size:.82rem;color:var(--gold);margin-top:4px}
 .filmografia-badges{margin-top:5px}
 .filmografia-obs{font-size:.75rem;color:var(--text3);margin-top:4px;font-style:italic}
+.add-elenco-form{background:var(--surface);border:1px solid var(--gold-dim);border-radius:var(--radius);padding:16px;margin-top:14px;display:none;gap:12px;flex-direction:column}
+.add-elenco-form.open{display:flex}
+.add-elenco-form select,.add-elenco-form input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-size:.85rem;width:100%}
+.add-elenco-form select:focus,.add-elenco-form input:focus{outline:none;border-color:var(--gold-dim)}
+.add-elenco-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-add-filmografia{background:none;border:none;color:var(--gold);font-size:1rem;cursor:pointer;padding:0 0 0 8px;line-height:1;opacity:.7;transition:opacity .2s;vertical-align:middle}
+.btn-add-filmografia:hover{opacity:1}
 
 /* CURIOSIDADES */
 .curiosidades-text{font-size:.9rem;line-height:1.8;color:var(--text2);white-space:pre-wrap}
@@ -3343,7 +3350,34 @@ async function renderAtor(id){
 
     const filmografiaHTML = filmografia.length ? `
       <div class="actor-detail-section">
-        <div class="section-title">Filmografia em K-Dramas</div>
+        <div class="section-title">Filmografia em K-Dramas${isOwner()?`<button class="btn-add-filmografia" onclick="toggleAddElencoForm()" title="Adicionar a um dorama">＋</button>`:''}</div>
+        <div class="add-elenco-form" id="add-elenco-form">
+          <div>
+            <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px">Dorama</label>
+            <select id="aef-serie">
+              <option value="">Selecione o dorama...</option>
+              ${allSeries.slice().sort((a,b)=>(a.fields['Nome']||'').localeCompare(b.fields['Nome']||'')).map(s=>`<option value="${s.id}">${s.fields['Nome']||'—'}</option>`).join('')}
+            </select>
+          </div>
+          <div class="add-elenco-form-row">
+            <div>
+              <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px">Personagem</label>
+              <input type="text" id="aef-personagem" placeholder="Nome do personagem">
+            </div>
+            <div>
+              <label style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px">Tipo</label>
+              <select id="aef-tipo">
+                <option value="Principal">Principal</option>
+                <option value="Secundário">Secundário</option>
+                <option value="Especial">Especial</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn-outline btn-sm" onclick="toggleAddElencoForm()">Cancelar</button>
+            <button class="btn-gold btn-sm" onclick="salvarElencoDoAtor()">Salvar</button>
+          </div>
+        </div>
         <div class="filmografia-grid">
           ${filmografia.map(item=>`
             <div class="filmografia-card" ${item.serieId?`onclick="navigate('dorama','${item.serieId}')"`:''}
@@ -5108,6 +5142,56 @@ async function faSalvar(){
 // Botões editar nas páginas de detalhe
 function editCurrentDorama(){ if(currentSerie) openFormDoramaEdit(currentSerie); }
 function editCurrentAtor(){ if(currentAtor) openFormAtor(currentAtor); }
+
+function toggleAddElencoForm() {
+  var form = document.getElementById('add-elenco-form');
+  if (!form) return;
+  form.classList.toggle('open');
+  if (form.classList.contains('open')) {
+    document.getElementById('aef-personagem')?.focus();
+  }
+}
+
+async function salvarElencoDoAtor() {
+  if (!currentAtor) return;
+  var serieId = document.getElementById('aef-serie')?.value;
+  var personagem = document.getElementById('aef-personagem')?.value.trim();
+  var tipo = document.getElementById('aef-tipo')?.value || 'Secundário';
+  if (!serieId) { showToast('Selecione o dorama!'); return; }
+
+  try {
+    // Resolver UUID do ator
+    var isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(currentAtor.id);
+    var atorUUID = currentAtor.id;
+    if (!isUUID) {
+      var uRes = await fetch(SB_URL + '/rest/v1/atores?airtable_id=eq.' + currentAtor.id + '&select=id', {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+      var uRows = await uRes.json();
+      atorUUID = uRows[0]?.id || currentAtor.id;
+    }
+    // Resolver UUID da série
+    var serieIsUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(serieId);
+    var serieUUID = serieId;
+    if (!serieIsUUID) {
+      var sRes = await fetch(SB_URL + '/rest/v1/series?airtable_id=eq.' + serieId + '&select=id', {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+      var sRows = await sRes.json();
+      serieUUID = sRows[0]?.id || serieId;
+    }
+    var body = { ator_id: atorUUID, serie_id: serieUUID, personagem: personagem || null, tipo: tipo };
+    var res = await fetch(SB_URL + '/rest/v1/elenco', {
+      method: 'POST',
+      headers: {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { var e = await res.text(); throw new Error(e); }
+    showToast('✓ Adicionado ao elenco!');
+    toggleAddElencoForm();
+    localStorage.removeItem('kdrama_cache');
+    // Recarregar a página do ator pra mostrar a filmografia atualizada
+    setTimeout(function(){ renderAtor(currentAtor.id); }, 600);
+  } catch(e) {
+    showToast('Erro: ' + e.message);
+  }
+}
 
 async function excluirAtorAtual() {
   if (!currentAtor) return;
