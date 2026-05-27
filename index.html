@@ -6977,6 +6977,7 @@ function renderAniversarios() {
 // ── RÁDIO K-DRAMA ─────────────────────────────────────────
 const RADIO_STREAM_URL = 'https://uk25freenew.listen2myradio.com/live.mp3?typeportmount=ice_31230_stream_436554283';
 let radioPlaying = false;
+let radioPending = false;
 
 // ── RÁDIO — stream ao vivo ────────────────────────────────
 function radioUpdateUI(playing) {
@@ -6989,14 +6990,18 @@ function radioUpdateUI(playing) {
 }
 
 function radioPlay() {
+  if (radioPending) return;
+  radioPending = true;
   const audio = document.getElementById('radio-audio');
   audio.src = RADIO_STREAM_URL;
   audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
   audio.play().then(() => {
     radioPlaying = true;
+    radioPending = false;
     radioUpdateUI(true);
     radioFetchMetadata();
   }).catch(e => {
+    radioPending = false;
     console.warn('Radio play error:', e);
   });
 }
@@ -7045,11 +7050,13 @@ function radioStop() {
   audio.pause();
   audio.src = '';
   radioPlaying = false;
+  radioPending = false;
   if (_radioMetaInterval) { clearInterval(_radioMetaInterval); _radioMetaInterval = null; }
   radioUpdateUI(false);
 }
 
 function radioToggle() {
+  if (radioPending) return;
   if (radioPlaying) radioStop();
   else radioPlay();
 }
