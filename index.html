@@ -3715,7 +3715,8 @@ function filtrarCastModal(q) {
     const nome = (row.querySelector('input[id^="cast-nome"]')?.value || '').toLowerCase();
     const personagem = (row.querySelector('input[id^="cast-per"]')?.value || '').toLowerCase();
     const tipo = (row.querySelector('select[id^="cast-tipo"]')?.value || '').toLowerCase();
-    const bate = !termo || nome.includes(termo) || personagem.includes(termo) || tipo.includes(termo);
+    const nomeAlt = (row.dataset.nomeAlt || '').toLowerCase();
+    const bate = !termo || nome.includes(termo) || personagem.includes(termo) || tipo.includes(termo) || nomeAlt.includes(termo);
     row.style.display = bate ? '' : 'none';
     if (bate) visiveis++;
   });
