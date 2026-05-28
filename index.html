@@ -2278,7 +2278,7 @@ async function loadAllData(){
         renderStats();
         renderHome();
         // Atualiza em segundo plano só se cache tiver mais de 6h
-        const BG_REFRESH_INTERVAL = 6 * 60 * 60 * 1000;
+        const BG_REFRESH_INTERVAL = 12 * 60 * 60 * 1000;
         if (Date.now() - ts > BG_REFRESH_INTERVAL) {
           setTimeout(async () => {
             try {
@@ -7218,7 +7218,7 @@ async function radioFetchNowPlaying() {
   try {
     var bust = 'http://uk25freenew.listen2myradio.com:31230/status.xsl?_=' + Date.now();
     var res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(bust), {
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(5000)
     });
     if (!res.ok) return;
     var data = await res.json();
@@ -7234,7 +7234,7 @@ async function radioFetchNowPlaying() {
 async function radioFetchMetadata() {
   if (_radioMetaInterval) clearInterval(_radioMetaInterval);
   radioFetchNowPlaying();
-  _radioMetaInterval = setInterval(radioFetchNowPlaying, 15000);
+  _radioMetaInterval = setInterval(radioFetchNowPlaying, 30000);
 }
 
 function radioStop() {
@@ -8264,10 +8264,10 @@ function cardContextMenu(e, page, id) {
 // Inicializar drag and drop nas img-zones após DOM pronto
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initImgZoneDrops);
-  document.addEventListener('DOMContentLoaded', radioFetchNowPlaying);
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(radioFetchNowPlaying, 3000); });
 } else {
   initImgZoneDrops();
-  radioFetchNowPlaying();
+  setTimeout(radioFetchNowPlaying, 3000);
 }
 </script>
 
