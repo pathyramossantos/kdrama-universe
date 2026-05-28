@@ -3374,7 +3374,7 @@ async function renderAtor(id){
               <select id="aef-tipo">
                 <option value="Principal">Principal</option>
                 <option value="Secundário">Secundário</option>
-                <option value="Especial">Especial</option>
+                <option value="Participação especial" selected>Part. Especial</option>
               </select>
             </div>
           </div>
@@ -3787,8 +3787,8 @@ function fdAddCastRow(data={}) {
     <div>
       <select id="cast-tipo-${id}" style="font-size:.82rem;padding:6px 8px;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;outline:none;cursor:pointer" onchange="setTimeout(reordenarCastList,0)">
         <option value="Principal"${data.tipo==='Principal'?' selected':''}>Principal</option>
-        <option value="Secundário"${(data.tipo||'Secundário')==='Secundário'?' selected':''}>Secundário</option>
-        <option value="Participação especial"${data.tipo==='Participação especial'?' selected':''}>Part. especial</option>
+        <option value="Secundário"${data.tipo==='Secundário'?' selected':''}>Secundário</option>
+        <option value="Participação especial"${(!data.tipo||data.tipo==='Participação especial')?' selected':''}>Part. especial</option>
       </select>
     </div>
     <div style="text-align:center">
@@ -5234,7 +5234,7 @@ async function salvarElencoDoAtor() {
   if (!currentAtor) return;
   var serieId = document.getElementById('aef-serie')?.value;
   var personagem = document.getElementById('aef-personagem')?.value.trim();
-  var tipo = document.getElementById('aef-tipo')?.value || 'Secundário';
+  var tipo = document.getElementById('aef-tipo')?.value || 'Participação especial';
   if (!serieId) { showToast('Selecione o dorama!'); return; }
 
   try {
