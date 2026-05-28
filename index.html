@@ -1696,8 +1696,12 @@ select.filter-select:focus{border-color:var(--gold-dim)}
               <label class="fl">Nome (Romanizado)</label>
               <div style="display:flex;gap:8px">
                 <input class="fi" id="fa-nome" placeholder="Park Seo-joon" style="flex:1">
-                <button class="btn-ai" onclick="faBuscarTMDBPeloNome()" id="fa-btn-filmografia" title="Buscar tudo do ator">Buscar</button>
+                <button class="btn-ai" onclick="faBuscarTMDBLista()" id="fa-btn-filmografia" title="Buscar no TMDB">Buscar</button>
               </div>
+            </div>
+            <div id="fa-tmdb-lista-wrap" style="display:none;margin-top:-8px;margin-bottom:4px">
+              <div style="font-size:.72rem;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Selecione o ator correto:</div>
+              <div id="fa-tmdb-results" class="tmdb-results" style="max-height:220px"></div>
             </div>
             <div class="fg"><label class="fl">Nome Coreano</label><input class="fi" id="fa-nome-kor" placeholder="박서준"></div>
             <div class="fg"><label class="fl">Também conhecido como</label><input class="fi" id="fa-nome-alt" placeholder="Ex: Jung In Kyu, Jeong In Gyu (separar por vírgula)"></div>
@@ -4680,6 +4684,7 @@ function openFormAtor(ator=null){
   ['fa-nome','fa-nome-kor','fa-nome-alt','fa-bio','fa-instagram','fa-site','fa-hancinema','fa-foto-url','fa-banner-url-preview','fa-data-cadastro'].forEach(id=>setVal(id,''));
   setVal('fa-nasc','');
   const faRes=document.getElementById('fa-tmdb-results'); if(faRes) faRes.innerHTML='';
+  var faWrap=document.getElementById('fa-tmdb-lista-wrap'); if(faWrap) faWrap.style.display='none';
   document.getElementById('fa-status-msg').textContent='';
   document.getElementById('fa-banner-preview-wrap').style.display='none';
   const faPos = document.getElementById('fa-banner-pos-wrap'); if(faPos) faPos.style.display='none';
@@ -4948,6 +4953,8 @@ async function faImportTMDB(personId){
       faPreviewFotoUrl(url);
     }
     if(_res) _res.innerHTML=`<p style="color:var(--teal);font-size:.82rem;padding:6px">✓ Importado!</p>`;
+    var wrap = document.getElementById('fa-tmdb-lista-wrap');
+    if (wrap) setTimeout(function(){ wrap.style.display='none'; }, 1200);
     showToast('Ator importado do TMDB ✓');
   }catch(e){
     if(_res) _res.innerHTML=`<p style="color:var(--red);font-size:.82rem;padding:6px">Erro: ${e.message}</p>`;
@@ -4955,6 +4962,59 @@ async function faImportTMDB(personId){
   }
 }
 
+
+async function faBuscarTMDBLista() {
+  // Pega nome romanizado ou coreano
+  var nome = (document.getElementById('fa-nome')?.value || '').trim();
+  var nomeKor = (document.getElementById('fa-nome-kor')?.value || '').trim();
+  var q = nome || nomeKor;
+  if (!q) { showToast('Preencha o nome do ator primeiro'); return; }
+
+  var btn = document.getElementById('fa-btn-filmografia');
+  var wrap = document.getElementById('fa-tmdb-lista-wrap');
+  var res = document.getElementById('fa-tmdb-results');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+  if (wrap) wrap.style.display = 'block';
+  if (res) res.innerHTML = '<div style="color:var(--text3);font-size:.82rem;padding:6px">Buscando…</div>';
+
+  try {
+    // Busca pelo nome romanizado primeiro, se vier vazio tenta o coreano
+    var items = [];
+    var r1 = await fetch(TMDB_BASE + '/search/person?api_key=' + tmdbKey + '&query=' + encodeURIComponent(q) + '&language=en-US');
+    var d1 = await r1.json();
+    items = (d1.results || []).slice(0, 8);
+
+    // Se tinha nome coreano e buscou pelo romanizado e veio vazio, tenta pelo coreano
+    if (!items.length && nome && nomeKor) {
+      var r2 = await fetch(TMDB_BASE + '/search/person?api_key=' + tmdbKey + '&query=' + encodeURIComponent(nomeKor) + '&language=en-US');
+      var d2 = await r2.json();
+      items = (d2.results || []).slice(0, 8);
+    }
+
+    if (!items.length) {
+      res.innerHTML = '<p style="color:var(--text3);font-size:.82rem;padding:6px">Nenhum resultado encontrado.</p>';
+      if (btn) { btn.disabled = false; btn.textContent = 'Buscar'; }
+      return;
+    }
+
+    res.innerHTML = items.map(function(x) {
+      var known = (x.known_for || []).map(function(k){ return k.name || k.title || ''; }).filter(Boolean).join(' · ');
+      var img = x.profile_path
+        ? '<img class="tmdb-result-img" src="' + TMDB_IMG + x.profile_path + '" loading="lazy" style="aspect-ratio:2/3">'
+        : '<div class="tmdb-result-img" style="background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.2rem">👤</div>';
+      return '<div class="tmdb-result-item" onclick="faImportTMDB(' + x.id + ')">'
+        + img
+        + '<div class="tmdb-result-info">'
+        + '<div class="tmdb-result-title">' + x.name + '</div>'
+        + '<div class="tmdb-result-year">' + (x.known_for_department || '') + '</div>'
+        + '<div class="tmdb-result-overview">' + known + '</div>'
+        + '</div></div>';
+    }).join('');
+  } catch(e) {
+    res.innerHTML = '<p style="color:var(--red);font-size:.82rem;padding:6px">Erro: ' + e.message + '</p>';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Buscar'; }
+}
 
 async function faBuscarTMDBPeloNome(){
   const nome = (document.getElementById('fa-nome')?.value || '').trim();
