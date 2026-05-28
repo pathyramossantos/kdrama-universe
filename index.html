@@ -4095,10 +4095,11 @@ async function fdSalvarElenco(serieId, castData) {
 
       if(atorUUID && sbSerieId){
         if(membro.elencoId){
-          // Já existe — só atualiza personagem e tipo
+          // Já existe — atualiza ator, personagem e tipo
           await fetch(`${SB_URL}/rest/v1/elenco?id=eq.${membro.elencoId}`,{method:'PATCH',headers:SB_HEADERS,body:JSON.stringify({
+            ator_id: atorUUID,
             personagem: membro.personagem || null,
-            tipo: membro.tipo || 'Secundário'
+            tipo: membro.tipo || 'Participação especial'
           })});
         } else {
           // Novo membro — cria
@@ -4106,7 +4107,7 @@ async function fdSalvarElenco(serieId, castData) {
             serie_id: sbSerieId,
             ator_id: atorUUID,
             personagem: membro.personagem || null,
-            tipo: membro.tipo || 'Secundário'
+            tipo: membro.tipo || 'Participação especial'
           })});
         }
       }
