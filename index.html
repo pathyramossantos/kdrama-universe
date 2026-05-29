@@ -7440,8 +7440,26 @@ async function renderAgencias() {
       + (f['Nome Original'] ? '<div class="agencia-nome-orig">' + f['Nome Original'] + '</div>' : '')
       + '</div>'
       + (isOwner() ? '<button class="btn-icon-sm" onclick="event.stopPropagation();openFormAgencia(\'' + a.id + '\')" title="Editar">✏️</button>' : '')
+      + (isOwner() ? '<button class="btn-icon-sm" onclick="event.stopPropagation();excluirAgencia(\'' + a.id + '\',\'' + (f['Nome']||'').replace(/'/g,"\\'") + '\')" title="Apagar" style="color:var(--red)">✕</button>' : '')
       + '</div>';
   }).join('');
+}
+
+async function excluirAgencia(id, nome) {
+  if (!confirm('Apagar a agência "' + nome + '"?\nOs atores vinculados perdem o vínculo mas não são apagados.')) return;
+  try {
+    // Desvincular atores
+    await fetch(SB_URL + '/rest/v1/atores?agencia_id=eq.' + id, {
+      method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ agencia_id: null })
+    });
+    // Apagar agência
+    await fetch(SB_URL + '/rest/v1/agencias?id=eq.' + id, {
+      method: 'DELETE', headers: SB_HEADERS
+    });
+    allAgencias = [];
+    showToast('✓ Agência apagada!');
+    renderAgencias();
+  } catch(e) { showToast('Erro: ' + e.message); }
 }
 
 async function renderAgenciaDetalhe(id) {
