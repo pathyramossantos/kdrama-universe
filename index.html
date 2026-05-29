@@ -7474,75 +7474,43 @@ function radioPlay() {
   if (radioPending) return;
   radioPending = true;
   const audio = document.getElementById('radio-audio');
-  const vol = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
-  audio.volume = vol;
+  audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
 
-  // Remove listeners antigos pra não acumular
-  audio.oncanplay = null;
+  // Limpa listeners antigos
+  audio.onplaying = null;
   audio.onerror = null;
 
-  audio.src = RADIO_STREAM_URL + '&nocache=' + Date.now();
-
-  // Android Chrome exige load() explícito antes de play() em streams ao vivo
-  audio.load();
-
-  var played = false;
-  audio.oncanplay = function() {
-    if (played) return;
-    played = true;
-    audio.oncanplay = null;
-    var p = audio.play();
-    if (p !== undefined) {
-      p.then(function() {
-        radioPlaying = true;
-        radioPending = false;
-        radioUpdateUI(true);
-        radioFetchMetadata();
-      }).catch(function(e) {
-        radioPending = false;
-        radioPlaying = false;
-        radioUpdateUI(false);
-        console.warn('Radio play error:', e);
-      });
-    } else {
-      radioPlaying = true;
-      radioPending = false;
-      radioUpdateUI(true);
-      radioFetchMetadata();
-    }
+  // Listener 'playing' — dispara no Android Chrome quando o stream realmente começa
+  audio.onplaying = function() {
+    audio.onplaying = null;
+    radioPlaying = true;
+    radioPending = false;
+    radioUpdateUI(true);
+    radioFetchMetadata();
   };
 
   audio.onerror = function() {
+    audio.onplaying = null;
     radioPending = false;
     radioPlaying = false;
     radioUpdateUI(false);
     console.warn('Radio stream error:', audio.error);
   };
 
-  // Fallback: se canplay não disparar em 8s, tenta play direto (desktop/Safari)
-  setTimeout(function() {
-    if (!radioPending) return;
-    audio.oncanplay = null;
-    var p = audio.play();
-    if (p !== undefined) {
-      p.then(function() {
-        radioPlaying = true;
-        radioPending = false;
-        radioUpdateUI(true);
-        radioFetchMetadata();
-      }).catch(function(e) {
-        radioPending = false;
-        radioPlaying = false;
-        radioUpdateUI(false);
-        console.warn('Radio fallback error:', e);
-      });
-    } else {
-      radioPlaying = true;
+  audio.src = RADIO_STREAM_URL + '&t=' + Date.now();
+  var p = audio.play();
+  if (p !== undefined) {
+    p.catch(function(e) {
+      audio.onplaying = null;
       radioPending = false;
-      radioUpdateUI(true);
-      radioFetchMetadata();
-    }
-  }, 8000);
+      radioPlaying = false;
+      radioUpdateUI(false);
+      console.warn('Radio play error:', e);
+    });
+  }
+
+  // Safety: libera pending após 10s caso onplaying nunca dispare
+  setTimeout(function() { radioPending = false; }, 10000);
 }
 
 // Busca metadados ICY do stream a cada 15 segundos
@@ -7805,6 +7773,8 @@ async function radioFetchMetadata() {
 
 function radioStop() {
   const audio = document.getElementById('radio-audio');
+  audio.onplaying = null;
+  audio.onerror = null;
   audio.pause();
   audio.src = '';
   radioPlaying = false;
