@@ -301,6 +301,16 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 /* ACTORS PAGE */
 .actors-header{padding:40px clamp(16px,4vw,48px) 16px}
+.fa-dup-aviso{margin-top:8px;border-radius:10px;border:1px solid rgba(201,168,76,.35);background:rgba(201,168,76,.07);padding:10px 12px;display:none}
+.fa-dup-titulo{font-size:.72rem;color:var(--gold);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.fa-dup-cards{display:flex;flex-direction:column;gap:6px}
+.fa-dup-card{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:8px;padding:7px 10px;cursor:pointer;border:1px solid var(--border);transition:var(--transition)}
+.fa-dup-card:hover{border-color:var(--gold-dim);background:var(--surface2)}
+.fa-dup-foto{width:36px;height:48px;object-fit:cover;border-radius:5px;background:var(--bg3);flex-shrink:0}
+.fa-dup-foto-ph{width:36px;height:48px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;color:var(--text3)}
+.fa-dup-info{flex:1;min-width:0}
+.fa-dup-nome{font-size:.83rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fa-dup-sub{font-size:.72rem;color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .alpha-bar{display:flex;flex-wrap:wrap;gap:4px;margin-top:14px}
 .alpha-btn{min-width:28px;height:28px;padding:0 4px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;transition:var(--transition);letter-spacing:.03em;display:flex;align-items:center;justify-content:center}
 .alpha-btn:hover{color:var(--gold);border-color:var(--gold-dim)}
@@ -1769,6 +1779,10 @@ select.filter-select:focus{border-color:var(--gold-dim)}
                 <input class="fi" id="fa-nome" placeholder="Park Seo-joon" style="flex:1">
                 <button class="btn-ai" onclick="faBuscarTMDBLista()" id="fa-btn-filmografia" title="Buscar no TMDB">Buscar</button>
               </div>
+            </div>
+            <div id="fa-dup-aviso" class="fa-dup-aviso">
+              <div class="fa-dup-titulo">⚠️ Já existe um ator com esse nome</div>
+              <div class="fa-dup-cards" id="fa-dup-cards"></div>
             </div>
             <div id="fa-tmdb-lista-wrap" style="display:none;margin-top:-8px;margin-bottom:4px">
               <div style="font-size:.72rem;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Selecione o ator correto:</div>
@@ -3761,6 +3775,8 @@ document.getElementById('search-input').addEventListener('input',e=>{
   clearTimeout(st);st=setTimeout(()=>{searchQuery=e.target.value;renderHome();},250);
 });
 document.getElementById('actor-search')?.addEventListener('input',()=>filterAtores());
+document.getElementById('fa-nome')?.addEventListener('input', faVerificarDuplicata);
+document.getElementById('fa-nome-kor')?.addEventListener('input', faVerificarDuplicata);
 
 // tmdb enter key
 document.addEventListener('keydown',e=>{
@@ -5443,6 +5459,45 @@ function faBuscarFilmografia() { faBuscarFilmografiaMDL(); }
 function normalizarNome(nome) {
   // Após hífen, primeira letra sempre minúscula (padrão HanCinema)
   return nome.replace(/-([A-Z])/g, (_, c) => '-' + c.toLowerCase());
+}
+
+function faVerificarDuplicata(){
+  if(faEditId) return;
+  var aviso = document.getElementById('fa-dup-aviso');
+  var cards = document.getElementById('fa-dup-cards');
+  if(!aviso || !cards) return;
+  var q = (document.getElementById('fa-nome').value || '').trim().toLowerCase();
+  var qKor = (document.getElementById('fa-nome-kor').value || '').trim().toLowerCase();
+  if(q.length < 2 && qKor.length < 2){ aviso.style.display='none'; return; }
+  var encontrados = allAtores.filter(function(a){
+    var nome = (a.fields['Nome'] || '').toLowerCase();
+    var nomeKor = (a.fields['Nome Estrangeiro'] || '').toLowerCase();
+    var nomeAlt = (a.fields['Nome Alt'] || '').toLowerCase();
+    if(q.length >= 2 && nome === q) return true;
+    if(q.length >= 2 && nomeAlt && nomeAlt.split(',').map(function(s){ return s.trim(); }).indexOf(q) > -1) return true;
+    if(qKor.length >= 2 && nomeKor && nomeKor === qKor) return true;
+    return false;
+  });
+  if(!encontrados.length){ aviso.style.display='none'; return; }
+  aviso.style.display = 'block';
+  cards.innerHTML = encontrados.map(function(a){
+    var f = a.fields;
+    var foto = getPhoto(a, 'Foto');
+    var nasc = f['Data de Nascimento'] ? parseDateBR(f['Data de Nascimento']) : '';
+    var kor = f['Nome Estrangeiro'] || '';
+    var sub = [kor, nasc].filter(Boolean).join(' · ');
+    var fotoHtml = foto
+      ? '<img class="fa-dup-foto" src="' + foto + '" loading="lazy">'
+      : '<div class="fa-dup-foto-ph">&#128100;</div>';
+    return '<div class="fa-dup-card" onclick="closeFormAtor();navigate(\'ator\',\'' + a.id + '\')" title="Ver cadastro">'
+      + fotoHtml
+      + '<div class="fa-dup-info">'
+      + '<div class="fa-dup-nome">' + (f['Nome'] || '') + '</div>'
+      + (sub ? '<div class="fa-dup-sub">' + sub + '</div>' : '')
+      + '</div>'
+      + '<span style="font-size:.7rem;color:var(--text3);flex-shrink:0">Ver →</span>'
+      + '</div>';
+  }).join('');
 }
 
 async function faSalvar(){
