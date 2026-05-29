@@ -1023,7 +1023,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     <a data-page="doramas" onclick="navigate('doramas')">Doramas</a>
     <a data-page="atores" onclick="navigate('atores')">Atores</a>
     <a data-page="direcao" onclick="navigate('direcao')" id="nav-direcao" style="display:none">Direção</a>
-    <a data-page="agencias" onclick="navigate('agencias')" id="nav-agencias" style="display:none">Agências</a>
     <a data-page="blog" onclick="navigate('blog')">Blog</a>
     <a data-page="config" onclick="navigate('config')" id="nav-config">Configurações</a>
     <a onclick="isOwner() ? fazerLogout() : abrirLoginAdmin()" id="nav-admin" style="cursor:pointer" title="Admin">🔑</a>
@@ -1789,17 +1788,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         </div>
         <div class="links-dinamicos" id="fa-links-list"></div>
         <button class="btn-add-link" onclick="faAddLink()">+ Adicionar link</button>
-      </div>
-
-      <!-- Agência -->
-      <div class="form-sect">
-        <div class="form-sect-title">Agência</div>
-        <div class="fg">
-          <label class="fl">Agência</label>
-          <select class="fi" id="fa-agencia">
-            <option value="">— Sem agência vinculada —</option>
-          </select>
-        </div>
       </div>
 
       <!-- Biografia -->
@@ -3376,8 +3364,6 @@ let currentAtor = null;
 async function renderAtor(id){
   const content=document.getElementById('ator-content');
   content.innerHTML=`<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>`;
-  // Garantir que agências estão carregadas
-  if (!allAgencias.length) await loadAgencias();
   try{
     let ator=allAtores.find(a=>a.id===id);
     if(!ator || !ator.fields){
@@ -3550,7 +3536,6 @@ async function renderAtor(id){
           ${dob?`<span class="badge badge-exp">🎂 ${dob}${age?` · ${age} anos`:''}</span>`:''}
           ${filmografia.length?`<span class="badge badge-status-concluido">${filmografia.length} drama${filmografia.length>1?'s':''} no catálogo</span>`:''}
           ${f['Data do cadastro']?`<span class="badge" style="background:rgba(76,175,80,.15);color:#81c784;border:1px solid rgba(76,175,80,.3);font-size:.65rem">✓ Revisado</span>`:''}
-          ${(()=>{ if(!f['Agencia ID']) return ''; var ag = allAgencias.find(function(a){ return a.id === f['Agencia ID']; }); if(!ag) return ''; return '<span class="badge" style="background:rgba(184,148,66,.1);color:var(--gold);border:1px solid var(--gold-dim);font-size:.65rem;cursor:pointer" onclick="renderAgenciaDetalhe(\''+ag.id+'\')" title="Ver agência">🏢 '+ag.fields['Nome']+'</span>'; })()}
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
           ${(()=>{
@@ -4829,7 +4814,6 @@ function openFormAtor(ator=null){
   faEditId = null; faFotoFile = null; faFotoUrlFinal = null;
   ['fa-nome','fa-nome-kor','fa-nome-alt','fa-bio','fa-foto-url','fa-banner-url-preview','fa-data-cadastro'].forEach(id=>setVal(id,''));
   document.getElementById('fa-links-list').innerHTML = '';
-  faPopularSelectAgencia(null);
   setVal('fa-nasc','');
   const faRes=document.getElementById('fa-tmdb-results'); if(faRes) faRes.innerHTML='';
   var faWrap=document.getElementById('fa-tmdb-lista-wrap'); if(faWrap) faWrap.style.display='none';
@@ -4861,7 +4845,6 @@ function openFormAtor(ator=null){
       linksArr.forEach(function(l) { faAddLink(l.url); });
     }
     setVal('fa-data-cadastro',f['Data do cadastro']||'');
-    faPopularSelectAgencia(f['Agencia ID'] || null);
     const foto=getPhoto(ator,'Foto');
     if(foto){ faFotoUrlFinal=foto; setVal('fa-foto-url',foto); faShowFoto(foto); }
     // Preview do banner se tiver url salva
@@ -8044,7 +8027,6 @@ if (!isOwner()) {
   document.querySelectorAll('.btn-new-drama').forEach(el => el.style.display='none');
 } else {
   const nd = document.getElementById('nav-direcao'); if(nd) nd.style.display='inline';
-  const na = document.getElementById('nav-agencias'); if(na) na.style.display='inline';
   // Garantir que botões com data-keep-label estão visíveis (exceto excluir que tem lógica própria)
   document.querySelectorAll('.edit-toggle[data-keep-label]').forEach(el => {
     if (el.id !== 'btn-excluir-ator') el.style.display = '';
