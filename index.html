@@ -311,13 +311,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .actor-card-wrap:hover{z-index:100}
 .actor-doramas-pop{position:absolute;left:calc(100% + 10px);top:0;z-index:999;background:var(--surface);border:1px solid var(--gold-dim);border-radius:var(--card-r);padding:10px;width:190px;display:none;flex-direction:column;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.6);pointer-events:none}
 .actor-card-wrap:hover .actor-doramas-pop{display:flex}
-.actor-card-wrap:nth-child(3n):hover .actor-doramas-pop,
-.actor-card-wrap:nth-last-child(-n+3):hover .actor-doramas-pop{left:auto;right:calc(100% + 10px)}
-@media(max-width:480px){
-  .actor-card-wrap:nth-child(2n):hover .actor-doramas-pop,
-  .actor-card-wrap:nth-last-child(-n+2):hover .actor-doramas-pop{left:auto;right:calc(100% + 10px)}
-  .actor-card-wrap:nth-child(2n-1):hover .actor-doramas-pop{left:calc(100% + 10px);right:auto}
-}
+.actor-card-wrap.pop-left .actor-doramas-pop{left:auto;right:calc(100% + 10px)}
 .actor-doramas-pop-item{display:flex;align-items:center;gap:8px}
 .actor-doramas-pop-capa{width:32px;height:44px;object-fit:cover;border-radius:4px;flex-shrink:0;background:var(--bg3)}
 .actor-doramas-pop-capa-ph{width:32px;height:44px;border-radius:4px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--text3)}
@@ -3264,11 +3258,13 @@ function filterAtores(resetPage=true){
   grid.innerHTML=paged.map((a,i)=>{
     const f=a.fields;
     const photo=getPhoto(a,'Foto');
-    // Doramas do ator via allElenco — cruzar por airtable_id ou uuid
-    const atorAirtableId = a.fields['_airtable_id'] || a.id;
+    // Doramas do ator via allElenco
     const doramas = allElenco
-      .filter(e => e.ator_airtable_id === atorAirtableId || e.ator_airtable_id === a.id)
-      .map(e => allSeries.find(s => s.id === e.serie_airtable_id || s.fields['_airtable_id'] === e.serie_airtable_id))
+      .filter(e => (e.fields['Atores']||[])[0] === a.id || e.ator_airtable_id === a.id)
+      .map(e => {
+        const serieId = (e.fields['Séries']||[])[0] || e.serie_airtable_id;
+        return allSeries.find(s => s.id === serieId);
+      })
       .filter(Boolean)
       .filter((s,idx,arr) => arr.findIndex(x=>x.id===s.id)===idx)
       .slice(0,6);
@@ -3293,6 +3289,15 @@ function filterAtores(resetPage=true){
   if(hasMore) grid.innerHTML+=`<div style="grid-column:1/-1;text-align:center;padding:16px 0">
     <button class="btn-outline" onclick="actorsPage++;filterAtores(false)">Ver mais · ${paged.length} de ${filtered.length}</button>
   </div>`;
+  // Detectar cards na borda direita pra abrir popover à esquerda
+  requestAnimationFrame(() => {
+    const wraps = grid.querySelectorAll('.actor-card-wrap');
+    const gridRight = grid.getBoundingClientRect().right;
+    wraps.forEach(w => {
+      const r = w.getBoundingClientRect();
+      w.classList.toggle('pop-left', r.right + 200 > gridRight);
+    });
+  });
 }
 
 // ── ATOR DETAIL ───────────────────────────────────────────
@@ -3641,27 +3646,31 @@ async function acBuscar(id, q) {
   acTimers[id] = setTimeout(async () => {
     const q2 = q.toLowerCase();
 
-    // Busca no cache local — nome principal e nome_alt
+    // Busca no cache local — nome principal, nome_alt e hangul
     let matches = allAtores.filter(a =>
       (a.fields['Nome'] || '').toLowerCase().includes(q2) ||
-      (a.fields['Nome Alt'] || '').toLowerCase().includes(q2)
+      (a.fields['Nome Alt'] || '').toLowerCase().includes(q2) ||
+      (a.fields['Nome Estrangeiro'] || '').includes(q)
     );
 
-    // Se não achou no cache, busca direto no Supabase (nome e nome_alt)
+    // Se não achou no cache, busca direto no Supabase (nome, nome_alt e nome_estrangeiro)
     if (matches.length === 0) {
       try {
         list.innerHTML = '<div class="ac-item" style="color:var(--text3);pointer-events:none">Buscando…</div>';
         list.classList.add('open');
-        const [res1, res2] = await Promise.all([
+        const [res1, res2, res3] = await Promise.all([
           fetch(`${SB_URL}/rest/v1/atores?nome=ilike.*${encodeURIComponent(q2)}*&select=airtable_id,nome,nome_alt,nome_estrangeiro,foto,data_nascimento&limit=8`, {
             headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
           }),
           fetch(`${SB_URL}/rest/v1/atores?nome_alt=ilike.*${encodeURIComponent(q2)}*&select=airtable_id,nome,nome_alt,nome_estrangeiro,foto,data_nascimento&limit=8`, {
             headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+          }),
+          fetch(`${SB_URL}/rest/v1/atores?nome_estrangeiro=ilike.*${encodeURIComponent(q)}*&select=airtable_id,nome,nome_alt,nome_estrangeiro,foto,data_nascimento&limit=8`, {
+            headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
           })
         ]);
-        const [rows1, rows2] = await Promise.all([res1.json(), res2.json()]);
-        const todos = [...rows1, ...rows2];
+        const [rows1, rows2, rows3] = await Promise.all([res1.json(), res2.json(), res3.json()]);
+        const todos = [...rows1, ...rows2, ...rows3];
         const vistos = new Set();
         matches = todos.filter(r => { if (vistos.has(r.airtable_id||r.nome)) return false; vistos.add(r.airtable_id||r.nome); return true; }).map(r => sbToAt(r, 'atores'));
       } catch(e) { matches = []; }
@@ -3672,7 +3681,7 @@ async function acBuscar(id, q) {
       const nasc = a.fields['Data de Nascimento'] || '';
       const _ne = (a.fields['Nome']||'').replace(/'/g,"\'");
       const _nae = (a.fields['Nome Alt']||'').replace(/'/g,"\'");
-      const _hangul = (a.fields['Nome Coreano']||'').replace(/'/g,"\'");
+      const _hangul = (a.fields['Nome Estrangeiro']||'').replace(/'/g,"\'");
       const _foto = (getPhoto(a,'Foto')||'').replace(/'/g,"'");
       return '<div class="ac-item" onclick="acSelecionar(' + id + ',\'' + a.id + '\',\'' + _ne + '\',\'' + _nae + '\',\'' + _foto + '\',\'' + _hangul + '\')">' +
         (foto ? '<img src="' + foto + '" loading="lazy">' : '<div style="width:28px;height:36px;background:var(--bg3);border-radius:4px;flex-shrink:0"></div>') +
