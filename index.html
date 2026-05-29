@@ -301,6 +301,17 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
 /* ACTORS PAGE */
 .actors-header{padding:40px clamp(16px,4vw,48px) 16px}
+.tmdb-photos-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.tmdb-photos-overlay.open{display:flex}
+.tmdb-photos-panel{background:var(--surface);border-radius:16px;border:1px solid var(--border);width:min(700px,94vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+.tmdb-photos-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tmdb-photos-head h3{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--gold)}
+.tmdb-photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:16px;overflow-y:auto}
+.tmdb-photo-item{border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:var(--transition);position:relative}
+.tmdb-photo-item:hover{border-color:var(--gold);transform:scale(1.02)}
+.tmdb-photo-item img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block}
+.tmdb-photo-res{position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;font-size:.6rem;padding:2px 5px;border-radius:4px}
+.tmdb-photos-empty{padding:40px;text-align:center;color:var(--text3);font-size:.9rem}
 .fa-dup-aviso{margin-top:8px;border-radius:10px;border:1px solid rgba(201,168,76,.35);background:rgba(201,168,76,.07);padding:10px 12px;display:none}
 .fa-dup-titulo{font-size:.72rem;color:var(--gold);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
 .fa-dup-cards{display:flex;flex-direction:column;gap:6px}
@@ -1820,6 +1831,12 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         </div>
       </div>
 
+      <!-- Fotos TMDB -->
+      <div class="form-sect" id="fa-tmdb-photos-sect" style="display:none">
+        <div class="form-sect-title">Imagens do Ator</div>
+        <button class="btn-ai" onclick="faAbrirFotosTMDB()" style="width:100%;justify-content:center">&#128247; Buscar fotos no TMDB</button>
+      </div>
+
       <!-- Preview do Banner -->
       <div class="form-sect">
         <div class="form-sect-title">Preview do Banner</div>
@@ -3184,6 +3201,7 @@ async function searchTMDBator(){
 async function importFromTMDBator(tmdbPersonId){
   lastTmdbPersonId = tmdbPersonId;
   localStorage.setItem(`kdrama_tmdbperson_${currentRecordId}`, tmdbPersonId);
+  faAtualizarBotaoFotosTMDB();
   const reimportBtn = document.getElementById('reimport-btn');
   if(reimportBtn) reimportBtn.style.display='inline-flex';
   showToast('Importando dados do ator…');
@@ -4985,6 +5003,7 @@ function openFormAtor(ator=null){
 
   if(ator){
     faEditId=ator.id;
+  setTimeout(faAtualizarBotaoFotosTMDB, 100);
     const f=ator.fields;
     document.getElementById('form-ator-titulo').textContent='✦ Editar Ator/Atriz';
     setVal('fa-nome',f['Nome']||'');
@@ -5498,6 +5517,56 @@ function faVerificarDuplicata(){
       + '<span style="font-size:.7rem;color:var(--text3);flex-shrink:0">Ver →</span>'
       + '</div>';
   }).join('');
+}
+
+function faAtualizarBotaoFotosTMDB(){
+  var sect = document.getElementById('fa-tmdb-photos-sect');
+  if(!sect) return;
+  // Mostra se tiver TMDB ID salvo (edicao) ou se lastTmdbPersonId foi setado (importou)
+  var temId = (faEditId && localStorage.getItem('kdrama_tmdbperson_' + faEditId)) || lastTmdbPersonId;
+  sect.style.display = temId ? '' : 'none';
+}
+
+async function faAbrirFotosTMDB(){
+  var tmdbId = lastTmdbPersonId || (faEditId && parseInt(localStorage.getItem('kdrama_tmdbperson_' + faEditId)));
+  if(!tmdbId){ showToast('Importe o ator pelo TMDB primeiro'); return; }
+  if(!tmdbKey){ showToast('Configure a chave do TMDB nas configurações'); return; }
+  var overlay = document.getElementById('tmdb-photos-overlay');
+  var grid = document.getElementById('tmdb-photos-grid');
+  overlay.classList.add('open');
+  grid.innerHTML = '<div class="tmdb-photos-empty">⏳ Buscando fotos…</div>';
+  try{
+    var res = await fetch(TMDB_BASE + '/person/' + tmdbId + '/images?api_key=' + tmdbKey);
+    var data = await res.json();
+    var profiles = (data.profiles || []).sort(function(a,b){ return b.width - a.width; });
+    if(!profiles.length){
+      grid.innerHTML = '<div class="tmdb-photos-empty">Nenhuma foto encontrada para este ator.</div>';
+      return;
+    }
+    grid.innerHTML = profiles.map(function(p){
+      var url = 'https://image.tmdb.org/t/p/original' + p.file_path;
+      var thumb = 'https://image.tmdb.org/t/p/w300' + p.file_path;
+      var res2 = p.width + 'x' + p.height;
+      return '<div class="tmdb-photo-item" onclick="faSelecionarFotoTMDB(\''+ url +'\')">'
+        + '<img src="' + thumb + '" loading="lazy">'
+        + '<div class="tmdb-photo-res">' + res2 + '</div>'
+        + '</div>';
+    }).join('');
+  }catch(e){
+    grid.innerHTML = '<div class="tmdb-photos-empty">Erro ao buscar fotos: ' + e.message + '</div>';
+  }
+}
+
+function faSelecionarFotoTMDB(url){
+  // Usar como banner
+  document.getElementById('fa-banner-url-preview').value = url;
+  faPreviewBanner(url);
+  fecharFotosTMDB();
+  showToast('&#10003; Foto selecionada como banner');
+}
+
+function fecharFotosTMDB(){
+  document.getElementById('tmdb-photos-overlay').classList.remove('open');
 }
 
 async function faSalvar(){
@@ -8956,6 +9025,17 @@ if (document.readyState === 'loading') {
       <button class="btn-outline" onclick="fecharLoginAdmin()" style="flex:1">Cancelar</button>
       <button class="btn-gold" onclick="tentarLogin()" style="flex:1">Entrar</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL FOTOS TMDB ATOR -->
+<div class="tmdb-photos-overlay" id="tmdb-photos-overlay">
+  <div class="tmdb-photos-panel">
+    <div class="tmdb-photos-head">
+      <h3>&#128247; Fotos do Ator no TMDB</h3>
+      <button onclick="fecharFotosTMDB()" style="background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div class="tmdb-photos-grid" id="tmdb-photos-grid"></div>
   </div>
 </div>
 
