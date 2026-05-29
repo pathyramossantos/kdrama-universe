@@ -7474,43 +7474,26 @@ function radioPlay() {
   if (radioPending) return;
   radioPending = true;
   const audio = document.getElementById('radio-audio');
+  audio.src = RADIO_STREAM_URL + '&t=' + Date.now();
   audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
-
-  // Limpa listeners antigos
-  audio.onplaying = null;
-  audio.onerror = null;
-
-  // Listener 'playing' — dispara no Android Chrome quando o stream realmente começa
-  audio.onplaying = function() {
-    audio.onplaying = null;
+  const p = audio.play();
+  if (p !== undefined) {
+    p.then(() => {
+      radioPlaying = true;
+      radioPending = false;
+      radioUpdateUI(true);
+      radioFetchMetadata();
+    }).catch(e => {
+      radioPending = false;
+      radioPlaying = false;
+      console.warn('Radio play error:', e);
+    });
+  } else {
     radioPlaying = true;
     radioPending = false;
     radioUpdateUI(true);
     radioFetchMetadata();
-  };
-
-  audio.onerror = function() {
-    audio.onplaying = null;
-    radioPending = false;
-    radioPlaying = false;
-    radioUpdateUI(false);
-    console.warn('Radio stream error:', audio.error);
-  };
-
-  audio.src = RADIO_STREAM_URL + '&t=' + Date.now();
-  var p = audio.play();
-  if (p !== undefined) {
-    p.catch(function(e) {
-      audio.onplaying = null;
-      radioPending = false;
-      radioPlaying = false;
-      radioUpdateUI(false);
-      console.warn('Radio play error:', e);
-    });
   }
-
-  // Safety: libera pending após 10s caso onplaying nunca dispare
-  setTimeout(function() { radioPending = false; }, 10000);
 }
 
 // Busca metadados ICY do stream a cada 15 segundos
@@ -7773,8 +7756,6 @@ async function radioFetchMetadata() {
 
 function radioStop() {
   const audio = document.getElementById('radio-audio');
-  audio.onplaying = null;
-  audio.onerror = null;
   audio.pause();
   audio.src = '';
   radioPlaying = false;
