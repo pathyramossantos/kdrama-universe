@@ -1862,7 +1862,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
             </div>
             <div style="display:flex;align-items:center;gap:10px">
               <span style="font-size:.85rem;color:var(--text3);width:14px;text-align:center">🔍</span>
-              <input type="range" id="fa-banner-zoom" min="100" max="300" value="100" style="flex:1;accent-color:var(--gold)" oninput="faUpdateBannerPos()">
+              <input type="range" id="fa-banner-zoom" min="50" max="300" value="100" style="flex:1;accent-color:var(--gold)" oninput="faUpdateBannerPos()">
               <span id="fa-banner-zoom-val" style="font-size:.72rem;color:var(--gold);width:32px;text-align:right">100%</span>
             </div>
           </div>
@@ -4991,6 +4991,7 @@ async function fdSalvar(){
 // FORMULÁRIO ATOR
 // ════════════════════════════════════════════════════════
 let faEditId = null;
+let lastTmdbPersonId = null;
 let faFotoFile = null;
 let faFotoUrlFinal = null;
 
