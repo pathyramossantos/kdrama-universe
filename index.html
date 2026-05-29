@@ -307,6 +307,13 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 @media(max-width:480px){#actors-grid{grid-template-columns:repeat(2,1fr);gap:12px;padding:16px}}
 .actor-card{border-radius:var(--card-r);overflow:hidden;background:#000;border:1px solid var(--border);cursor:pointer;transition:transform .3s ease,box-shadow .3s ease}
 .actor-card:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.5),0 0 0 1px var(--gold-dim)}
+.actor-card-wrap{position:relative}
+.actor-doramas-pop{position:absolute;left:calc(100% + 10px);top:0;z-index:999;background:var(--surface);border:1px solid var(--gold-dim);border-radius:var(--card-r);padding:10px;width:200px;display:none;flex-direction:column;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.6);pointer-events:none}
+.actor-card-wrap:hover .actor-doramas-pop{display:flex}
+.actor-doramas-pop-item{display:flex;align-items:center;gap:8px}
+.actor-doramas-pop-capa{width:32px;height:44px;object-fit:cover;border-radius:4px;flex-shrink:0;background:var(--bg3)}
+.actor-doramas-pop-capa-ph{width:32px;height:44px;border-radius:4px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--text3)}
+.actor-doramas-pop-nome{font-size:.72rem;color:var(--text);line-height:1.3}
 .actor-photo{width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--bg3)}
 .actor-photo-placeholder{width:100%;aspect-ratio:3/4;background:#0f1923;border:1px solid rgba(184,148,66,.35);display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-family:Georgia,serif;font-weight:700;color:rgba(184,148,66,.6);position:relative;overflow:hidden;border-radius:var(--card-r)}
 .actor-info{padding:12px}
@@ -3249,11 +3256,30 @@ function filterAtores(resetPage=true){
   grid.innerHTML=paged.map((a,i)=>{
     const f=a.fields;
     const photo=getPhoto(a,'Foto');
-    return`<div class="actor-card" onclick="navigate('ator','${a.id}')" oncontextmenu="cardContextMenu(event,'ator','${a.id}')" style="animation-delay:${i*0.03}s;position:relative">
-      ${photo?`<img class="actor-photo" src="${photo}" alt="${f['Nome']||''}" loading="lazy">`:`<div class="actor-photo-placeholder">${(n=>{const p=(n||'?').trim().split(/\s+/);return(p.length>1?p[0][0]+p[p.length-1][0]:(n||'?').slice(0,2)).toUpperCase()})(f['Nome'])}</div>`}
-      ${f['Data do cadastro']?`<div style="position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:#4caf50;box-shadow:0 0 6px rgba(76,175,80,.7)" title="Revisado"></div>`:''}
-      <div class="actor-info"><div class="actor-name">${f['Nome']||'—'}</div>${f['Nome Estrangeiro']?`<div style="font-family:'Noto Serif KR',serif;font-size:.73rem;color:var(--text3);margin-bottom:2px">${f['Nome Estrangeiro']}</div>`:''}<div class="actor-dob">${f['Data de Nascimento']?`${parseDateBR(f['Data de Nascimento'])} · ${calcAge(f['Data de Nascimento'])} anos`:''}</div></div>
-    </div>`;
+    // Doramas do ator via allElenco
+    const doramas = allElenco
+      .filter(e => e.ator_airtable_id === a.id)
+      .map(e => allSeries.find(s => s.id === e.serie_airtable_id))
+      .filter(Boolean)
+      .filter((s,idx,arr) => arr.findIndex(x=>x.id===s.id)===idx)
+      .slice(0,6);
+    const popItems = doramas.map(s => {
+      const capa = s.fields['Capa'] || '';
+      return '<div class="actor-doramas-pop-item">'
+        + (capa ? '<img class="actor-doramas-pop-capa" src="' + capa + '" loading="lazy">' : '<div class="actor-doramas-pop-capa-ph">📺</div>')
+        + '<div class="actor-doramas-pop-nome">' + (s.fields['Nome']||'—') + '</div>'
+        + '</div>';
+    }).join('');
+    return '<div class="actor-card-wrap" style="animation-delay:' + (i*0.03) + 's">'
+      + '<div class="actor-card" onclick="navigate(\'ator\',\'' + a.id + '\')" oncontextmenu="cardContextMenu(event,\'ator\',\'' + a.id + '\')" style="position:relative">'
+      + (photo ? '<img class="actor-photo" src="' + photo + '" alt="' + (f['Nome']||'') + '" loading="lazy">' : '<div class="actor-photo-placeholder">' + ((n=>{const p=(n||'?').trim().split(/\s+/);return(p.length>1?p[0][0]+p[p.length-1][0]:(n||'?').slice(0,2)).toUpperCase()})(f['Nome'])) + '</div>')
+      + (f['Data do cadastro'] ? '<div style="position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:#4caf50;box-shadow:0 0 6px rgba(76,175,80,.7)" title="Revisado"></div>' : '')
+      + '<div class="actor-info"><div class="actor-name">' + (f['Nome']||'—') + '</div>'
+      + (f['Nome Estrangeiro'] ? '<div style="font-family:\'Noto Serif KR\',serif;font-size:.73rem;color:var(--text3);margin-bottom:2px">' + f['Nome Estrangeiro'] + '</div>' : '')
+      + '<div class="actor-dob">' + (f['Data de Nascimento'] ? parseDateBR(f['Data de Nascimento']) + ' · ' + calcAge(f['Data de Nascimento']) + ' anos' : '') + '</div>'
+      + '</div></div>'
+      + (popItems ? '<div class="actor-doramas-pop">' + popItems + '</div>' : '')
+      + '</div>';
   }).join('');
   if(hasMore) grid.innerHTML+=`<div style="grid-column:1/-1;text-align:center;padding:16px 0">
     <button class="btn-outline" onclick="actorsPage++;filterAtores(false)">Ver mais · ${paged.length} de ${filtered.length}</button>
