@@ -7281,10 +7281,38 @@ async function radioFetchNowPlaying() {
   } catch(e) {}
 }
 
+const RADIO_NEXT_URL = 'https://hidden-bird-e762kdrama-radio-next.pathyzinharamos.workers.dev/next';
+
+async function radioFetchNextTrack() {
+  try {
+    var res = await fetch(RADIO_NEXT_URL, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return;
+    var data = await res.json();
+    var raw = data.next || '';
+    // Limpar o "next=" que vem junto e decodificar
+    raw = raw.replace(/^next=/, '').replace(/\+/g, ' ');
+    try { raw = decodeURIComponent(raw); } catch(e) {}
+    raw = raw.replace(/\s+/g, ' ').trim();
+    var el = document.getElementById('radio-next-track');
+    if (el) {
+      if (raw) {
+        el.textContent = '· a seguir: ' + raw;
+        el.style.display = 'inline';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+  } catch(e) {}
+}
+
 async function radioFetchMetadata() {
   if (_radioMetaInterval) clearInterval(_radioMetaInterval);
   radioFetchNowPlaying();
-  _radioMetaInterval = setInterval(radioFetchNowPlaying, 15000);
+  radioFetchNextTrack();
+  _radioMetaInterval = setInterval(function() {
+    radioFetchNowPlaying();
+    radioFetchNextTrack();
+  }, 15000);
 }
 
 function radioStop() {
@@ -8299,6 +8327,7 @@ function cardContextMenu(e, page, id) {
       <div class="radio-track-status">
         <span class="radio-live-dot" id="radio-dot"></span>
         <span id="radio-status-txt">K-Drama OST Radio</span>
+        <span id="radio-next-track" style="display:none;margin-left:10px;font-size:.7rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px"></span>
       </div>
     </div>
     <button class="radio-next-btn" onclick="radioNext()" title="Próxima">⏭</button>
@@ -8314,10 +8343,10 @@ function cardContextMenu(e, page, id) {
 // Inicializar drag and drop nas img-zones após DOM pronto
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initImgZoneDrops);
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(radioFetchNowPlaying, 3000); });
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ radioFetchNowPlaying(); radioFetchNextTrack(); }, 3000); });
 } else {
   initImgZoneDrops();
-  setTimeout(radioFetchNowPlaying, 3000);
+  setTimeout(function(){ radioFetchNowPlaying(); radioFetchNextTrack(); }, 3000);
 }
 </script>
 
