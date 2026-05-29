@@ -418,6 +418,17 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .filmografia-personagem{font-size:.82rem;color:var(--gold);margin-top:4px}
 .filmografia-badges{margin-top:5px}
 .links-dinamicos{display:flex;flex-direction:column;gap:8px}
+.agencia-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:14px 16px;cursor:pointer;transition:border-color .2s}
+.agencia-card:hover{border-color:var(--gold-dim)}
+.agencia-logo{width:44px;height:44px;object-fit:contain;border-radius:8px;flex-shrink:0}
+.agencia-logo-ph{width:44px;height:44px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.agencia-info{flex:1;min-width:0}
+.agencia-nome{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--text)}
+.agencia-nome-orig{font-size:.75rem;color:var(--text3)}
+.agencia-detalhe{background:var(--surface);border-radius:var(--card-r);padding:24px;max-width:700px;width:100%;max-height:80vh;overflow-y:auto}
+#agencia-modal{display:none;position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.7);align-items:center;justify-content:center;padding:20px}
+#form-agencia-overlay{display:none;position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.7);align-items:center;justify-content:center;padding:20px}
+.form-agencia-box{background:var(--surface);border-radius:var(--card-r);padding:28px;max-width:500px;width:100%;display:flex;flex-direction:column;gap:14px}
 .link-item{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
 .link-item-favicon{width:20px;height:20px;border-radius:4px;flex-shrink:0;object-fit:contain}
 .link-item-favicon-ph{width:20px;height:20px;border-radius:4px;flex-shrink:0;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:.7rem}
@@ -1012,6 +1023,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
     <a data-page="doramas" onclick="navigate('doramas')">Doramas</a>
     <a data-page="atores" onclick="navigate('atores')">Atores</a>
     <a data-page="direcao" onclick="navigate('direcao')" id="nav-direcao" style="display:none">Direção</a>
+    <a data-page="agencias" onclick="navigate('agencias')" id="nav-agencias" style="display:none">Agências</a>
     <a data-page="blog" onclick="navigate('blog')">Blog</a>
     <a data-page="config" onclick="navigate('config')" id="nav-config">Configurações</a>
     <a onclick="isOwner() ? fazerLogout() : abrirLoginAdmin()" id="nav-admin" style="cursor:pointer" title="Admin">🔑</a>
@@ -1356,6 +1368,40 @@ select.filter-select:focus{border-color:var(--gold-dim)}
   <!-- DETALHE DIRETOR -->
   <div class="page" id="page-diretor">
     <div id="diretor-detail"></div>
+  </div>
+
+  <!-- AGÊNCIAS -->
+  <div class="page" id="page-agencias">
+    <div class="actors-header">
+      <h2 class="page-heading">Agências</h2>
+      <p class="actors-sub">Empresas de entretenimento vinculadas aos atores</p>
+    </div>
+    <div style="padding:0 clamp(16px,4vw,48px) 24px;display:flex;justify-content:flex-end">
+      <button id="btn-nova-agencia" class="btn-new-drama" style="display:none" onclick="openFormAgencia()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Nova Agência
+      </button>
+    </div>
+    <div id="agencias-page" style="display:flex;flex-direction:column;gap:10px;padding:0 clamp(16px,4vw,48px) 40px"></div>
+  </div>
+
+  <!-- MODAL AGÊNCIA -->
+  <div id="agencia-modal" onclick="if(event.target===this)closeAgenciaModal()"></div>
+
+  <!-- FORM AGÊNCIA -->
+  <div id="form-agencia-overlay" onclick="if(event.target===this)closeFormAgencia()">
+    <div class="form-agencia-box">
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);margin-bottom:4px">Agência</div>
+      <div class="fg"><label class="fl">Nome</label><input class="fi" id="fag-nome" placeholder="Ex: SM Entertainment"></div>
+      <div class="fg"><label class="fl">Nome Original (coreano)</label><input class="fi" id="fag-nome-orig" placeholder="에스엠 엔터테인먼트"></div>
+      <div class="fg"><label class="fl">Site Oficial</label><input class="fi" id="fag-site" placeholder="https://..."></div>
+      <div class="fg"><label class="fl">Instagram</label><input class="fi" id="fag-instagram" placeholder="https://instagram.com/..."></div>
+      <div class="fg"><label class="fl">Logo (URL)</label><input class="fi" id="fag-logo" placeholder="https://..."></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn-outline" onclick="closeFormAgencia()">Cancelar</button>
+        <button class="btn-gold" onclick="salvarAgencia()">Salvar</button>
+      </div>
+    </div>
   </div>
 
   <!-- CONFIG -->
@@ -1745,6 +1791,17 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <button class="btn-add-link" onclick="faAddLink()">+ Adicionar link</button>
       </div>
 
+      <!-- Agência -->
+      <div class="form-sect">
+        <div class="form-sect-title">Agência</div>
+        <div class="fg">
+          <label class="fl">Agência</label>
+          <select class="fi" id="fa-agencia">
+            <option value="">— Sem agência vinculada —</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Biografia -->
       <div class="form-sect">
         <div class="form-sect-title">Biografia</div>
@@ -1855,7 +1912,8 @@ const TABLES = {
   atores:'atores',
   elenco:'elenco',
   plataformas:'plataformas',
-  direcao:'direcao'
+  direcao:'direcao',
+  agencias:'agencias'
 };
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMG  = 'https://image.tmdb.org/t/p/w500';
@@ -1910,7 +1968,7 @@ let githubToken = localStorage.getItem('kdrama_github_token') || '';
 let githubRepo  = localStorage.getItem('kdrama_github_repo') || 'kdrama-media';
 let tmdbKey   = localStorage.getItem('kdrama_tmdbkey') || 'd955f842429f465efe39144d129a01f1';
 let geminiKey = localStorage.getItem('kdrama_geminikey') || '';
-let allSeries = [], allAtores = [], allElenco = [], allPlataformas = [], allDirecao = [];
+let allSeries = [], allAtores = [], allElenco = [], allPlataformas = [], allDirecao = [], allAgencias = [];
 let activeGenre='', activeStatus='', activePlatform='', searchQuery='';
 let editMode = false;
 let currentRecordId = null, currentRecordTable = null;
@@ -1983,6 +2041,7 @@ function navigate(page, id) {
   if (pageAlias === 'ost-detail' && id)         renderOstPage(id);
   if (pageAlias === 'post' && id)               renderPost(id);
   if (pageAlias === 'direcao')                  renderDirecao();
+  if (pageAlias === 'agencias')                 renderAgencias();
   if (pageAlias === 'diretor' && id)            renderDiretor(id);
   if (pageAlias === 'config') {
     const ki = document.getElementById('api-key-input');
@@ -2019,6 +2078,7 @@ const SB_TABLE_MAP = {
   [TABLES.elenco]:     'elenco',
   [TABLES.plataformas]:'plataformas',
   [TABLES.direcao]:    'direcao',
+  [TABLES.agencias]:   'agencias',
   [TABLES.blog]:       'blog',
   [TABLES.ost]:        'ost'
 };
@@ -2068,6 +2128,7 @@ function sbToAt(row, tabela) {
       'Biografia': row.biografia, 'Instagram': row.instagram,
       'Site': row.site, 'Url Hancinema': row.url_hancinema,
       'Links': row.links || [],
+      'Agencia ID': row.agencia_id || null,
       'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url,
       'Data do cadastro': row.data_cadastro, 'Elenco': row.elenco_ids || []
     };
@@ -2091,6 +2152,11 @@ function sbToAt(row, tabela) {
       'Nome': row.nome, 'Nome Estrangeiro': row.nome_estrangeiro,
       'Foto': _parseFotoDir(row.foto), 'Tipo': row.tipo,
       'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url
+    };
+  } else if (tabela === 'agencias') {
+    fields = {
+      'Nome': row.nome, 'Nome Original': row.nome_original,
+      'Site': row.site, 'Instagram': row.instagram, 'Logo': row.logo
     };
   } else if (tabela === 'blog') {
     fields = {
@@ -2136,6 +2202,7 @@ function atToSb(fields, tabela) {
     biografia: fields['Biografia'], instagram: fields['Instagram'],
     site: fields['Site'], url_hancinema: fields['Url Hancinema'],
     links: fields['Links'] || [],
+    agencia_id: fields['Agencia ID'] || null,
     banner_position: fields['Banner_Position'], banner_url: fields['Banner_Url'],
     data_cadastro: fields['Data do cadastro'] || null
   };
@@ -4737,6 +4804,7 @@ function openFormAtor(ator=null){
   faEditId = null; faFotoFile = null; faFotoUrlFinal = null;
   ['fa-nome','fa-nome-kor','fa-nome-alt','fa-bio','fa-foto-url','fa-banner-url-preview','fa-data-cadastro'].forEach(id=>setVal(id,''));
   document.getElementById('fa-links-list').innerHTML = '';
+  faPopularSelectAgencia(null);
   setVal('fa-nasc','');
   const faRes=document.getElementById('fa-tmdb-results'); if(faRes) faRes.innerHTML='';
   var faWrap=document.getElementById('fa-tmdb-lista-wrap'); if(faWrap) faWrap.style.display='none';
@@ -4768,6 +4836,7 @@ function openFormAtor(ator=null){
       linksArr.forEach(function(l) { faAddLink(l.url); });
     }
     setVal('fa-data-cadastro',f['Data do cadastro']||'');
+    faPopularSelectAgencia(f['Agencia ID'] || null);
     const foto=getPhoto(ator,'Foto');
     if(foto){ faFotoUrlFinal=foto; setVal('fa-foto-url',foto); faShowFoto(foto); }
     // Preview do banner se tiver url salva
@@ -5224,6 +5293,7 @@ async function faSalvar(){
       'Biografia': document.getElementById('fa-bio').value.trim()||undefined,
       'Links': Array.from(document.querySelectorAll('#fa-links-list .link-item input')).map(function(i){ return { url: i.value.trim() }; }).filter(function(l){ return l.url; }),
       'Instagram': null, 'Site': null, 'Url Hancinema': null,
+      'Agencia ID': document.getElementById('fa-agencia')?.value || null,
       'Data do cadastro': document.getElementById('fa-data-cadastro')?.value||undefined,
     };
     if(fotoUrl) fields['Foto']=fotoUrl;
@@ -7294,6 +7364,153 @@ let _radioMetaInterval = null;
 const RADIO_STATUS_URL = 'http://uk25freenew.listen2myradio.com:31230/status.xsl';
 const RADIO_STATUS_PROXY = 'https://api.allorigins.win/get?url=' + encodeURIComponent(RADIO_STATUS_URL);
 
+// ── AGÊNCIAS ──────────────────────────────────────────────────────────
+let _agenciaEditId = null;
+
+async function loadAgencias() {
+  if (allAgencias.length) return allAgencias;
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/agencias?select=*&order=nome.asc', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    const rows = await res.json();
+    allAgencias = rows.map(r => sbToAt(r, 'agencias'));
+  } catch(e) {}
+  return allAgencias;
+}
+
+async function faPopularSelectAgencia(agenciaIdAtual) {
+  await loadAgencias();
+  var sel = document.getElementById('fa-agencia');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Sem agência vinculada —</option>';
+  allAgencias.forEach(function(a) {
+    var opt = document.createElement('option');
+    opt.value = a.id;
+    opt.textContent = a.fields['Nome'] || '—';
+    if (a.id === agenciaIdAtual) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+async function renderAgencias() {
+  var page = document.getElementById('agencias-page');
+  if (!page) return;
+  var btnNovo = document.getElementById('btn-nova-agencia');
+  if (btnNovo) btnNovo.style.display = isOwner() ? '' : 'none';
+  if (!isOwner()) { page.innerHTML = '<div class="empty-state"><p>Acesso restrito.</p></div>'; return; }
+  page.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+  await loadAgencias();
+  if (!allAgencias.length) {
+    page.innerHTML = '<div class="empty-state"><div class="icon">🏢</div><p>Nenhuma agência cadastrada.</p></div>';
+    return;
+  }
+  page.innerHTML = allAgencias.map(function(a) {
+    var f = a.fields;
+    var logo = f['Logo'] || '';
+    return '<div class="agencia-card" onclick="renderAgenciaDetalhe(\'' + a.id + '\')">'
+      + (logo ? '<img class="agencia-logo" src="' + logo + '">' : '<div class="agencia-logo-ph">🏢</div>')
+      + '<div class="agencia-info">'
+      + '<div class="agencia-nome">' + (f['Nome'] || '—') + '</div>'
+      + (f['Nome Original'] ? '<div class="agencia-nome-orig">' + f['Nome Original'] + '</div>' : '')
+      + '</div>'
+      + (isOwner() ? '<button class="btn-icon-sm" onclick="event.stopPropagation();openFormAgencia(\'' + a.id + '\')" title="Editar">✏️</button>' : '')
+      + '</div>';
+  }).join('');
+}
+
+async function renderAgenciaDetalhe(id) {
+  var ag = allAgencias.find(function(a){ return a.id === id; });
+  if (!ag) return;
+  var f = ag.fields;
+  // Buscar atores vinculados
+  var atores = [];
+  try {
+    var res = await fetch(SB_URL + '/rest/v1/atores?agencia_id=eq.' + id + '&select=id,airtable_id,nome,foto&order=nome.asc', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    atores = await res.json();
+  } catch(e) {}
+  var modal = document.getElementById('agencia-modal');
+  if (!modal) return;
+  modal.innerHTML = '<div class="agencia-detalhe">'
+    + '<div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">'
+    + (f['Logo'] ? '<img src="' + f['Logo'] + '" style="width:60px;height:60px;object-fit:contain;border-radius:8px">' : '<div style="width:60px;height:60px;background:var(--surface2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem">🏢</div>')
+    + '<div><div style="font-family:\'Playfair Display\',serif;font-size:1.2rem;color:var(--gold)">' + (f['Nome'] || '—') + '</div>'
+    + (f['Nome Original'] ? '<div style="font-size:.8rem;color:var(--text3)">' + f['Nome Original'] + '</div>' : '')
+    + '<div style="display:flex;gap:10px;margin-top:8px">'
+    + (f['Site'] ? '<a href="' + f['Site'] + '" target="_blank" class="btn-outline btn-sm">Site</a>' : '')
+    + (f['Instagram'] ? '<a href="' + f['Instagram'] + '" target="_blank" class="btn-outline btn-sm">Instagram</a>' : '')
+    + '</div></div>'
+    + (isOwner() ? '<button class="btn-outline btn-sm" onclick="openFormAgencia(\'' + ag.id + '\')" style="margin-left:auto">Editar</button>' : '')
+    + '</div>'
+    + '<div style="font-size:.8rem;color:var(--text3);margin-bottom:12px;text-transform:uppercase;letter-spacing:.1em">Atores vinculados (' + atores.length + ')</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px">'
+    + atores.map(function(a) {
+        var foto = a.foto || '';
+        var nome = a.nome || '—';
+        var aid = a.airtable_id || a.id;
+        return '<div class="actor-card" onclick="closeAgenciaModal();navigate(\'ator\',\'' + aid + '\')" style="cursor:pointer">'
+          + (foto ? '<img class="actor-photo" src="' + foto + '" loading="lazy">' : '<div class="actor-photo-placeholder">' + nome.slice(0,2).toUpperCase() + '</div>')
+          + '<div class="actor-info"><div class="actor-name" style="font-size:.78rem">' + nome + '</div></div>'
+          + '</div>';
+      }).join('')
+    + '</div></div>';
+  modal.style.display = 'flex';
+}
+
+function closeAgenciaModal() {
+  var modal = document.getElementById('agencia-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function openFormAgencia(id) {
+  _agenciaEditId = id || null;
+  await loadAgencias();
+  var ag = id ? allAgencias.find(function(a){ return a.id === id; }) : null;
+  var f = ag ? ag.fields : {};
+  var overlay = document.getElementById('form-agencia-overlay');
+  if (!overlay) return;
+  document.getElementById('fag-nome').value = f['Nome'] || '';
+  document.getElementById('fag-nome-orig').value = f['Nome Original'] || '';
+  document.getElementById('fag-site').value = f['Site'] || '';
+  document.getElementById('fag-instagram').value = f['Instagram'] || '';
+  document.getElementById('fag-logo').value = f['Logo'] || '';
+  overlay.style.display = 'flex';
+}
+
+function closeFormAgencia() {
+  document.getElementById('form-agencia-overlay').style.display = 'none';
+  _agenciaEditId = null;
+}
+
+async function salvarAgencia() {
+  var nome = document.getElementById('fag-nome').value.trim();
+  if (!nome) { showToast('Preencha o nome da agência!'); return; }
+  var body = {
+    nome: nome,
+    nome_original: document.getElementById('fag-nome-orig').value.trim() || null,
+    site: document.getElementById('fag-site').value.trim() || null,
+    instagram: document.getElementById('fag-instagram').value.trim() || null,
+    logo: document.getElementById('fag-logo').value.trim() || null
+  };
+  try {
+    if (_agenciaEditId) {
+      await fetch(SB_URL + '/rest/v1/agencias?id=eq.' + _agenciaEditId, {
+        method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify(body)
+      });
+    } else {
+      await fetch(SB_URL + '/rest/v1/agencias', {
+        method: 'POST', headers: SB_HEADERS, body: JSON.stringify(body)
+      });
+    }
+    allAgencias = [];
+    closeFormAgencia();
+    showToast('✓ Agência salva!');
+    renderAgencias();
+  } catch(e) { showToast('Erro: ' + e.message); }
+}
+
 function radioRenderTrack(title) {
   var el = document.getElementById('radio-track');
   if (!el || !title) return;
@@ -7784,6 +8001,7 @@ if (!isOwner()) {
   document.querySelectorAll('.btn-new-drama').forEach(el => el.style.display='none');
 } else {
   const nd = document.getElementById('nav-direcao'); if(nd) nd.style.display='inline';
+  const na = document.getElementById('nav-agencias'); if(na) na.style.display='inline';
   // Garantir que botões com data-keep-label estão visíveis (exceto excluir que tem lógica própria)
   document.querySelectorAll('.edit-toggle[data-keep-label]').forEach(el => {
     if (el.id !== 'btn-excluir-ator') el.style.display = '';
