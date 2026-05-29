@@ -5519,23 +5519,26 @@ function faVerificarDuplicata(){
   }).join('');
 }
 
-function faAtualizarBotaoFotosTMDB(){
-  var sect = document.getElementById('fa-tmdb-photos-sect');
-  if(!sect) return;
-  // Mostra se tiver TMDB ID salvo (edicao) ou se lastTmdbPersonId foi setado (importou)
-  var temId = (faEditId && localStorage.getItem('kdrama_tmdbperson_' + faEditId)) || lastTmdbPersonId;
-  sect.style.display = temId ? '' : 'none';
-}
+function faAtualizarBotaoFotosTMDB(){ /* botao sempre visivel agora */ }
 
 async function faAbrirFotosTMDB(){
-  var tmdbId = lastTmdbPersonId || (faEditId && parseInt(localStorage.getItem('kdrama_tmdbperson_' + faEditId)));
-  if(!tmdbId){ showToast('Importe o ator pelo TMDB primeiro'); return; }
   if(!tmdbKey){ showToast('Configure a chave do TMDB nas configurações'); return; }
   var overlay = document.getElementById('tmdb-photos-overlay');
   var grid = document.getElementById('tmdb-photos-grid');
   overlay.classList.add('open');
   grid.innerHTML = '<div class="tmdb-photos-empty">⏳ Buscando fotos…</div>';
   try{
+    var tmdbId = lastTmdbPersonId || (faEditId && parseInt(localStorage.getItem('kdrama_tmdbperson_' + faEditId)));
+    if(!tmdbId){
+      var nome = (document.getElementById('fa-nome').value || '').trim();
+      if(!nome){ grid.innerHTML = '<div class="tmdb-photos-empty">Digite o nome do ator primeiro.</div>'; return; }
+      var sr = await fetch(TMDB_BASE + '/search/person?api_key=' + tmdbKey + '&query=' + encodeURIComponent(nome) + '&language=en-US');
+      var sd = await sr.json();
+      if(!sd.results || !sd.results.length){ grid.innerHTML = '<div class="tmdb-photos-empty">Ator não encontrado no TMDB. Verifique o nome.</div>'; return; }
+      tmdbId = sd.results[0].id;
+      lastTmdbPersonId = tmdbId;
+      if(faEditId) localStorage.setItem('kdrama_tmdbperson_' + faEditId, tmdbId);
+    }
     var res = await fetch(TMDB_BASE + '/person/' + tmdbId + '/images?api_key=' + tmdbKey);
     var data = await res.json();
     var profiles = (data.profiles || []).sort(function(a,b){ return b.width - a.width; });
@@ -5547,7 +5550,7 @@ async function faAbrirFotosTMDB(){
       var url = 'https://image.tmdb.org/t/p/original' + p.file_path;
       var thumb = 'https://image.tmdb.org/t/p/w300' + p.file_path;
       var res2 = p.width + 'x' + p.height;
-      return '<div class="tmdb-photo-item" onclick="faSelecionarFotoTMDB(\''+ url +'\')">'
+      return '<div class="tmdb-photo-item" onclick="faSelecionarFotoTMDB(\'' + url + '\')">'
         + '<img src="' + thumb + '" loading="lazy">'
         + '<div class="tmdb-photo-res">' + res2 + '</div>'
         + '</div>';
@@ -5556,7 +5559,6 @@ async function faAbrirFotosTMDB(){
     grid.innerHTML = '<div class="tmdb-photos-empty">Erro ao buscar fotos: ' + e.message + '</div>';
   }
 }
-
 function faSelecionarFotoTMDB(url){
   // Usar como banner
   document.getElementById('fa-banner-url-preview').value = url;
