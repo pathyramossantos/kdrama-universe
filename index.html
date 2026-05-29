@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meu Universo K-Drama</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzBBMTYyOCIvPgogIDx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9InNlcmlmIiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iI0I4OTQ0MiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+6Z+TPC90ZXh0Pgo8L3N2Zz4K">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+KR:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -416,7 +417,16 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .filmografia-ano{font-size:.75rem;color:var(--text3);margin-top:2px}
 .filmografia-personagem{font-size:.82rem;color:var(--gold);margin-top:4px}
 .filmografia-badges{margin-top:5px}
-.filmografia-obs{font-size:.75rem;color:var(--text3);margin-top:4px;font-style:italic}
+.links-dinamicos{display:flex;flex-direction:column;gap:8px}
+.link-item{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+.link-item-favicon{width:20px;height:20px;border-radius:4px;flex-shrink:0;object-fit:contain}
+.link-item-favicon-ph{width:20px;height:20px;border-radius:4px;flex-shrink:0;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:.7rem}
+.link-item input{flex:1;background:none;border:none;color:var(--text);font-size:.83rem;outline:none;min-width:0}
+.link-item input::placeholder{color:var(--text3)}
+.link-item-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;padding:2px 4px;flex-shrink:0;line-height:1}
+.link-item-del:hover{color:var(--red)}
+.btn-add-link{background:none;border:1px dashed var(--border);color:var(--text3);border-radius:8px;padding:7px;font-size:.8rem;cursor:pointer;width:100%;text-align:center;transition:all .2s}
+.btn-add-link:hover{border-color:var(--gold-dim);color:var(--gold)}
 .add-elenco-form{background:var(--surface);border:1px solid var(--gold-dim);border-radius:var(--radius);padding:16px;margin-top:14px;display:none;gap:12px;flex-direction:column}
 .add-elenco-form.open{display:flex}
 .add-elenco-form select,.add-elenco-form input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-size:.85rem;width:100%}
@@ -1728,21 +1738,11 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 
       <!-- Links -->
       <div class="form-sect">
-        <div class="form-sect-title">Links</div>
-        <div class="form-row cols-3" style="margin:0;gap:8px">
-          <div class="fg">
-            <label class="fl">Instagram</label>
-            <input class="fi" id="fa-instagram" placeholder="@username">
-          </div>
-          <div class="fg">
-            <label class="fl">Site Oficial</label>
-            <input class="fi" id="fa-site" placeholder="https://...">
-          </div>
-          <div class="fg">
-            <label class="fl">HanCinema</label>
-            <input class="fi" id="fa-hancinema" placeholder="URL HanCinema">
-          </div>
+        <div class="form-sect-title" style="display:flex;align-items:center;justify-content:space-between">
+          Links
         </div>
+        <div class="links-dinamicos" id="fa-links-list"></div>
+        <button class="btn-add-link" onclick="faAddLink()">+ Adicionar link</button>
       </div>
 
       <!-- Biografia -->
@@ -2067,6 +2067,7 @@ function sbToAt(row, tabela) {
       'Foto': _parseFoto(row.foto), 'Data de Nascimento': row.data_nascimento,
       'Biografia': row.biografia, 'Instagram': row.instagram,
       'Site': row.site, 'Url Hancinema': row.url_hancinema,
+      'Links': row.links || [],
       'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url,
       'Data do cadastro': row.data_cadastro, 'Elenco': row.elenco_ids || []
     };
@@ -2134,6 +2135,7 @@ function atToSb(fields, tabela) {
     foto: fields['Foto'], data_nascimento: fields['Data de Nascimento'],
     biografia: fields['Biografia'], instagram: fields['Instagram'],
     site: fields['Site'], url_hancinema: fields['Url Hancinema'],
+    links: fields['Links'] || [],
     banner_position: fields['Banner_Position'], banner_url: fields['Banner_Url'],
     data_cadastro: fields['Data do cadastro'] || null
   };
@@ -4733,7 +4735,8 @@ let faFotoUrlFinal = null;
 
 function openFormAtor(ator=null){
   faEditId = null; faFotoFile = null; faFotoUrlFinal = null;
-  ['fa-nome','fa-nome-kor','fa-nome-alt','fa-bio','fa-instagram','fa-site','fa-hancinema','fa-foto-url','fa-banner-url-preview','fa-data-cadastro'].forEach(id=>setVal(id,''));
+  ['fa-nome','fa-nome-kor','fa-nome-alt','fa-bio','fa-foto-url','fa-banner-url-preview','fa-data-cadastro'].forEach(id=>setVal(id,''));
+  document.getElementById('fa-links-list').innerHTML = '';
   setVal('fa-nasc','');
   const faRes=document.getElementById('fa-tmdb-results'); if(faRes) faRes.innerHTML='';
   var faWrap=document.getElementById('fa-tmdb-lista-wrap'); if(faWrap) faWrap.style.display='none';
@@ -4751,9 +4754,19 @@ function openFormAtor(ator=null){
     setVal('fa-nome-alt',f['Nome Alt']||'');
     setVal('fa-nasc',f['Data de Nascimento']||'');
     setVal('fa-bio',f['Biografia']||'');
-    setVal('fa-instagram',f['Instagram']||'');
-    setVal('fa-site',f['Site']||'');
-    setVal('fa-hancinema',f['Url Hancinema']||'');
+    // Links dinâmicos
+    var linksArr = f['Links'] || [];
+    // Migrar links antigos se links array vazio
+    if (!linksArr.length) {
+      if (f['Instagram']) linksArr.push({ url: f['Instagram'] });
+      if (f['Site']) linksArr.push({ url: f['Site'] });
+      if (f['Url Hancinema']) linksArr.push({ url: f['Url Hancinema'] });
+    }
+    var linksList = document.getElementById('fa-links-list');
+    if (linksList) {
+      linksList.innerHTML = '';
+      linksArr.forEach(function(l) { faAddLink(l.url); });
+    }
     setVal('fa-data-cadastro',f['Data do cadastro']||'');
     const foto=getPhoto(ator,'Foto');
     if(foto){ faFotoUrlFinal=foto; setVal('fa-foto-url',foto); faShowFoto(foto); }
@@ -5209,9 +5222,8 @@ async function faSalvar(){
       'Nome Alt': document.getElementById('fa-nome-alt')?.value.trim()||undefined,
       'Data de Nascimento': document.getElementById('fa-nasc').value||undefined,
       'Biografia': document.getElementById('fa-bio').value.trim()||undefined,
-      'Instagram': document.getElementById('fa-instagram')?.value.trim()||null,
-      'Site': document.getElementById('fa-site')?.value.trim()||null,
-      'Url Hancinema': document.getElementById('fa-hancinema')?.value.trim()||null,
+      'Links': Array.from(document.querySelectorAll('#fa-links-list .link-item input')).map(function(i){ return { url: i.value.trim() }; }).filter(function(l){ return l.url; }),
+      'Instagram': null, 'Site': null, 'Url Hancinema': null,
       'Data do cadastro': document.getElementById('fa-data-cadastro')?.value||undefined,
     };
     if(fotoUrl) fields['Foto']=fotoUrl;
@@ -5254,6 +5266,54 @@ async function faSalvar(){
 
 // Botões editar nas páginas de detalhe
 function editCurrentDorama(){ if(currentSerie) openFormDoramaEdit(currentSerie); }
+function faGetFavicon(url) {
+  try {
+    var domain = new URL(url).hostname;
+    return 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=32';
+  } catch(e) { return ''; }
+}
+
+function faAddLink(url) {
+  url = url || '';
+  var list = document.getElementById('fa-links-list');
+  if (!list) return;
+  var id = 'link-' + Date.now() + Math.random().toString(36).slice(2);
+  var div = document.createElement('div');
+  div.className = 'link-item';
+  div.id = id;
+  var faviconSrc = url ? faGetFavicon(url) : '';
+  div.innerHTML = (faviconSrc
+    ? '<img class="link-item-favicon" src="' + faviconSrc + '" onerror="this.style.display=\'none\'">'
+    : '<div class="link-item-favicon-ph">🔗</div>')
+    + '<input type="url" placeholder="https://..." value="' + (url||'') + '" oninput="faUpdateFavicon(this)">'
+    + '<button class="link-item-del" onclick="this.closest(\'.link-item\').remove()" title="Remover">✕</button>';
+  list.appendChild(div);
+  if (!url) div.querySelector('input').focus();
+}
+
+function faUpdateFavicon(input) {
+  var item = input.closest('.link-item');
+  var url = input.value.trim();
+  if (!url) return;
+  try {
+    new URL(url); // valida
+    var domain = new URL(url).hostname;
+    var existing = item.querySelector('.link-item-favicon');
+    if (existing) {
+      existing.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=32';
+    } else {
+      var ph = item.querySelector('.link-item-favicon-ph');
+      if (ph) {
+        var img = document.createElement('img');
+        img.className = 'link-item-favicon';
+        img.src = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=32';
+        img.onerror = function(){ this.style.display='none'; };
+        ph.replaceWith(img);
+      }
+    }
+  } catch(e) {}
+}
+
 function editCurrentAtor(){ if(currentAtor) openFormAtor(currentAtor); }
 
 async function excluirFilmografiaItem(elencoId, evt) {
