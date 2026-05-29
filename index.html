@@ -5080,20 +5080,57 @@ async function faImportTMDB(personId){
   const _res=document.getElementById('fa-tmdb-results');
   if(_res) _res.innerHTML=`<div style="color:var(--text3);font-size:.82rem;padding:6px">Importando…</div>`;
   try{
-    const [person,personEN]=await Promise.all([
+    const [person, personEN, extIds]=await Promise.all([
       fetch(`${TMDB_BASE}/person/${personId}?api_key=${tmdbKey}&language=pt-BR`).then(r=>r.json()),
       fetch(`${TMDB_BASE}/person/${personId}?api_key=${tmdbKey}&language=en-US`).then(r=>r.json()),
+      fetch(`${TMDB_BASE}/person/${personId}/external_ids?api_key=${tmdbKey}`).then(r=>r.json()),
     ]);
-    setVal('fa-nome',personEN.name||'');
-    const korName=(personEN.also_known_as||[]).find(n=>/[가-힣]/.test(n));
-    if(korName) setVal('fa-nome-kor',korName);
-    if(person.birthday||personEN.birthday) setVal('fa-nasc',person.birthday||personEN.birthday);
-    if(person.biography) setVal('fa-bio',person.biography);
-    if(personEN.profile_path&&!faFotoFile){
-      const url=TMDB_IMG+personEN.profile_path;
-      setVal('fa-foto-url',url);
+
+    // Nome — só preenche se o campo estiver vazio
+    var nomeAtual = document.getElementById('fa-nome')?.value.trim();
+    if (!nomeAtual && personEN.name) setVal('fa-nome', personEN.name);
+
+    // Nome coreano — pega do also_known_as
+    var nomeKorAtual = document.getElementById('fa-nome-kor')?.value.trim();
+    if (!nomeKorAtual) {
+      var korName = (personEN.also_known_as||[]).find(n=>/[가-힣]/.test(n));
+      if (korName) setVal('fa-nome-kor', korName);
+    }
+
+    // Nome alternativo — pega todos os also_known_as (exceto hangul que já foi pro nome coreano)
+    var nomeAltAtual = document.getElementById('fa-nome-alt')?.value.trim();
+    var alsoKnown = (personEN.also_known_as||[])
+      .filter(n => !/[가-힣]/.test(n) && !/[^\x00-\x7F]/.test(n)) // só romanizações
+      .join(', ');
+    if (!nomeAltAtual && alsoKnown) setVal('fa-nome-alt', alsoKnown);
+
+    // Data de nascimento
+    var nascAtual = document.getElementById('fa-nasc')?.value;
+    if (!nascAtual && (person.birthday||personEN.birthday)) setVal('fa-nasc', person.birthday||personEN.birthday);
+
+    // Biografia
+    var bioAtual = document.getElementById('fa-bio')?.value.trim();
+    if (!bioAtual && person.biography) setVal('fa-bio', person.biography);
+
+    // Foto
+    if (personEN.profile_path && !faFotoFile) {
+      var url = TMDB_IMG + personEN.profile_path;
+      setVal('fa-foto-url', url);
       faPreviewFotoUrl(url);
     }
+
+    // Instagram via external_ids — adiciona nos links dinâmicos se não existir
+    if (extIds.instagram_id) {
+      var instaUrl = 'https://www.instagram.com/' + extIds.instagram_id + '/';
+      var linksList = document.getElementById('fa-links-list');
+      if (linksList) {
+        var jaTemInsta = Array.from(linksList.querySelectorAll('input')).some(function(i){
+          return i.value.includes('instagram.com');
+        });
+        if (!jaTemInsta) faAddLink(instaUrl);
+      }
+    }
+
     if(_res) _res.innerHTML=`<p style="color:var(--teal);font-size:.82rem;padding:6px">✓ Importado!</p>`;
     var wrap = document.getElementById('fa-tmdb-lista-wrap');
     if (wrap) setTimeout(function(){ wrap.style.display='none'; }, 1200);
