@@ -3376,6 +3376,8 @@ let currentAtor = null;
 async function renderAtor(id){
   const content=document.getElementById('ator-content');
   content.innerHTML=`<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>`;
+  // Garantir que agências estão carregadas
+  if (!allAgencias.length) await loadAgencias();
   try{
     let ator=allAtores.find(a=>a.id===id);
     if(!ator || !ator.fields){
@@ -3548,6 +3550,7 @@ async function renderAtor(id){
           ${dob?`<span class="badge badge-exp">🎂 ${dob}${age?` · ${age} anos`:''}</span>`:''}
           ${filmografia.length?`<span class="badge badge-status-concluido">${filmografia.length} drama${filmografia.length>1?'s':''} no catálogo</span>`:''}
           ${f['Data do cadastro']?`<span class="badge" style="background:rgba(76,175,80,.15);color:#81c784;border:1px solid rgba(76,175,80,.3);font-size:.65rem">✓ Revisado</span>`:''}
+          ${(()=>{ if(!f['Agencia ID']) return ''; var ag = allAgencias.find(function(a){ return a.id === f['Agencia ID']; }); if(!ag) return ''; return '<span class="badge" style="background:rgba(184,148,66,.1);color:var(--gold);border:1px solid var(--gold-dim);font-size:.65rem;cursor:pointer" onclick="renderAgenciaDetalhe(\''+ag.id+'\')" title="Ver agência">🏢 '+ag.fields['Nome']+'</span>'; })()}
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">
           ${(()=>{
@@ -3570,8 +3573,8 @@ async function renderAtor(id){
               else if (domain.includes('naver')) tooltip = 'Naver';
               else if (domain.includes('daum')) tooltip = 'Daum';
               var favicon = 'https://www.google.com/s2/favicons?domain=' + domain + '&sz=32';
-              return '<a href="' + l.url + '" target="_blank" title="' + tooltip + '" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);transition:border-color .2s;text-decoration:none" onmouseover="this.style.borderColor=\'var(--gold-dim)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
-                + '<img src="' + favicon + '" width="18" height="18" style="border-radius:3px" onerror="this.style.display=\'none\'">'
+              return '<a href="' + l.url + '" target="_blank" title="' + tooltip + '" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);transition:border-color .2s;text-decoration:none" onmouseover="this.style.borderColor=\'var(--gold-dim)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+                + '<img src="' + favicon + '" width="14" height="14" style="border-radius:3px" onerror="this.style.display=\'none\'">'
                 + '</a>';
             }).join('');
           })()}
