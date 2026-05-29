@@ -7284,7 +7284,7 @@ async function radioFetchNowPlaying() {
 async function radioFetchMetadata() {
   if (_radioMetaInterval) clearInterval(_radioMetaInterval);
   radioFetchNowPlaying();
-  _radioMetaInterval = setInterval(radioFetchNowPlaying, 30000);
+  _radioMetaInterval = setInterval(radioFetchNowPlaying, 15000);
 }
 
 function radioStop() {
