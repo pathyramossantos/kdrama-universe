@@ -7282,17 +7282,28 @@ async function radioFetchNowPlaying() {
 }
 
 const RADIO_NEXT_URL = 'https://hidden-bird-e762kdrama-radio-next.pathyzinharamos.workers.dev/next';
+var _lastNextTrack = '';
 
 async function radioFetchNextTrack() {
   try {
     var res = await fetch(RADIO_NEXT_URL, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return;
     var data = await res.json();
+
+    // Processar current track — vem do RadioBOSS direto, sem cache
+    var current = data.current || '';
+    current = current.replace(/\+/g, ' ');
+    try { current = decodeURIComponent(current); } catch(e) {}
+    current = current.replace(/\s+/g, ' ').trim();
+    if (current) radioRenderTrack(current);
+
+    // Processar next track
     var raw = data.next || '';
-    // Limpar o "next=" que vem junto e decodificar
     raw = raw.replace(/^next=/, '').replace(/\+/g, ' ');
     try { raw = decodeURIComponent(raw); } catch(e) {}
     raw = raw.replace(/\s+/g, ' ').trim();
+    if (raw) _lastNextTrack = raw;
+
     var el = document.getElementById('radio-next-track');
     if (el) {
       if (raw) {
@@ -7307,12 +7318,8 @@ async function radioFetchNextTrack() {
 
 async function radioFetchMetadata() {
   if (_radioMetaInterval) clearInterval(_radioMetaInterval);
-  radioFetchNowPlaying();
   radioFetchNextTrack();
-  _radioMetaInterval = setInterval(function() {
-    radioFetchNowPlaying();
-    radioFetchNextTrack();
-  }, 15000);
+  _radioMetaInterval = setInterval(radioFetchNextTrack, 8000);
 }
 
 function radioStop() {
@@ -8343,10 +8350,10 @@ function cardContextMenu(e, page, id) {
 // Inicializar drag and drop nas img-zones após DOM pronto
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initImgZoneDrops);
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ radioFetchNowPlaying(); radioFetchNextTrack(); }, 3000); });
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(radioFetchNextTrack, 3000); });
 } else {
   initImgZoneDrops();
-  setTimeout(function(){ radioFetchNowPlaying(); radioFetchNextTrack(); }, 3000);
+  setTimeout(radioFetchNextTrack, 3000);
 }
 </script>
 
