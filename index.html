@@ -309,8 +309,15 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 .actor-card:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.5),0 0 0 1px var(--gold-dim)}
 .actor-card-wrap{position:relative;z-index:1}
 .actor-card-wrap:hover{z-index:100}
-.actor-doramas-pop{position:absolute;left:calc(100% + 10px);top:0;z-index:999;background:var(--surface);border:1px solid var(--gold-dim);border-radius:var(--card-r);padding:10px;width:200px;display:none;flex-direction:column;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.6);pointer-events:none}
+.actor-doramas-pop{position:absolute;left:calc(100% + 10px);top:0;z-index:999;background:var(--surface);border:1px solid var(--gold-dim);border-radius:var(--card-r);padding:10px;width:190px;display:none;flex-direction:column;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.6);pointer-events:none}
 .actor-card-wrap:hover .actor-doramas-pop{display:flex}
+.actor-card-wrap:nth-child(3n):hover .actor-doramas-pop,
+.actor-card-wrap:nth-last-child(-n+3):hover .actor-doramas-pop{left:auto;right:calc(100% + 10px)}
+@media(max-width:480px){
+  .actor-card-wrap:nth-child(2n):hover .actor-doramas-pop,
+  .actor-card-wrap:nth-last-child(-n+2):hover .actor-doramas-pop{left:auto;right:calc(100% + 10px)}
+  .actor-card-wrap:nth-child(2n-1):hover .actor-doramas-pop{left:calc(100% + 10px);right:auto}
+}
 .actor-doramas-pop-item{display:flex;align-items:center;gap:8px}
 .actor-doramas-pop-capa{width:32px;height:44px;object-fit:cover;border-radius:4px;flex-shrink:0;background:var(--bg3)}
 .actor-doramas-pop-capa-ph{width:32px;height:44px;border-radius:4px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--text3)}
@@ -3257,10 +3264,11 @@ function filterAtores(resetPage=true){
   grid.innerHTML=paged.map((a,i)=>{
     const f=a.fields;
     const photo=getPhoto(a,'Foto');
-    // Doramas do ator via allElenco
+    // Doramas do ator via allElenco — cruzar por airtable_id ou uuid
+    const atorAirtableId = a.fields['_airtable_id'] || a.id;
     const doramas = allElenco
-      .filter(e => e.ator_airtable_id === a.id)
-      .map(e => allSeries.find(s => s.id === e.serie_airtable_id))
+      .filter(e => e.ator_airtable_id === atorAirtableId || e.ator_airtable_id === a.id)
+      .map(e => allSeries.find(s => s.id === e.serie_airtable_id || s.fields['_airtable_id'] === e.serie_airtable_id))
       .filter(Boolean)
       .filter((s,idx,arr) => arr.findIndex(x=>x.id===s.id)===idx)
       .slice(0,6);
