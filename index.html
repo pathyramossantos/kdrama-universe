@@ -7474,17 +7474,31 @@ function radioPlay() {
   if (radioPending) return;
   radioPending = true;
   const audio = document.getElementById('radio-audio');
+  // Resetar src antes de setar — necessário no iOS
+  audio.pause();
+  audio.removeAttribute('src');
+  audio.load();
   audio.src = RADIO_STREAM_URL;
   audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
-  audio.play().then(() => {
+  const p = audio.play();
+  if (p !== undefined) {
+    p.then(() => {
+      radioPlaying = true;
+      radioPending = false;
+      radioUpdateUI(true);
+      radioFetchMetadata();
+    }).catch(e => {
+      radioPending = false;
+      radioPlaying = false;
+      console.warn('Radio play error:', e);
+    });
+  } else {
+    // Fallback para browsers antigos que não retornam promise
     radioPlaying = true;
     radioPending = false;
     radioUpdateUI(true);
     radioFetchMetadata();
-  }).catch(e => {
-    radioPending = false;
-    console.warn('Radio play error:', e);
-  });
+  }
 }
 
 // Busca metadados ICY do stream a cada 15 segundos
@@ -7759,6 +7773,8 @@ function radioToggle() {
   if (radioPending) return;
   if (radioPlaying) radioStop();
   else radioPlay();
+  // Safety: liberar pending após 5s em qualquer caso
+  setTimeout(function(){ radioPending = false; }, 5000);
 }
 
 function radioNext() {
