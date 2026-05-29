@@ -1843,7 +1843,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <div class="fg">
           <input type="hidden" id="fa-banner-url-preview">
           <div id="fa-banner-preview-wrap" style="display:none;margin-top:10px;border-radius:10px;overflow:hidden;position:relative;height:180px">
-            <img id="fa-banner-preview-img" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%">
+            <div id="fa-banner-preview-img" style="width:100%;height:100%;background-size:cover;background-position:50% 20%;background-repeat:no-repeat"></div>
             <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 60%)"></div>
             <div style="position:absolute;bottom:12px;left:16px;font-size:.8rem;color:#fff;opacity:.7">Preview do banner</div>
           </div>
@@ -5056,9 +5056,9 @@ function closeFormAtor(){
 function faPreviewBanner(url) {
   const wrap = document.getElementById('fa-banner-preview-wrap');
   const posWrap = document.getElementById('fa-banner-pos-wrap');
-  const img = document.getElementById('fa-banner-preview-img');
+  const el = document.getElementById('fa-banner-preview-img');
   if (!url) { wrap.style.display='none'; if(posWrap) posWrap.style.display='none'; return; }
-  img.src = url;
+  el.style.backgroundImage = 'url("' + url + '")'; 
   wrap.style.display = 'block';
   if(posWrap) posWrap.style.display = 'block';
   // Carregar posição salva (edição) ou padrão (novo)
@@ -5070,9 +5070,12 @@ function faPreviewBanner(url) {
   const y = parseInt(parts[1]) || 20;
   const slX = document.getElementById('fa-banner-pos-x');
   const slY = document.getElementById('fa-banner-pos-y');
+  const slZ = document.getElementById('fa-banner-zoom');
   if(slX){ slX.value = x; document.getElementById('fa-banner-pos-x-val').textContent = x+'%'; }
   if(slY){ slY.value = y; document.getElementById('fa-banner-pos-y-val').textContent = y+'%'; }
-  img.style.objectPosition = x+'% '+y+'%';
+  if(slZ){ slZ.value = 100; document.getElementById('fa-banner-zoom-val').textContent = '100%'; }
+  el.style.backgroundPosition = x+'% '+y+'%';
+  el.style.backgroundSize = '100%';
 }
 
 function faUpdateBannerPos() {
@@ -5083,11 +5086,10 @@ function faUpdateBannerPos() {
   document.getElementById('fa-banner-pos-y-val').textContent = y+'%';
   const zv = document.getElementById('fa-banner-zoom-val');
   if(zv) zv.textContent = z+'%';
-  const img = document.getElementById('fa-banner-preview-img');
-  if(img){
-    img.style.objectPosition = x+'% '+y+'%';
-    img.style.transform = 'scale('+( parseInt(z)/100 )+')';
-    img.style.transformOrigin = x+'% '+y+'%';
+  const el = document.getElementById('fa-banner-preview-img');
+  if(el){
+    el.style.backgroundPosition = x+'% '+y+'%';
+    el.style.backgroundSize = z+'%';
   }
 }
 
