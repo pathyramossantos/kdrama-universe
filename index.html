@@ -7474,33 +7474,75 @@ function radioPlay() {
   if (radioPending) return;
   radioPending = true;
   const audio = document.getElementById('radio-audio');
-  audio.src = RADIO_STREAM_URL + '&t=' + Date.now();
-  audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
-  const p = audio.play();
-  if (p !== undefined) {
-    p.then(() => {
+  const vol = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
+  audio.volume = vol;
+
+  // Remove listeners antigos pra não acumular
+  audio.oncanplay = null;
+  audio.onerror = null;
+
+  audio.src = RADIO_STREAM_URL + '&nocache=' + Date.now();
+
+  // Android Chrome exige load() explícito antes de play() em streams ao vivo
+  audio.load();
+
+  var played = false;
+  audio.oncanplay = function() {
+    if (played) return;
+    played = true;
+    audio.oncanplay = null;
+    var p = audio.play();
+    if (p !== undefined) {
+      p.then(function() {
+        radioPlaying = true;
+        radioPending = false;
+        radioUpdateUI(true);
+        radioFetchMetadata();
+      }).catch(function(e) {
+        radioPending = false;
+        radioPlaying = false;
+        radioUpdateUI(false);
+        console.warn('Radio play error:', e);
+      });
+    } else {
       radioPlaying = true;
       radioPending = false;
       radioUpdateUI(true);
       radioFetchMetadata();
-    }).catch(e => {
-      radioPending = false;
-      radioPlaying = false;
-      console.warn('Radio play error:', e);
-      // Tentar novamente sem cache buster no Android
-      audio.src = RADIO_STREAM_URL;
-      audio.play().then(() => {
+    }
+  };
+
+  audio.onerror = function() {
+    radioPending = false;
+    radioPlaying = false;
+    radioUpdateUI(false);
+    console.warn('Radio stream error:', audio.error);
+  };
+
+  // Fallback: se canplay não disparar em 8s, tenta play direto (desktop/Safari)
+  setTimeout(function() {
+    if (!radioPending) return;
+    audio.oncanplay = null;
+    var p = audio.play();
+    if (p !== undefined) {
+      p.then(function() {
         radioPlaying = true;
+        radioPending = false;
         radioUpdateUI(true);
         radioFetchMetadata();
-      }).catch(e2 => console.warn('Radio retry error:', e2));
-    });
-  } else {
-    radioPlaying = true;
-    radioPending = false;
-    radioUpdateUI(true);
-    radioFetchMetadata();
-  }
+      }).catch(function(e) {
+        radioPending = false;
+        radioPlaying = false;
+        radioUpdateUI(false);
+        console.warn('Radio fallback error:', e);
+      });
+    } else {
+      radioPlaying = true;
+      radioPending = false;
+      radioUpdateUI(true);
+      radioFetchMetadata();
+    }
+  }, 8000);
 }
 
 // Busca metadados ICY do stream a cada 15 segundos
