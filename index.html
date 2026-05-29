@@ -3775,7 +3775,7 @@ async function acBuscar(id, q) {
       <div style="width:28px;height:36px;background:var(--gold-glow);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.9rem">+</div>
       <div class="ac-item-info">
         <div class="ac-item-nome ac-item-new">Criar "${q}"</div>
-        <div class="ac-item-sub">Novo ator/atriz</div>
+        <div class="ac-item-sub">Novo ator/atriz · <span style="color:var(--gold)">busca no TMDB ao criar</span></div>
       </div>
     </div>`;
 
@@ -3811,8 +3811,91 @@ function acCriarNovo(id, nome) {
   document.getElementById(`cast-nome-${id}`).value = nome;
   document.getElementById(`cast-row-${id}`).dataset.atorId = '__NEW__';
   document.getElementById(`ac-list-${id}`).classList.remove('open');
-  document.getElementById(`cast-personagem-${id}`)?.focus();
-  showToast(`"${nome}" será criado como novo ator ao salvar`);
+  // Abrir formulário do ator já com busca TMDB pelo nome
+  acCriarNovoComTMDB(id, nome);
+}
+
+async function acCriarNovoComTMDB(castId, nome) {
+  // Abrir formulário do ator
+  openFormAtor(null);
+  // Aguardar o form abrir e preencher o nome
+  await new Promise(r => setTimeout(r, 200));
+  setVal('fa-nome', nome);
+  // Disparar busca no TMDB automaticamente
+  var btn = document.getElementById('fa-btn-filmografia');
+  var wrap = document.getElementById('fa-tmdb-lista-wrap');
+  var res = document.getElementById('fa-tmdb-results');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+  if (wrap) wrap.style.display = 'block';
+  if (res) res.innerHTML = '<div style="color:var(--text3);font-size:.82rem;padding:6px">Buscando no TMDB…</div>';
+  try {
+    var r1 = await fetch(TMDB_BASE + '/search/person?api_key=' + tmdbKey + '&query=' + encodeURIComponent(nome) + '&language=en-US');
+    var d1 = await r1.json();
+    var items = (d1.results || []).slice(0, 8);
+    if (!items.length) {
+      if (res) res.innerHTML = '<p style="color:var(--text3);font-size:.82rem;padding:6px">Nenhum resultado. Preencha manualmente.</p>';
+      if (btn) { btn.disabled = false; btn.textContent = 'Buscar'; }
+      return;
+    }
+    if (res) res.innerHTML = items.map(function(x) {
+      var known = (x.known_for||[]).map(function(k){ return k.name||k.title||''; }).filter(Boolean).join(' · ');
+      var img = x.profile_path
+        ? '<img class="tmdb-result-img" src="' + TMDB_IMG + x.profile_path + '" loading="lazy" style="aspect-ratio:2/3">'
+        : '<div class="tmdb-result-img" style="background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.2rem">👤</div>';
+      return '<div class="tmdb-result-item" onclick="acImportarTMDBParaCast(\'' + castId + '\',' + x.id + ')">'
+        + img
+        + '<div class="tmdb-result-info">'
+        + '<div class="tmdb-result-title">' + x.name + '</div>'
+        + '<div class="tmdb-result-year">' + (x.known_for_department||'') + '</div>'
+        + '<div class="tmdb-result-overview">' + known + '</div>'
+        + '</div></div>';
+    }).join('');
+    if (wrap) wrap.style.display = 'block';
+  } catch(e) {
+    if (res) res.innerHTML = '<p style="color:var(--red);font-size:.82rem;padding:6px">Erro: ' + e.message + '</p>';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Buscar'; }
+}
+
+async function acImportarTMDBParaCast(castId, personId) {
+  // Importar dados do TMDB pro formulário do ator
+  await faImportTMDB(personId);
+  // Salvar o ator automaticamente após importar
+  setTimeout(async function() {
+    await salvarAtor();
+    // Buscar o ator recém criado e selecionar no elenco
+    await new Promise(r => setTimeout(r, 500));
+    var nome = document.getElementById('fa-nome')?.value.trim();
+    if (nome && castId) {
+      document.getElementById('cast-nome-' + castId).value = nome;
+      // Buscar o UUID do ator recém criado
+      try {
+        var res = await fetch(SB_URL + '/rest/v1/atores?nome=eq.' + encodeURIComponent(nome) + '&select=id,airtable_id,nome,nome_alt,nome_estrangeiro,foto&limit=1', {
+          headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+        });
+        var rows = await res.json();
+        if (rows.length) {
+          var r = rows[0];
+          var castRow = document.getElementById('cast-row-' + castId);
+          if (castRow) {
+            castRow.dataset.atorId = r.airtable_id || r.id;
+            castRow.dataset.atorSbId = r.id;
+            castRow.dataset.nomeAlt = r.nome_alt || '';
+            castRow.dataset.hangul = r.nome_estrangeiro || '';
+          }
+          // Atualizar foto
+          if (r.foto) {
+            var fotoEl = document.getElementById('cast-foto-' + castId);
+            if (fotoEl) {
+              fotoEl.innerHTML = '<img src="' + r.foto + '" style="width:100%;height:100%;object-fit:cover;border-radius:4px">';
+            }
+          }
+        }
+      } catch(e) {}
+    }
+    closeFormAtor();
+    showToast('✓ Ator criado e adicionado ao elenco!');
+  }, 300);
 }
 
 function acFechar(id) {
