@@ -3637,8 +3637,9 @@ async function acBuscar(id, q) {
       const nasc = a.fields['Data de Nascimento'] || '';
       const _ne = (a.fields['Nome']||'').replace(/'/g,"\'");
       const _nae = (a.fields['Nome Alt']||'').replace(/'/g,"\'");
+      const _hangul = (a.fields['Nome Coreano']||'').replace(/'/g,"\'");
       const _foto = (getPhoto(a,'Foto')||'').replace(/'/g,"'");
-      return '<div class="ac-item" onclick="acSelecionar(' + id + ',\'' + a.id + '\',\'' + _ne + '\',\'' + _nae + '\',\'' + _foto + '\')">' +
+      return '<div class="ac-item" onclick="acSelecionar(' + id + ',\'' + a.id + '\',\'' + _ne + '\',\'' + _nae + '\',\'' + _foto + '\',\'' + _hangul + '\')">' +
         (foto ? '<img src="' + foto + '" loading="lazy">' : '<div style="width:28px;height:36px;background:var(--bg3);border-radius:4px;flex-shrink:0"></div>') +
         '<div class="ac-item-info">' +
         '<div class="ac-item-nome">' + (a.fields['Nome']||'') + '</div>' +
@@ -3659,13 +3660,14 @@ async function acBuscar(id, q) {
   }, 150);
 }
 
-function acSelecionar(id, atorId, nome, nomeAlt, foto) {
+function acSelecionar(id, atorId, nome, nomeAlt, foto, hangul) {
   document.getElementById(`cast-nome-${id}`).value = nome;
   document.getElementById(`cast-row-${id}`).dataset.atorId = atorId;
   if (nomeAlt !== undefined) {
     document.getElementById(`cast-nomealt-${id}`).value = nomeAlt || '';
     document.getElementById(`cast-row-${id}`).dataset.nomeAlt = nomeAlt || '';
   }
+  document.getElementById(`cast-row-${id}`).dataset.hangul = hangul || '';
   // Atualizar foto na linha
   const fotoEl = document.getElementById(`cast-foto-${id}`);
   if (fotoEl) {
@@ -3716,7 +3718,8 @@ function filtrarCastModal(q) {
     const personagem = (row.querySelector('input[id^="cast-per"]')?.value || '').toLowerCase();
     const tipo = (row.querySelector('select[id^="cast-tipo"]')?.value || '').toLowerCase();
     const nomeAlt = (row.dataset.nomeAlt || '').toLowerCase();
-    const bate = !termo || nome.includes(termo) || personagem.includes(termo) || tipo.includes(termo) || nomeAlt.includes(termo);
+    const hangul = (row.dataset.hangul || '');
+    const bate = !termo || nome.includes(termo) || personagem.includes(termo) || tipo.includes(termo) || nomeAlt.includes(termo) || hangul.includes(termo);
     row.style.display = bate ? '' : 'none';
     if (bate) visiveis++;
   });
@@ -3800,6 +3803,7 @@ function fdAddCastRow(data={}) {
   row.dataset.atorSbId = data.atorSbId || '';
   row.dataset.elencoId = data.elencoId || '';
   row.dataset.nomeAlt = data.nomeAlt || '';
+  row.dataset.hangul = data.hangul || '';
   const castList = document.getElementById('fd-cast-list');
   castList.insertBefore(row, castList.firstChild);
   atualizarContadorElenco();
@@ -4393,18 +4397,19 @@ async function openFormDoramaEdit(serie){
       // Elenco
       const loadingEl = document.getElementById('fd-cast-loading');
       if (loadingEl) loadingEl.style.display = '';
-      const ecRes = await fetch(`${SB_URL}/rest/v1/elenco?serie_id=eq.${sbSerieId}&select=id,personagem,tipo,atores:ator_id(id,airtable_id,nome,nome_alt,foto)&order=tipo.asc`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const ecRes = await fetch(`${SB_URL}/rest/v1/elenco?serie_id=eq.${sbSerieId}&select=id,personagem,tipo,atores:ator_id(id,airtable_id,nome,nome_alt,nome_estrangeiro,foto)&order=tipo.asc`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
       const ecRows = await ecRes.json();
       if (loadingEl) loadingEl.style.display = 'none';
       ecRows.forEach(row => {
         fdAddCastRow({
           nome: row.atores?.nome || '',
           personagem: row.personagem || '',
-          tipo: row.tipo || 'Secundário',
+          tipo: row.tipo || 'Participação especial',
           atorId: row.atores?.airtable_id || '',
           atorSbId: row.atores?.id || '',
           elencoId: row.id,
           nomeAlt: row.atores?.nome_alt || '',
+          hangul: row.atores?.nome_estrangeiro || '',
           foto: row.atores?.foto || ''
         });
       });
