@@ -2049,7 +2049,8 @@ function sbToAt(row, tabela) {
       'Roteiro': row.roteiro, 'Banner_Position': row.banner_position,
       'Banner_Url': row.banner_url, 'Data': row.data,
       'Elenco': row.elenco_ids || [], 'Plataformas': row.plataformas || row.plataformas_ids || [],
-      'Diretores': row.diretores_ids || [], 'Roteiristas': row.roteiristas_ids || []
+      'Diretores': row.diretores_ids || [], 'Roteiristas': row.roteiristas_ids || [],
+      '_uuid': row.id
     };
   } else if (tabela === 'atores') {
     // foto pode chegar como string JSON do Airtable (ex: '[{"url":"..."}]') ou URL direta
@@ -2169,7 +2170,7 @@ async function fetchTable(tableId, options={}) {
   if (!tabela) { console.warn('Tabela não mapeada:', tableId); return []; }
 
   let url = `${SB_URL}/rest/v1/${tabela}?select=*`;
-  if (tabela === 'elenco') url = `${SB_URL}/rest/v1/elenco?select=*,series:serie_id(airtable_id),atores:ator_id(airtable_id)`;
+  if (tabela === 'elenco') url = `${SB_URL}/rest/v1/elenco?select=*,series:serie_id(id,airtable_id),atores:ator_id(id,airtable_id)`;
   if (tabela === 'blog')   url = `${SB_URL}/rest/v1/blog?select=*,series:serie_id(airtable_id,nome)`;
   if (tabela === 'ost')    url = `${SB_URL}/rest/v1/ost?select=*,series:serie_id(airtable_id)`;
 
@@ -2196,15 +2197,15 @@ async function fetchTable(tableId, options={}) {
 
   return rows.map(row => {
     if (tabela === 'elenco') {
-      row.serie_airtable_id = row.series?.airtable_id;
-      row.ator_airtable_id  = row.atores?.airtable_id;
+      row.serie_airtable_id = row.series?.airtable_id || row.series?.id || null;
+      row.ator_airtable_id  = row.atores?.airtable_id || row.atores?.id || null;
     }
     if (tabela === 'blog') {
-      row.serie_airtable_id = row.series?.airtable_id;
+      row.serie_airtable_id = row.series?.airtable_id || row.series?.id || null;
       row.serie_nome        = row.series?.nome;
     }
     if (tabela === 'ost') {
-      row.serie_airtable_id = row.series?.airtable_id;
+      row.serie_airtable_id = row.series?.airtable_id || row.series?.id || null;
     }
     return sbToAt(row, tabela);
   });
@@ -3258,12 +3259,12 @@ function filterAtores(resetPage=true){
   grid.innerHTML=paged.map((a,i)=>{
     const f=a.fields;
     const photo=getPhoto(a,'Foto');
-    // Doramas do ator via allElenco
+    // Doramas do ator via allElenco — robusto pra airtable_id e UUID
     const doramas = allElenco
-      .filter(e => (e.fields['Atores']||[])[0] === a.id || e.ator_airtable_id === a.id)
+      .filter(e => e.ator_airtable_id === a.id || (e.fields['Atores']||[])[0] === a.id)
       .map(e => {
-        const serieId = (e.fields['Séries']||[])[0] || e.serie_airtable_id;
-        return allSeries.find(s => s.id === serieId);
+        const serieId = e.serie_airtable_id || (e.fields['Séries']||[])[0];
+        return allSeries.find(s => s.id === serieId || s.fields['_uuid'] === serieId);
       })
       .filter(Boolean)
       .filter((s,idx,arr) => arr.findIndex(x=>x.id===s.id)===idx)
