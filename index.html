@@ -3892,7 +3892,7 @@ async function acBuscar(id, q) {
       <div style="width:28px;height:36px;background:var(--gold-glow);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.9rem">+</div>
       <div class="ac-item-info">
         <div class="ac-item-nome ac-item-new">Criar "${q}"</div>
-        <div class="ac-item-sub">Novo ator/atriz · <span style="color:var(--gold)">busca no TMDB ao criar</span></div>
+        <div class="ac-item-sub">Criar novo ator/atriz com esse nome</div>
       </div>
     </div>`;
 
@@ -3928,8 +3928,8 @@ function acCriarNovo(id, nome) {
   document.getElementById(`cast-nome-${id}`).value = nome;
   document.getElementById(`cast-row-${id}`).dataset.atorId = '__NEW__';
   document.getElementById(`ac-list-${id}`).classList.remove('open');
-  // Abrir formulário do ator já com busca TMDB pelo nome
-  acCriarNovoComTMDB(id, nome);
+  // Foca no campo de personagem para continuar preenchendo
+  document.getElementById(`cast-personagem-${id}`)?.focus();
 }
 
 async function acCriarNovoComTMDB(castId, nome) {
