@@ -4615,16 +4615,37 @@ async function faGerarBio() {
       }catch(e){ console.warn('TMDB credits error:', e); }
     }
 
+    // Buscar Wikipedia coreana se tiver link ko.wikipedia.org
+    var wikiTexto = '';
+    var wikiLink = links.find(function(l){ return l.includes('ko.wikipedia.org'); });
+    if(wikiLink){
+      try{
+        // Extrai o titulo da URL
+        var wikiTitulo = wikiLink.split('/wiki/')[1];
+        if(wikiTitulo){
+          var wikiRes = await fetch('https://ko.wikipedia.org/w/api.php?action=query&titles=' + wikiTitulo + '&prop=extracts&explaintext=true&format=json&origin=*');
+          var wikiData = await wikiRes.json();
+          var wikiPages = wikiData.query.pages;
+          var wikiPage = Object.values(wikiPages)[0];
+          if(wikiPage && wikiPage.extract){
+            // Limitar a 3000 chars pra nao explodir o contexto
+            wikiTexto = wikiPage.extract.slice(0, 3000);
+          }
+        }
+      }catch(e){ console.warn('Wikipedia KO error:', e); }
+    }
+
     // Montar prompt
     var ctx = 'Nome: ' + nome + '\n';
     if(nomeKor) ctx += 'Nome coreano: ' + nomeKor + '\n';
     if(nomeAlt) ctx += 'Também conhecido como: ' + nomeAlt + '\n';
     if(nasc) ctx += 'Data de nascimento: ' + nasc + '\n';
-    if(links.length) ctx += 'Links: ' + links.join(', ') + '\n';
+    if(links.length) ctx += 'Links cadastrados: ' + links.join(', ') + '\n';
     if(dadosTMDB) ctx += dadosTMDB;
     if(filmografiaTMDB) ctx += '\n' + filmografiaTMDB + '\n';
-    if(bioRef && !dadosTMDB) ctx += '\nInformações de referência: ' + bioRef + '\n';
-    if(!filmografiaTMDB) ctx += '\n(Não há filmografia disponível nas fontes consultadas. Se não souber, diga isso diretamente sem inventar.)';
+    if(wikiTexto) ctx += '\nWikipédia coreana (conteúdo completo para referência):\n' + wikiTexto + '\n';
+    if(bioRef && !dadosTMDB && !wikiTexto) ctx += '\nInformações de referência: ' + bioRef + '\n';
+    if(!filmografiaTMDB && !wikiTexto) ctx += '\n(Não há filmografia disponível nas fontes consultadas. Se não souber, diga isso diretamente sem inventar.)';
 
     var systemPrompt = 'Você é um assistente inteligente, direto e levemente sarcástico, especializado em escrever biografias de atores coreanos para um site pessoal de K-dramas.\n\nEstilo obrigatório:\n- Escreva como uma mente brilhante com humor afiado e personalidade forte, sem enrolação.\n- Sem tom de "assistente de IA" ou de Wikipedia. Sem formalidade corporativa.\n- Ritmo de leitura leve, mas informado.\n- 5 a 6 parágrafos curtos. Sem asteriscos ou markdown. Máximo 550 palavras.\n- Em português brasileiro.\n\nEstrutura obrigatória:\n1. Abertura direta: nome completo (romanização + hangul), idade, data e origem. O "jeito" dele na tela.\n2. Trajetória: como chegou à atuação, percurso na carreira.\n3. Tipo de papel que faz com mais frequência e como funciona na tela.\n4. Status atual na indústria coreana.\n5. Comentário final sobre o que ele representa no cenário coreano.\n\nREGRA FUNDAMENTAL: Não invente dados. Se não tiver informação sobre algo (vida pessoal, agência, universidade), diga isso diretamente e construa a narrativa em cima da ausência. Seja honesto e elegante ao mesmo tempo.\n\nExemplo de tom (NÃO COPIE, só guia de estilo):\n"Park Geun-wan é o mistério que acontece quando alguém escolhe trabalho silencioso em vez de ruído. Não há informações públicas sobre trabalhos recentes — e isso é dito diretamente, sem inventar nada. Ele não precisa ser o centro pra ser essencial."';
     var prompt = 'Escreva a biografia deste ator para o site de K-dramas, seguindo o estilo e estrutura do system prompt:\n\n' + ctx;
