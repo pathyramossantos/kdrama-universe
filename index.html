@@ -4113,7 +4113,8 @@ function fdAddCastRow(data={}) {
       </div>
       <div style="display:flex;gap:4px;margin-top:4px">
         <input class="fi" id="cast-hangul-${id}" placeholder="한글" value="${data.hangul||''}"
-          style="font-size:.75rem;padding:4px 8px;opacity:.7;color:var(--text2);width:80px;flex-shrink:0">
+          style="font-size:.75rem;padding:4px 8px;opacity:.7;color:var(--text2);width:80px;flex-shrink:0"
+          oninput="document.getElementById('cast-row-${id}').dataset.hangul=this.value">
         <input class="fi" id="cast-nomealt-${id}" placeholder="Alt (sem hífen)" value="${data.nomeAlt||''}"
           style="font-size:.75rem;padding:4px 8px;opacity:.7;color:var(--text2);flex:1">
       </div>
@@ -4362,14 +4363,18 @@ function fdGetPlataformas() {
 function fdGetCastData() {
   return fdCastRows
     .map(id => {
+      const row = document.getElementById(`cast-row-${id}`);
+      if(!row) return null;
       const nome = document.getElementById(`cast-nome-${id}`)?.value.trim();
       const personagem = document.getElementById(`cast-personagem-${id}`)?.value.trim();
       const tipo = document.getElementById(`cast-tipo-${id}`)?.value;
-      const atorId = document.getElementById(`cast-row-${id}`)?.dataset.atorId || '';
-      const atorSbId = document.getElementById(`cast-row-${id}`)?.dataset.atorSbId || '';
-      const elencoId = document.getElementById(`cast-row-${id}`)?.dataset.elencoId || '';
+      const atorId = row.dataset.atorId || '';
+      const atorSbId = row.dataset.atorSbId || '';
+      const elencoId = row.dataset.elencoId || '';
       const nomeAlt = document.getElementById(`cast-nomealt-${id}`)?.value.trim() || '';
-      const hangul = document.getElementById(`cast-hangul-${id}`)?.value.trim() || document.getElementById(`cast-row-${id}`)?.dataset.hangul || '';
+      // Lê hangul do campo visual — fallback para dataset
+      const hangulEl = row.querySelector('input[id^="cast-hangul"]');
+      const hangul = (hangulEl?.value || '').trim() || row.dataset.hangul || '';
       if (!nome) return null;
       return { nome, personagem, tipo, atorId, atorSbId, elencoId, nomeAlt, hangul };
     })
