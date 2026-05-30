@@ -3909,6 +3909,8 @@ function acSelecionar(id, atorId, nome, nomeAlt, foto, hangul) {
     document.getElementById(`cast-row-${id}`).dataset.nomeAlt = nomeAlt || '';
   }
   document.getElementById(`cast-row-${id}`).dataset.hangul = hangul || '';
+  const hangulInput = document.getElementById(`cast-hangul-${id}`);
+  if(hangulInput) hangulInput.value = hangul || '';
   // Atualizar foto na linha
   const fotoEl = document.getElementById(`cast-foto-${id}`);
   if (fotoEl) {
