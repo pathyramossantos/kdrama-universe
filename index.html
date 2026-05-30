@@ -3640,7 +3640,8 @@ async function renderAtor(id){
         var bz = parseInt(bParts[2])||100;
         var bSize = bz <= 100 ? bz+'% auto' : bz+'%';
         var bUrl = atorBannerSrc.replace(/'/g, "%27");
-        return '<div id="banner-img" class="detail-banner-bg" style="background-image:url(\''+bUrl+'\');background-position:'+bx+'% '+by+'%;background-size:'+bSize+';background-repeat:no-repeat"></div>';
+        var blurStyle = 'position:absolute;inset:-20px;background-image:url(\''+bUrl+'\');background-size:cover;background-position:'+bx+'% '+by+'%;filter:blur(18px) brightness(.6);transform:scale(1.08)';
+        return '<div style="'+blurStyle+'"></div><div id="banner-img" class="detail-banner-bg" style="background-image:url(\''+bUrl+'\');background-position:'+bx+'% '+by+'%;background-size:'+bSize+';background-repeat:no-repeat;position:absolute;inset:0"></div>';
       })()}
       <div class="detail-banner-grad"></div>
       <div class="detail-banner-content">
