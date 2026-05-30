@@ -1829,6 +1829,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
           <label class="fl">Biografia</label>
           <textarea class="fta" id="fa-bio" placeholder="Breve biografia…" style="min-height:100px"></textarea>
         </div>
+        <button class="btn-ai" id="fa-btn-bio" onclick="faGerarBio()" style="width:100%;justify-content:center;margin-top:8px">✨ Gerar com IA</button>
       </div>
 
       <!-- Fotos TMDB -->
@@ -4560,34 +4561,71 @@ async function fdGerarSinopse() {
 
 async function faGerarBio() {
   if(!geminiKey){ showToast('Configure a Gemini API Key nas configurações'); return; }
-  const nome     = document.getElementById('fa-nome')?.value?.trim() || '';
-  const nomeKor  = document.getElementById('fa-nome-kor')?.value?.trim() || '';
-  const nomeAlt  = document.getElementById('fa-nome-alt')?.value?.trim() || '';
-  const nasc     = document.getElementById('fa-nasc')?.value || '';
-  const bioAtual = document.getElementById('fa-bio')?.value?.trim() || '';
-  const dramas   = document.getElementById('fa-dramas')?.value?.trim() || '';
-  const filmes   = document.getElementById('fa-filmes')?.value?.trim() || '';
-
+  var nome    = (document.getElementById('fa-nome')?.value||  '').trim();
+  var nomeKor = (document.getElementById('fa-nome-kor')?.value||'').trim();
+  var nomeAlt = (document.getElementById('fa-nome-alt')?.value||'').trim();
+  var nasc    = document.getElementById('fa-nasc')?.value || '';
+  var bioRef  = (document.getElementById('fa-bio')?.value||'').trim();
+  var links   = Array.from(document.querySelectorAll('#fa-links-list .link-item input'))
+                .map(function(i){ return i.value.trim(); }).filter(Boolean);
   if(!nome){ showToast('Preencha o nome do ator primeiro'); return; }
 
-  const btn = document.querySelector('[onclick="faGerarBio()"]');
-  if(btn){ btn.disabled=true; btn.textContent='\u23f3 Gerando\u2026'; }
+  var btn = document.getElementById('fa-btn-bio');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Gerando…'; }
 
-  const systemPrompt = `Você é um assistente especializado em escrever biografias de atores coreanos no estilo pessoal e literário de Pathy (Patrícia Ramos), uma brasileira apaixonada por K-dramas.\n\nEstilo obrigatório:\n- Começa com nome completo (romanização, hangul, hanja se tiver), nacionalidade, data e local de nascimento\n- Inclui dados físicos e agência se souber\n- Narra o percurso com personalidade — contextualiza a carreira, destaca o que torna o ator único, não só lista fatos\n- Percorre a filmografia cronologicamente com comentários sobre os papéis mais importantes\n- Tem opinião — diz o que funciona na atuação desse ator específico\n- Escreve em português brasileiro com qualidade literária mas sem formalidade excessiva\n- Máximo 600 palavras. Sem asteriscos ou markdown.\n\nExemplo de tom (NÃO COPIE, só guia):\n"...é o raro caso de ator cujo físico foi literalmente o primeiro instrumento de trabalho... um percurso tardio o bastante para ter peso, cedo o bastante para virar carreira completa."`;
+  try{
+    // Buscar filmografia completa no TMDB se tiver ID
+    var tmdbId = lastTmdbPersonId || (faEditId && parseInt(localStorage.getItem('kdrama_tmdbperson_' + faEditId)));
+    var filmografiaTMDB = '';
+    var dadosTMDB = '';
+    if(tmdbId && tmdbKey){
+      try{
+        var resP = await fetch(TMDB_BASE + '/person/' + tmdbId + '?api_key=' + tmdbKey + '&language=pt-BR');
+        var dataP = await resP.json();
+        if(dataP.biography) dadosTMDB += 'Bio TMDB (referência): ' + dataP.biography + '\n';
+        if(dataP.place_of_birth) dadosTMDB += 'Local de nascimento: ' + dataP.place_of_birth + '\n';
+        if(dataP.known_for_department) dadosTMDB += 'Área: ' + dataP.known_for_department + '\n';
+        var resC = await fetch(TMDB_BASE + '/person/' + tmdbId + '/combined_credits?api_key=' + tmdbKey + '&language=pt-BR');
+        var dataC = await resC.json();
+        var cast = (dataC.cast || []).filter(function(c){ return c.media_type === 'tv' || c.media_type === 'movie'; })
+          .sort(function(a,b){ return (b.first_air_date||b.release_date||'')<(a.first_air_date||a.release_date||'') ? 1 : -1; })
+          .slice(0, 40)
+          .map(function(c){
+            var titulo = c.name || c.title || '?';
+            var ano = (c.first_air_date || c.release_date || '').slice(0,4);
+            var personagem = c.character || '';
+            return titulo + (ano ? ' (' + ano + ')' : '') + (personagem ? ' — ' + personagem : '');
+          });
+        if(cast.length) filmografiaTMDB = 'Filmografia completa (TMDB):\n- ' + cast.join('\n- ');
+      }catch(e){ console.warn('TMDB credits error:', e); }
+    }
 
-  const prompt = `Escreva uma biografia completa no estilo Pathy para o ator/atriz:\nNome: ${nome}\nNome coreano: ${nomeKor || 'não informado'}\nData de nascimento: ${nasc || 'não informada'}\n${bioAtual ? 'Informações do TMDB para referência (reescreva com personalidade e estilo): ' + bioAtual : ''}\n\nUse seus conhecimentos sobre esse ator para enriquecer a biografia com dados reais (agência, universidade, carreira, papéis marcantes). Escreva com a mesma riqueza e personalidade do exemplo.`;
+    // Montar prompt
+    var ctx = 'Nome: ' + nome + '\n';
+    if(nomeKor) ctx += 'Nome coreano: ' + nomeKor + '\n';
+    if(nomeAlt) ctx += 'Também conhecido como: ' + nomeAlt + '\n';
+    if(nasc) ctx += 'Data de nascimento: ' + nasc + '\n';
+    if(links.length) ctx += 'Links: ' + links.join(', ') + '\n';
+    if(dadosTMDB) ctx += dadosTMDB;
+    if(filmografiaTMDB) ctx += '\n' + filmografiaTMDB + '\n';
+    if(bioRef && !dadosTMDB) ctx += '\nInformações de referência: ' + bioRef + '\n';
+    if(!filmografiaTMDB) ctx += '\n(Não há filmografia disponível nas fontes consultadas. Se não souber, diga isso diretamente sem inventar.)';
 
-  try {
-    const texto = await callClaude(prompt, systemPrompt);
+    var systemPrompt = 'Você é um assistente inteligente, direto e levemente sarcástico, especializado em escrever biografias de atores coreanos para um site pessoal de K-dramas.\n\nEstilo obrigatório:\n- Escreva como uma mente brilhante com humor afiado e personalidade forte, sem enrolação.\n- Sem tom de "assistente de IA" ou de Wikipedia. Sem formalidade corporativa.\n- Ritmo de leitura leve, mas informado.\n- 5 a 6 parágrafos curtos. Sem asteriscos ou markdown. Máximo 550 palavras.\n- Em português brasileiro.\n\nEstrutura obrigatória:\n1. Abertura direta: nome completo (romanização + hangul), idade, data e origem. O "jeito" dele na tela.\n2. Trajetória: como chegou à atuação, percurso na carreira.\n3. Tipo de papel que faz com mais frequência e como funciona na tela.\n4. Status atual na indústria coreana.\n5. Comentário final sobre o que ele representa no cenário coreano.\n\nREGRA FUNDAMENTAL: Não invente dados. Se não tiver informação sobre algo (vida pessoal, agência, universidade), diga isso diretamente e construa a narrativa em cima da ausência. Seja honesto e elegante ao mesmo tempo.\n\nExemplo de tom (NÃO COPIE, só guia de estilo):\n"Park Geun-wan é o mistério que acontece quando alguém escolhe trabalho silencioso em vez de ruído. Não há informações públicas sobre trabalhos recentes — e isso é dito diretamente, sem inventar nada. Ele não precisa ser o centro pra ser essencial."';
+    var prompt = 'Escreva a biografia deste ator para o site de K-dramas, seguindo o estilo e estrutura do system prompt:\n\n' + ctx;
+
+    var texto = await callClaude(prompt, systemPrompt);
     document.getElementById('fa-bio').value = texto;
-    showToast('\u2728 Biografia gerada!');
-  } catch(e) {
+    showToast('✨ Biografia gerada!');
+  }catch(e){
     showToast('Erro ao gerar: ' + e.message);
     console.error(e);
-  } finally {
-    if(btn){ btn.disabled=false; btn.textContent='\u2728 Gerar com IA'; }
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='✨ Gerar com IA'; }
   }
 }
+
+
 
 
 // ════════════════════════════════════════════════════════
