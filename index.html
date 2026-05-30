@@ -4037,6 +4037,7 @@ function openModalElenco() {
 
 function filtrarCastModal(q) {
   const termo = q.toLowerCase().trim();
+  const termoOrig = q.trim(); // para hangul case-sensitive
   const rows = document.querySelectorAll('#fd-cast-list > div');
   let visiveis = 0;
   rows.forEach(row => {
@@ -4044,8 +4045,10 @@ function filtrarCastModal(q) {
     const personagem = (row.querySelector('input[id^="cast-per"]')?.value || '').toLowerCase();
     const tipo = (row.querySelector('select[id^="cast-tipo"]')?.value || '').toLowerCase();
     const nomeAlt = (row.dataset.nomeAlt || '').toLowerCase();
-    const hangul = (row.dataset.hangul || '');
-    const bate = !termo || nome.includes(termo) || personagem.includes(termo) || tipo.includes(termo) || nomeAlt.includes(termo) || hangul.includes(termo);
+    const hangulDataset = (row.dataset.hangul || '');
+    const hangulInput = (row.querySelector('input[id^="cast-hangul"]')?.value || '');
+    const hangul = hangulDataset || hangulInput;
+    const bate = !termo || nome.includes(termo) || personagem.includes(termo) || tipo.includes(termo) || nomeAlt.includes(termo) || hangul.includes(termoOrig);
     row.style.display = bate ? '' : 'none';
     if (bate) visiveis++;
   });
