@@ -3632,15 +3632,16 @@ async function renderAtor(id){
     </div>
 
     <div class="detail-banner" id="detail-banner">
-      ${atorBannerSrc ? (()=>{
+      ${(function(){
+        if(!atorBannerSrc) return '<div class="detail-banner-placeholder">👤</div>';
         var bParts = atorBannerPos.split(' ');
         var bx = parseInt(bParts[0])||50;
         var by = parseInt(bParts[1])||20;
         var bz = parseInt(bParts[2])||100;
         var bSize = bz <= 100 ? bz+'% auto' : bz+'%';
-        var bStyle = 'background-image:url("'+atorBannerSrc+'");background-position:'+bx+'% '+by+'%;background-size:'+bSize+';background-repeat:no-repeat;';
-        return '<div id="banner-img" class="detail-banner-bg" style="'+bStyle+'"></div>';
-      })() : '<div class="detail-banner-placeholder">\u{1F464}</div>'}
+        var bUrl = atorBannerSrc.replace(/'/g, "%27");
+        return '<div id="banner-img" class="detail-banner-bg" style="background-image:url(\''+bUrl+'\');background-position:'+bx+'% '+by+'%;background-size:'+bSize+';background-repeat:no-repeat"></div>';
+      })()}
       <div class="detail-banner-grad"></div>
       <div class="detail-banner-content">
         <h1 class="detail-title editable" contenteditable="false" data-field="Nome">${f['Nome']||'—'}</h1>
