@@ -173,6 +173,7 @@ select.filter-select:focus{border-color:var(--gold-dim)}
 /* DETAIL BANNER */
 .detail-banner{position:relative;width:100%;height:clamp(300px,45vw,520px);overflow:hidden;margin-top:16px}.detail-banner-content{position:absolute;bottom:0;left:0;right:0;padding:32px clamp(16px,4vw,48px);overflow:visible;z-index:5}.detail-banner-content{position:absolute;bottom:0;left:0;right:0;padding:32px clamp(16px,4vw,48px);overflow:visible;z-index:5}
 .detail-banner img{width:100%;height:100%;object-fit:cover;filter:brightness(.45)}
+.detail-banner-bg{width:100%;height:100%;background-size:cover;background-repeat:no-repeat;filter:brightness(.45);position:relative}
 .detail-banner-placeholder{width:100%;height:100%;background:linear-gradient(135deg,var(--bg3),var(--surface2));display:flex;align-items:center;justify-content:center;font-family:'Noto Serif KR',serif;font-size:4rem;color:var(--gold-dim)}
 .detail-banner-grad{position:absolute;bottom:0;left:0;right:0;height:45%;background:linear-gradient(to top,var(--bg),transparent)}
 
@@ -2946,11 +2947,17 @@ function parseDateBR(dateStr, monthFormat='numeric'){
 }
 
 // ── BANNER CONTROLS ───────────────────────────────────────
-function updateBannerPos(){
-  const x=document.getElementById('banner-pos-x')?.value||50;
-  const y=document.getElementById('banner-pos-y')?.value||30;
-  const img=document.getElementById('banner-img');
-  if(img) img.style.objectPosition=`${x}% ${y}%`;
+function updateBannerPos() {
+  var img = document.getElementById('banner-img');
+  if (!img) return;
+  var x = document.getElementById('banner-pos-x')?.value || 50;
+  var y = document.getElementById('banner-pos-y')?.value || 20;
+  // Se for div (background), usa backgroundPosition; se for img, usa objectPosition
+  if (img.tagName === 'DIV') {
+    img.style.backgroundPosition = x+'% '+y+'%';
+  } else {
+    img.style.objectPosition = x+'% '+y+'%';
+  }
 }
 
 function saveBannerPos(){
@@ -3253,7 +3260,9 @@ async function importFromTMDBator(tmdbPersonId){
 function saveAatorBannerPos(){
   const x=document.getElementById('banner-pos-x')?.value||50;
   const y=document.getElementById('banner-pos-y')?.value||20;
-  const pos=`${x}% ${y}%`;
+  // preserva o zoom salvo no Banner_Position (3o valor)
+  var savedZ = (currentAtor?.fields?.['Banner_Position']||'').split(' ')[2] || '100';
+  const pos=x+'% '+y+'% '+savedZ;
   localStorage.setItem(`kdrama_atorbannerpos_${currentRecordId}`,pos);
   // Prioriza localStorage (mais recente que pode ter sido colado agora), depois Supabase
   const url = localStorage.getItem(`kdrama_atorbannerurl_${currentRecordId}`)
@@ -3623,9 +3632,15 @@ async function renderAtor(id){
     </div>
 
     <div class="detail-banner" id="detail-banner">
-      ${atorBannerSrc
-        ?`<img id="banner-img" src="${atorBannerSrc}" alt="${f['Nome']||''}" style="object-position:${atorBannerPos}">`
-        :`<div class="detail-banner-placeholder">👤</div>`}
+      ${atorBannerSrc ? (()=>{
+        var bParts = atorBannerPos.split(' ');
+        var bx = parseInt(bParts[0])||50;
+        var by = parseInt(bParts[1])||20;
+        var bz = parseInt(bParts[2])||100;
+        var bSize = bz <= 100 ? bz+'% auto' : bz+'%';
+        var bStyle = 'background-image:url("'+atorBannerSrc+'");background-position:'+bx+'% '+by+'%;background-size:'+bSize+';background-repeat:no-repeat;';
+        return '<div id="banner-img" class="detail-banner-bg" style="'+bStyle+'"></div>';
+      })() : '<div class="detail-banner-placeholder">\u{1F464}</div>'}
       <div class="detail-banner-grad"></div>
       <div class="detail-banner-content">
         <h1 class="detail-title editable" contenteditable="false" data-field="Nome">${f['Nome']||'—'}</h1>
