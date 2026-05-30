@@ -4108,8 +4108,12 @@ function fdAddCastRow(data={}) {
           oninput="document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)" onpaste="setTimeout(()=>{document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)},50)" onblur="setTimeout(()=>acFechar(${id}),200)" autocomplete="off">
         <div class="ac-list" id="ac-list-${id}"></div>
       </div>
-      <input class="fi" id="cast-nomealt-${id}" placeholder="Também conhecido como (separar por vírgula)" value="${data.nomeAlt||''}"
-        style="font-size:.75rem;padding:4px 10px;margin-top:4px;opacity:.7;color:var(--text2);width:100%">
+      <div style="display:flex;gap:4px;margin-top:4px">
+        <input class="fi" id="cast-hangul-${id}" placeholder="한글" value="${data.hangul||''}"
+          style="font-size:.75rem;padding:4px 8px;opacity:.7;color:var(--text2);width:80px;flex-shrink:0">
+        <input class="fi" id="cast-nomealt-${id}" placeholder="Alt (sem hífen)" value="${data.nomeAlt||''}"
+          style="font-size:.75rem;padding:4px 8px;opacity:.7;color:var(--text2);flex:1">
+      </div>
     </div>
     <div>
       <input class="fi" id="cast-personagem-${id}" placeholder="Nome do personagem" value="${data.personagem||''}" style="font-size:.82rem;padding:6px 10px;width:100%">
