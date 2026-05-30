@@ -4437,9 +4437,9 @@ async function fdSalvarElenco(serieId, castData) {
         await fetch(`${SB_URL}/rest/v1/atores?id=eq.${atorUUID}`,{method:'PATCH',headers:SB_HEADERS,body:JSON.stringify({nome_alt:membro.nomeAlt})});
       }
 
-      // Atualizar hangul se preenchido e ator já existe
+      // Atualizar hangul se preenchido — nunca sobrescreve com vazio
       if(atorUUID && membro.hangul){
-        await fetch(`${SB_URL}/rest/v1/atores?id=eq.${atorUUID}`,{method:'PATCH',headers:SB_HEADERS,body:JSON.stringify({nome_estrangeiro:membro.hangul})});
+        await fetch(`${SB_URL}/rest/v1/atores?id=eq.${atorUUID}&nome_estrangeiro=is.null`,{method:'PATCH',headers:SB_HEADERS,body:JSON.stringify({nome_estrangeiro:membro.hangul})});
       }
 
       if(atorUUID && sbSerieId){
@@ -5395,7 +5395,11 @@ async function faImportTMDB(personId){
 
     // Nome — só preenche se o campo estiver vazio
     var nomeAtual = document.getElementById('fa-nome')?.value.trim();
-    if (!nomeAtual && personEN.name) setVal('fa-nome', personEN.name);
+    var nomeAtual = document.getElementById('fa-nome')?.value.trim();
+    var nomeApenasHangul = nomeAtual && /^[가-힣\s]+$/.test(nomeAtual);
+    if (!nomeAtual || nomeApenasHangul) {
+      if(personEN.name) setVal('fa-nome', personEN.name);
+    }
 
     // Nome coreano — pega do also_known_as
     var nomeKorAtual = document.getElementById('fa-nome-kor')?.value.trim();
