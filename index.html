@@ -5410,10 +5410,11 @@ async function faImportTMDB(personId){
       if (korName) setVal('fa-nome-kor', korName);
     }
 
-    // Nome alternativo — pega todos os also_known_as (exceto hangul que já foi pro nome coreano)
+    // Nome alternativo — pega todos os also_known_as (exceto hangul e hanja)
     var nomeAltAtual = document.getElementById('fa-nome-alt')?.value.trim();
-    var alsoKnown = (personEN.also_known_as||[])
-      .filter(function(n){ return !/[가-힣]/.test(n) && !/[一-鿿]/.test(n); }) // exclui hangul e hanja, aceita romanizações
+    var todosNomes = [...new Set([...(person.also_known_as||[]), ...(personEN.also_known_as||[])])];
+    var alsoKnown = todosNomes
+      .filter(function(n){ return !/[가-힣]/.test(n) && !/[一-鿿]/.test(n) && !/[\u3040-\u30FF]/.test(n); })
       .join(', ');
     if (!nomeAltAtual && alsoKnown) setVal('fa-nome-alt', alsoKnown);
 
