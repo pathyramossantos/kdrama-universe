@@ -1839,9 +1839,12 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <div class="fg">
           <input type="hidden" id="fa-banner-url-preview">
           <div id="fa-banner-preview-wrap" style="display:none;margin-top:10px;border-radius:10px;overflow:hidden;position:relative;height:180px">
-            <div id="fa-banner-preview-img" style="width:100%;height:100%;background-size:cover;background-position:50% 20%;background-repeat:no-repeat"></div>
-            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 60%)"></div>
-            <div style="position:absolute;bottom:12px;left:16px;font-size:.8rem;color:#fff;opacity:.7">Preview do banner</div>
+            <!-- blur de fundo estilo Spotify -->
+            <div id="fa-banner-blur-bg" style="position:absolute;inset:-20px;background-size:cover;background-position:center;filter:blur(18px) brightness(.7);transform:scale(1.08);z-index:0"></div>
+            <!-- imagem principal com zoom -->
+            <div id="fa-banner-preview-img" style="position:absolute;inset:0;background-size:cover;background-position:50% 20%;background-repeat:no-repeat;z-index:1"></div>
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 60%);z-index:2"></div>
+            <div style="position:absolute;bottom:12px;left:16px;font-size:.8rem;color:#fff;opacity:.7;z-index:3">Preview do banner</div>
           </div>
           <!-- Sliders de posição -->
           <div id="fa-banner-pos-wrap" style="display:none;margin-top:12px;background:rgba(255,255,255,.05);border-radius:10px;padding:14px 16px;border:1px solid var(--border)">
@@ -5100,35 +5103,44 @@ function faPreviewBanner(url) {
   var parts = saved.split(' ');
   var x = parseInt(parts[0]) || 50;
   var y = parseInt(parts[1]) || 20;
+  var z = parseInt(parts[2]) || 100;
   var slX = document.getElementById('fa-banner-pos-x');
   var slY = document.getElementById('fa-banner-pos-y');
   var slZ = document.getElementById('fa-banner-zoom');
   if(slX){ slX.value = x; document.getElementById('fa-banner-pos-x-val').textContent = x+'%'; }
   if(slY){ slY.value = y; document.getElementById('fa-banner-pos-y-val').textContent = y+'%'; }
-  if(slZ){ slZ.value = 100; document.getElementById('fa-banner-zoom-val').textContent = '100%'; }
+  if(slZ){ slZ.value = z; document.getElementById('fa-banner-zoom-val').textContent = z+'%'; }
   el._bannerUrl = url;
+  var blurBg = document.getElementById('fa-banner-blur-bg');
   var tmpImg = new Image();
   tmpImg.onload = function(){
     el._natW = tmpImg.naturalWidth;
     el._natH = tmpImg.naturalHeight;
-    el.style.backgroundImage = 'url("' + url + '")'; 
+    var bgUrl = 'url("' + url + '")'; 
+    el.style.backgroundImage = bgUrl;
     el.style.backgroundPosition = x+'% '+y+'%';
-    el.style.backgroundSize = 'cover';
+    el.style.backgroundSize = z <= 100 ? z+'% auto' : z+'%';
+    if(blurBg){ blurBg.style.backgroundImage = bgUrl; blurBg.style.backgroundPosition = x+'% '+y+'%'; }
   };
   tmpImg.src = url;
 }
 function faUpdateBannerPos() {
   const x = document.getElementById('fa-banner-pos-x').value;
   const y = document.getElementById('fa-banner-pos-y').value;
-  const z = document.getElementById('fa-banner-zoom')?.value || 100;
+  const z = parseInt(document.getElementById('fa-banner-zoom')?.value || 100);
   document.getElementById('fa-banner-pos-x-val').textContent = x+'%';
   document.getElementById('fa-banner-pos-y-val').textContent = y+'%';
   const zv = document.getElementById('fa-banner-zoom-val');
   if(zv) zv.textContent = z+'%';
   const el = document.getElementById('fa-banner-preview-img');
+  const blurBg = document.getElementById('fa-banner-blur-bg');
   if(el){
     el.style.backgroundPosition = x+'% '+y+'%';
-    el.style.backgroundSize = z+'%';
+    // zoom < 100: reduz a imagem, blur preenche os lados
+    // zoom >= 100: comporta como cover normal ampliado
+    el.style.backgroundSize = z <= 100 ? z+'% auto' : z+'%';
+    // blur de fundo acompanha posição pra parecer natural
+    if(blurBg) blurBg.style.backgroundPosition = x+'% '+y+'%';
   }
 }
 
@@ -5674,11 +5686,13 @@ async function faSalvar(){
     const bannerFinal = (bannerUrl && !bannerUrl.startsWith('blob:') ? bannerUrl : null) 
                      || (fotoUrl && !fotoUrl.startsWith('blob:') ? fotoUrl : null);
     if(bannerFinal) fields['Banner_Url']=bannerFinal;
-    // Salvar posição do banner se os sliders estiverem visíveis
+    // Salvar posição e zoom do banner se os sliders estiverem visíveis
     const slX = document.getElementById('fa-banner-pos-x');
     const slY = document.getElementById('fa-banner-pos-y');
+    const slZ = document.getElementById('fa-banner-zoom');
     if(slX && slY && document.getElementById('fa-banner-pos-wrap')?.style.display !== 'none') {
-      fields['Banner_Position'] = `${slX.value}% ${slY.value}%`;
+      var zVal = slZ ? slZ.value : '100';
+      fields['Banner_Position'] = slX.value + '% ' + slY.value + '% ' + zVal;
     }
 
     bar.style.width='70%';
