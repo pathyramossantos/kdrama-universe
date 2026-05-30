@@ -1832,11 +1832,6 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <button class="btn-ai" id="fa-btn-bio" onclick="faGerarBio()" style="width:100%;justify-content:center;margin-top:8px">✨ Gerar com IA</button>
       </div>
 
-      <!-- Fotos TMDB -->
-      <div class="form-sect" id="fa-tmdb-photos-sect">
-        <div class="form-sect-title">Imagens do Ator</div>
-        <button class="btn-ai" onclick="faAbrirFotosTMDB()" style="width:100%;justify-content:center">&#128247; Buscar fotos no TMDB</button>
-      </div>
 
       <!-- Preview do Banner -->
       <div class="form-sect">
@@ -4522,7 +4517,7 @@ async function callClaude(prompt, systemPrompt) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: systemPrompt + '\n\n' + prompt }] }],
-      generationConfig: { maxOutputTokens: 1500, temperature: 0.7 }
+      generationConfig: { maxOutputTokens: 2500, temperature: 0.7 }
     })
   });
   if (!res.ok) {
