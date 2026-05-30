@@ -4369,8 +4369,9 @@ function fdGetCastData() {
       const atorSbId = document.getElementById(`cast-row-${id}`)?.dataset.atorSbId || '';
       const elencoId = document.getElementById(`cast-row-${id}`)?.dataset.elencoId || '';
       const nomeAlt = document.getElementById(`cast-nomealt-${id}`)?.value.trim() || '';
+      const hangul = document.getElementById(`cast-hangul-${id}`)?.value.trim() || document.getElementById(`cast-row-${id}`)?.dataset.hangul || '';
       if (!nome) return null;
-      return { nome, personagem, tipo, atorId, atorSbId, elencoId, nomeAlt };
+      return { nome, personagem, tipo, atorId, atorSbId, elencoId, nomeAlt, hangul };
     })
     .filter(Boolean);
 }
@@ -4414,6 +4415,7 @@ async function fdSalvarElenco(serieId, castData) {
         if(!atorUUID){
           const novoPayload = {nome:membro.nome};
           if(membro.nomeAlt) novoPayload.nome_alt = membro.nomeAlt;
+          if(membro.hangul) novoPayload.nome_estrangeiro = membro.hangul;
           const novoRes = await fetch(`${SB_URL}/rest/v1/atores`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify(novoPayload)});
           const novo = await novoRes.json();
           atorUUID = novo[0]?.id;
@@ -4428,6 +4430,11 @@ async function fdSalvarElenco(serieId, castData) {
       // Se nomeAlt preenchido e ator já existe, atualiza o cadastro do ator
       if(atorUUID && membro.nomeAlt){
         await fetch(`${SB_URL}/rest/v1/atores?id=eq.${atorUUID}`,{method:'PATCH',headers:SB_HEADERS,body:JSON.stringify({nome_alt:membro.nomeAlt})});
+      }
+
+      // Atualizar hangul se preenchido e ator já existe
+      if(atorUUID && membro.hangul){
+        await fetch(`${SB_URL}/rest/v1/atores?id=eq.${atorUUID}`,{method:'PATCH',headers:SB_HEADERS,body:JSON.stringify({nome_estrangeiro:membro.hangul})});
       }
 
       if(atorUUID && sbSerieId){
