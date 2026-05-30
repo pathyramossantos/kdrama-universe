@@ -3191,7 +3191,7 @@ async function searchTMDBator(){
   const res=document.getElementById('tmdb-ator-results');
   res.innerHTML=`<div style="color:var(--text3);font-size:.82rem;padding:8px"><span class="spinner"></span> Buscando…</div>`;
   try{
-    const r=await fetch(`${TMDB_BASE}/search/person?api_key=${tmdbKey}&query=${encodeURIComponent(q)}&language=en-US`);
+    const r=await fetch(`${TMDB_BASE}/search/person?api_key=${tmdbKey}&query=${encodeURIComponent(q)}&language=pt-BR`);
     const data=await r.json();
     const results=(data.results||[]).slice(0,8);
     if(!results.length){res.innerHTML=`<p style="color:var(--text3);font-size:.82rem;padding:8px">Nenhum resultado encontrado.</p>`;return;}
@@ -3948,7 +3948,7 @@ async function acCriarNovoComTMDB(castId, nome) {
   if (wrap) wrap.style.display = 'block';
   if (res) res.innerHTML = '<div style="color:var(--text3);font-size:.82rem;padding:6px">Buscando no TMDB…</div>';
   try {
-    var r1 = await fetch(TMDB_BASE + '/search/person?api_key=' + tmdbKey + '&query=' + encodeURIComponent(nome) + '&language=en-US');
+    var r1 = await fetch(TMDB_BASE + '/search/person?api_key=' + tmdbKey + '&query=' + encodeURIComponent(nome) + '&language=pt-BR');
     var d1 = await r1.json();
     var items = (d1.results || []).slice(0, 8);
     if (!items.length) {
@@ -5367,7 +5367,7 @@ async function faSearchTMDB(){
   const res=document.getElementById('fa-tmdb-results');
   res.innerHTML=`<div style="color:var(--text3);font-size:.82rem;padding:6px">Buscando…</div>`;
   try{
-    const r=await fetch(`${TMDB_BASE}/search/person?api_key=${tmdbKey}&query=${encodeURIComponent(q)}&language=en-US`);
+    const r=await fetch(`${TMDB_BASE}/search/person?api_key=${tmdbKey}&query=${encodeURIComponent(q)}&language=pt-BR`);
     const data=await r.json();
     const items=(data.results||[]).slice(0,5);
     if(!items.length){ res.innerHTML=`<p style="color:var(--text3);font-size:.82rem;padding:6px">Nenhum resultado.</p>`; return; }
@@ -5663,7 +5663,7 @@ async function faAbrirFotosTMDB(){
     if(!tmdbId){
       var nome = (document.getElementById('fa-nome').value || '').trim();
       if(!nome){ grid.innerHTML = '<div class="tmdb-photos-empty">Digite o nome do ator primeiro.</div>'; return; }
-      var sr = await fetch(TMDB_BASE + '/search/person?api_key=' + tmdbKey + '&query=' + encodeURIComponent(nome) + '&language=en-US');
+      var sr = await fetch(TMDB_BASE + '/search/person?api_key=' + tmdbKey + '&query=' + encodeURIComponent(nome) + '&language=pt-BR');
       var sd = await sr.json();
       if(!sd.results || !sd.results.length){ grid.innerHTML = '<div class="tmdb-photos-empty">Ator não encontrado no TMDB. Verifique o nome.</div>'; return; }
       tmdbId = sd.results[0].id;
