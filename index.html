@@ -4621,6 +4621,8 @@ async function faGerarBio() {
         if(dataP.biography) dadosTMDB += 'Bio TMDB (referência): ' + dataP.biography + '\n';
         if(dataP.place_of_birth) dadosTMDB += 'Local de nascimento: ' + dataP.place_of_birth + '\n';
         if(dataP.known_for_department) dadosTMDB += 'Área: ' + dataP.known_for_department + '\n';
+        var generoMap = {1:'feminino', 2:'masculino', 3:'não-binário'};
+        if(dataP.gender && generoMap[dataP.gender]) dadosTMDB += 'Gênero: ' + generoMap[dataP.gender] + '\n';
         var resC = await fetch(TMDB_BASE + '/person/' + tmdbId + '/combined_credits?api_key=' + tmdbKey + '&language=pt-BR');
         var dataC = await resC.json();
         var cast = (dataC.cast || []).filter(function(c){ return c.media_type === 'tv' || c.media_type === 'movie'; })
