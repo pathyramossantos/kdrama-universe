@@ -5054,30 +5054,36 @@ function closeFormAtor(){
 }
 
 function faPreviewBanner(url) {
-  const wrap = document.getElementById('fa-banner-preview-wrap');
-  const posWrap = document.getElementById('fa-banner-pos-wrap');
-  const el = document.getElementById('fa-banner-preview-img');
+  var wrap = document.getElementById('fa-banner-preview-wrap');
+  var posWrap = document.getElementById('fa-banner-pos-wrap');
+  var el = document.getElementById('fa-banner-preview-img');
   if (!url) { wrap.style.display='none'; if(posWrap) posWrap.style.display='none'; return; }
-  el.style.backgroundImage = 'url("' + url + '")'; 
   wrap.style.display = 'block';
   if(posWrap) posWrap.style.display = 'block';
-  // Carregar posição salva (edição) ou padrão (novo)
-  const saved = (faEditId && (allAtores.find(a=>a.id===faEditId)?.fields?.['Banner_Position'] 
-               || localStorage.getItem(`kdrama_atorbannerpos_${faEditId}`))) 
+  var saved = (faEditId && (allAtores.find(function(a){ return a.id===faEditId; })
+               ?.fields?.['Banner_Position']
+               || localStorage.getItem('kdrama_atorbannerpos_' + faEditId)))
                || '50% 20%';
-  const parts = saved.split(' ');
-  const x = parseInt(parts[0]) || 50;
-  const y = parseInt(parts[1]) || 20;
-  const slX = document.getElementById('fa-banner-pos-x');
-  const slY = document.getElementById('fa-banner-pos-y');
-  const slZ = document.getElementById('fa-banner-zoom');
+  var parts = saved.split(' ');
+  var x = parseInt(parts[0]) || 50;
+  var y = parseInt(parts[1]) || 20;
+  var slX = document.getElementById('fa-banner-pos-x');
+  var slY = document.getElementById('fa-banner-pos-y');
+  var slZ = document.getElementById('fa-banner-zoom');
   if(slX){ slX.value = x; document.getElementById('fa-banner-pos-x-val').textContent = x+'%'; }
   if(slY){ slY.value = y; document.getElementById('fa-banner-pos-y-val').textContent = y+'%'; }
   if(slZ){ slZ.value = 100; document.getElementById('fa-banner-zoom-val').textContent = '100%'; }
-  el.style.backgroundPosition = x+'% '+y+'%';
-  el.style.backgroundSize = '100%';
+  el._bannerUrl = url;
+  var tmpImg = new Image();
+  tmpImg.onload = function(){
+    el._natW = tmpImg.naturalWidth;
+    el._natH = tmpImg.naturalHeight;
+    el.style.backgroundImage = 'url("' + url + '")'; 
+    el.style.backgroundPosition = x+'% '+y+'%';
+    el.style.backgroundSize = 'cover';
+  };
+  tmpImg.src = url;
 }
-
 function faUpdateBannerPos() {
   const x = document.getElementById('fa-banner-pos-x').value;
   const y = document.getElementById('fa-banner-pos-y').value;
