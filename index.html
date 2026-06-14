@@ -4295,7 +4295,7 @@ async function salvarMiniFormDir() {
     showToast('Salvando…');
     let fotoUrl = fdirFotoUrlFinal || document.getElementById('fdir-foto-url')?.value.trim() || '';
     if (fdirFotoFile) {
-      try { fotoUrl = await uploadToSupabase(fdirFotoFile, 'diretores'); } catch(e) { showToast('Erro no upload: ' + e.message); return; }
+      try { fotoUrl = await uploadToR2(fdirFotoFile, 'diretores'); } catch(e) { showToast('Erro no upload: ' + e.message); return; }
     }
     const fields = {
       'Nome': nome,
@@ -5021,10 +5021,10 @@ async function fdSalvar(){
       if(fdRatings[r]) fields[r]=fdRatings[r];
     });
 
-    // Capa — upload pro Supabase se tiver arquivo
+    // Capa — upload pro R2 se tiver arquivo
     if (fdCapaFile) {
       try {
-        const uploadedUrl = await uploadToSupabase(fdCapaFile, 'doramas');
+        const uploadedUrl = await uploadToR2(fdCapaFile, 'doramas');
         fdCapaUrlFinal = uploadedUrl;
         document.getElementById('fd-capa-url').value = uploadedUrl;
         fdCapaFile = null;
@@ -5271,6 +5271,25 @@ async function uploadToSupabase(file, pasta = 'fotos') {
     throw new Error('Upload falhou: ' + err);
   }
   return `${SB_URL}/storage/v1/object/public/imagens/${nome}`;
+}
+
+async function uploadToR2(file, pasta) {
+  const ext = file.name.split('.').pop() || 'jpg';
+  const nome = pasta + '/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
+  const res = await fetch('https://kdrama-r2-upload.pathyzinharamos.workers.dev/', {
+    method: 'POST',
+    headers: {
+      'X-File-Name': nome,
+      'X-File-Type': file.type || 'image/jpeg',
+    },
+    body: file
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error('Upload R2 falhou: ' + err);
+  }
+  const data = await res.json();
+  return data.url;
 }
 
 // ── DRAG AND DROP GENÉRICO ───────────────────────────────────────────
@@ -5723,11 +5742,11 @@ async function faSalvar(){
   status.textContent='Salvando…'; prog.style.display='block'; bar.style.width='30%';
 
   try{
-    // Upload da foto pro Supabase Storage se tiver arquivo selecionado
+    // Upload da foto pro R2 se tiver arquivo selecionado
     if (faFotoFile) {
       try {
         bar.style.width = '20%';
-        const uploadedUrl = await uploadToSupabase(faFotoFile, 'atores');
+        const uploadedUrl = await uploadToR2(faFotoFile, 'atores');
         faFotoUrlFinal = uploadedUrl;
         document.getElementById('fa-foto-url').value = uploadedUrl;
         faFotoFile = null;
