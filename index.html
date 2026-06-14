@@ -2267,9 +2267,10 @@ async function fetchTable(tableId, options={}) {
   if (!tabela) { console.warn('Tabela não mapeada:', tableId); return []; }
 
   let url = `${SB_URL}/rest/v1/${tabela}?select=*`;
+  if (tabela === 'atores') url = `${SB_URL}/rest/v1/atores?select=id,airtable_id,created_at,nome,nome_estrangeiro,nome_alt,foto,data_nascimento,instagram,site,url_hancinema,links,agencia_id,banner_position,banner_url,data_cadastro`;
   if (tabela === 'elenco') url = `${SB_URL}/rest/v1/elenco?select=*,series:serie_id(id,airtable_id),atores:ator_id(id,airtable_id)`;
   if (tabela === 'blog')   url = `${SB_URL}/rest/v1/blog?select=*,series:serie_id(airtable_id,nome)`;
-  if (tabela === 'ost')    url = `${SB_URL}/rest/v1/ost?select=*,series:serie_id(airtable_id)`;
+  if (tabela === 'ost')    url = `${SB_URL}/rest/v1/ost?select=id,airtable_id,created_at,nome_faixa,artista,youtube_url,ordem,serie_id,series:serie_id(airtable_id)`;
 
   if (options.formula) {
     const ids = [...options.formula.matchAll(/RECORD_ID\(\)='([^']+)'/g)].map(m=>m[1]);
