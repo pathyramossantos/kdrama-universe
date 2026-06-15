@@ -3880,9 +3880,22 @@ async function acBuscar(id, q) {
   }, 150);
 }
 
+function acOnInput(id, input) {
+  const row = document.getElementById('cast-row-' + id);
+  const nomeAtual = input.value;
+  const nomeAnterior = row.dataset.nomeConfirmado || '';
+  if (nomeAtual !== nomeAnterior) {
+    row.dataset.atorId = '';
+    row.dataset.atorSbId = '';
+    row.dataset.nomeConfirmado = '';
+  }
+  acBuscar(id, nomeAtual);
+}
+
 function acSelecionar(id, atorId, nome, nomeAlt, foto, hangul) {
   document.getElementById(`cast-nome-${id}`).value = nome;
   document.getElementById(`cast-row-${id}`).dataset.atorId = atorId;
+  document.getElementById(`cast-row-${id}`).dataset.nomeConfirmado = nome;
   if (nomeAlt !== undefined) {
     document.getElementById(`cast-nomealt-${id}`).value = nomeAlt || '';
     document.getElementById(`cast-row-${id}`).dataset.nomeAlt = nomeAlt || '';
@@ -4087,7 +4100,7 @@ function fdAddCastRow(data={}) {
       <div class="ac-wrap" style="position:relative">
         <input class="fi" id="cast-nome-${id}" placeholder="Nome do ator" value="${data.nome||''}"
           style="font-size:.82rem;padding:6px 10px;width:100%"
-          oninput="document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)" onpaste="setTimeout(()=>{document.getElementById('cast-row-${id}').dataset.atorId='';acBuscar(${id}, this.value)},50)" onblur="setTimeout(()=>acFechar(${id}),200)" autocomplete="off">
+          oninput="acOnInput(${id}, this)" onpaste="setTimeout(()=>{acOnInput(${id}, this)},50)" onblur="setTimeout(()=>acFechar(${id}),200)" autocomplete="off">
         <div class="ac-list" id="ac-list-${id}"></div>
       </div>
       <div style="display:flex;gap:4px;margin-top:4px">
