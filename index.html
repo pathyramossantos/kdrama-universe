@@ -4222,10 +4222,12 @@ function fdDirNovo(rowId, nome, tipo) {
   document.getElementById('fdir-nome-kor').value = '';
   document.getElementById('fdir-tipo').value = tipo;
   document.getElementById('form-dir-overlay').classList.add('open');
+  document.addEventListener('paste', fdirPasteHandler);
 }
 
 function closeMiniFormDir() {
   document.getElementById('form-dir-overlay').classList.remove('open');
+  document.removeEventListener('paste', fdirPasteHandler);
   _fdDirCallback = null;
 }
 
@@ -4241,6 +4243,7 @@ function openMiniFormDirFromPage() {
   fdirClearFoto();
   document.getElementById('fdir-foto-url').value = '';
   document.getElementById('form-dir-overlay').classList.add('open');
+  document.addEventListener('paste', fdirPasteHandler);
 }
 
 let _fdDirEditId = null; // ID do diretor em edição (null = criação)
@@ -4265,6 +4268,7 @@ function openEditDir(id) {
   const btnSalvar = document.getElementById('fdir-btn-salvar');
   if (btnSalvar) btnSalvar.textContent = '💾 Salvar Alterações';
   document.getElementById('form-dir-overlay').classList.add('open');
+  document.addEventListener('paste', fdirPasteHandler);
 }
 
 async function salvarMiniFormDir() {
@@ -5122,11 +5126,13 @@ function openFormAtor(ator=null){
 
   document.getElementById('form-ator-overlay').classList.add('open');
   document.body.style.overflow='hidden';
+  document.addEventListener('paste', faPasteHandler);
 }
 
 function closeFormAtor(){
   document.getElementById('form-ator-overlay').classList.remove('open');
   document.body.style.overflow='';
+  document.removeEventListener('paste', faPasteHandler);
 }
 
 function faPreviewBanner(url) {
@@ -5360,6 +5366,34 @@ function faPreviewFotoUrl(url){
   if(!url) return;
   faFotoFile=null; faFotoUrlFinal=url;
   faShowFoto(url);
+}
+function faPasteHandler(e){
+  const items = (e.clipboardData || (e.originalEvent && e.originalEvent.clipboardData) || window.clipboardData).items;
+  if(!items) return;
+  for(let i=0; i<items.length; i++){
+    if(items[i].type.indexOf('image') === -1) continue;
+    const file = items[i].getAsFile();
+    if(!file) continue;
+    faFotoFile = file; faFotoUrlFinal = null;
+    document.getElementById('fa-foto-url').value = '';
+    faShowFoto(URL.createObjectURL(file));
+    e.preventDefault();
+    break;
+  }
+}
+function fdirPasteHandler(e){
+  const items = (e.clipboardData || (e.originalEvent && e.originalEvent.clipboardData) || window.clipboardData).items;
+  if(!items) return;
+  for(let i=0; i<items.length; i++){
+    if(items[i].type.indexOf('image') === -1) continue;
+    const file = items[i].getAsFile();
+    if(!file) continue;
+    fdirFotoFile = file; fdirFotoUrlFinal = null;
+    document.getElementById('fdir-foto-url').value = '';
+    fdirShowFoto(URL.createObjectURL(file));
+    e.preventDefault();
+    break;
+  }
 }
 
 async function faSearchTMDB(){
