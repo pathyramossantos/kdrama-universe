@@ -4657,6 +4657,39 @@ async function faGerarBio() {
       }catch(e){ console.warn('Wikipedia KO error:', e); }
     }
 
+    // Buscar MDL se tiver link mydramalist.com/people nos links cadastrados
+    var mdlTexto = '';
+    var mdlFilmografia = '';
+    var mdlLink = links.find(function(l){ return l.includes('mydramalist.com/people'); });
+    if(mdlLink && !filmografiaTMDB){
+      try{
+        var mdlIdMatch = mdlLink.match(/mydramalist\.com\/people\/(\d+)/);
+        if(mdlIdMatch){
+          var mdlPeopleId = mdlIdMatch[1];
+          var mdlRes = await fetch('https://mdl-api-three.vercel.app/api/people/' + mdlPeopleId);
+          if(mdlRes.ok){
+            var mdlData = await mdlRes.json();
+            if(mdlData && !mdlData.error){
+              if(mdlData.biography) mdlTexto += 'Biografia MDL (referência): ' + mdlData.biography.slice(0, 1500) + '\n';
+              if(mdlData.personal_info){
+                var pi = mdlData.personal_info;
+                if(pi.nationality) mdlTexto += 'Nacionalidade: ' + pi.nationality + '\n';
+                if(pi.gender) mdlTexto += 'Gênero: ' + pi.gender + '\n';
+              }
+              var filmo = mdlData.filmography || {};
+              var todasObras = [];
+              Object.keys(filmo).forEach(function(tipo){
+                (filmo[tipo] || []).forEach(function(obra){
+                  if(obra.title) todasObras.push(obra.title + (obra.year ? ' (' + obra.year + ')' : '') + (obra.character_name ? ' — ' + obra.character_name : '') + (obra.role ? ' [' + obra.role + ']' : ''));
+                });
+              });
+              if(todasObras.length) mdlFilmografia = 'Filmografia MDL:\n- ' + todasObras.slice(0, 40).join('\n- ');
+            }
+          }
+        }
+      }catch(e){ console.warn('MDL people error:', e); }
+    }
+
     // Montar prompt
     var ctx = 'Nome: ' + nome + '\n';
     if(nomeKor) ctx += 'Nome coreano: ' + nomeKor + '\n';
@@ -4665,9 +4698,11 @@ async function faGerarBio() {
     if(links.length) ctx += 'Links cadastrados: ' + links.join(', ') + '\n';
     if(dadosTMDB) ctx += dadosTMDB;
     if(filmografiaTMDB) ctx += '\n' + filmografiaTMDB + '\n';
+    if(mdlTexto) ctx += '\n' + mdlTexto;
+    if(mdlFilmografia) ctx += '\n' + mdlFilmografia + '\n';
     if(wikiTexto) ctx += '\nWikipédia coreana (conteúdo completo para referência):\n' + wikiTexto + '\n';
-    if(bioRef && !dadosTMDB && !wikiTexto) ctx += '\nInformações de referência: ' + bioRef + '\n';
-    if(!filmografiaTMDB && !wikiTexto) ctx += '\n(Não há filmografia disponível nas fontes consultadas. Se não souber, diga isso diretamente sem inventar.)';
+    if(bioRef && !dadosTMDB && !wikiTexto && !mdlTexto) ctx += '\nInformações de referência: ' + bioRef + '\n';
+    if(!filmografiaTMDB && !mdlFilmografia && !wikiTexto) ctx += '\n(Não há filmografia disponível nas fontes consultadas. Se não souber, diga isso diretamente sem inventar.)';
 
     var systemPrompt = 'Você é um assistente inteligente, direto e levemente sarcástico, especializado em escrever biografias de atores coreanos para um site pessoal de K-dramas.\n\nEstilo obrigatório:\n- Escreva como uma mente brilhante com humor afiado e personalidade forte, sem enrolação.\n- Sem tom de "assistente de IA" ou de Wikipedia. Sem formalidade corporativa.\n- Ritmo de leitura leve, mas informado.\n- 5 a 6 parágrafos curtos. Sem asteriscos ou markdown. Entre 400 e 600 palavras.\n- Em português brasileiro.\n- COMPLETE a biografia inteira. Nunca pare no meio de uma frase ou parágrafo.\n\nUSO OBRIGATÓRIO DA FILMOGRAFIA:\n- Se houver filmografia no contexto, USE-A. Mencione títulos reais, personagens, períodos.\n- Identifique padrões: tipos de papel, gêneros preferidos, evolução da carreira.\n- Não diga que o ator é misterioso ou desconhecido se houver filmografia disponível.\n- Cite pelo menos 2-3 obras concretas quando existirem.\n\nEstrutura obrigatória:\n1. Abertura direta: nome completo (romanização + hangul), idade, data e origem. O "jeito" dele na tela.\n2. Trajetória: como chegou à atuação, percurso na carreira com obras reais.\n3. Tipo de papel que faz com mais frequência, baseado na filmografia fornecida.\n4. Status atual na indústria coreana.\n5. Comentário final sobre o que ele representa no cenário coreano.\n\nREGRA FUNDAMENTAL: Não invente dados. Se não tiver informação sobre algo (vida pessoal, agência, universidade), diga isso diretamente. Mas se tiver filmografia, USE — nunca trate o ator como desconhecido quando há dados.\n\nExemplo de tom (NÃO COPIE, só guia de estilo):\n"Park Geun-wan é o mistério que acontece quando alguém escolhe trabalho silencioso em vez de ruído. Não há informações públicas sobre trabalhos recentes — e isso é dito diretamente, sem inventar nada. Ele não precisa ser o centro pra ser essencial."';
     var prompt = 'Escreva a biografia deste ator para o site de K-dramas, seguindo o estilo e estrutura do system prompt:\n\n' + ctx;
