@@ -2158,7 +2158,8 @@ function sbToAt(row, tabela) {
       'Links': row.links || [],
       'Agencia ID': row.agencia_id || null,
       'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url,
-      'Data do cadastro': row.data_cadastro, 'Elenco': row.elenco_ids || []
+      'Data do cadastro': row.data_cadastro, 'Elenco': row.elenco_ids || [],
+      '_sbId': row.id || ''
     };
   } else if (tabela === 'elenco') {
     fields = {
@@ -3835,13 +3836,13 @@ async function acBuscar(id, q) {
         list.innerHTML = '<div class="ac-item" style="color:var(--text3);pointer-events:none">Buscando…</div>';
         list.classList.add('open');
         const [res1, res2, res3] = await Promise.all([
-          fetch(`${SB_URL}/rest/v1/atores?nome=ilike.*${encodeURIComponent(q2)}*&select=airtable_id,nome,nome_alt,nome_estrangeiro,foto,data_nascimento&limit=8`, {
+          fetch(`${SB_URL}/rest/v1/atores?nome=ilike.*${encodeURIComponent(q2)}*&select=id,airtable_id,nome,nome_alt,nome_estrangeiro,foto,data_nascimento&limit=8`, {
             headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
           }),
-          fetch(`${SB_URL}/rest/v1/atores?nome_alt=ilike.*${encodeURIComponent(q2)}*&select=airtable_id,nome,nome_alt,nome_estrangeiro,foto,data_nascimento&limit=8`, {
+          fetch(`${SB_URL}/rest/v1/atores?nome_alt=ilike.*${encodeURIComponent(q2)}*&select=id,airtable_id,nome,nome_alt,nome_estrangeiro,foto,data_nascimento&limit=8`, {
             headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
           }),
-          fetch(`${SB_URL}/rest/v1/atores?nome_estrangeiro=ilike.*${encodeURIComponent(q)}*&select=airtable_id,nome,nome_alt,nome_estrangeiro,foto,data_nascimento&limit=8`, {
+          fetch(`${SB_URL}/rest/v1/atores?nome_estrangeiro=ilike.*${encodeURIComponent(q)}*&select=id,airtable_id,nome,nome_alt,nome_estrangeiro,foto,data_nascimento&limit=8`, {
             headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
           })
         ]);
@@ -3859,7 +3860,8 @@ async function acBuscar(id, q) {
       const _nae = (a.fields['Nome Alt']||'').replace(/'/g,"\'");
       const _hangul = (a.fields['Nome Estrangeiro']||'').replace(/'/g,"\'");
       const _foto = (getPhoto(a,'Foto')||'').replace(/'/g,"'");
-      return '<div class="ac-item" onclick="acSelecionar(' + id + ',\'' + a.id + '\',\'' + _ne + '\',\'' + _nae + '\',\'' + _foto + '\',\'' + _hangul + '\')">' +
+      const _sbId = (a.fields['_sbId']||'').replace(/'/g,"'");
+      return '<div class="ac-item" onclick="acSelecionar(' + id + ',\'' + a.id + '\',\'' + _ne + '\',\'' + _nae + '\',\'' + _foto + '\',\'' + _hangul + '\',\'' + _sbId + '\')">' +
         (foto ? '<img src="' + foto + '" loading="lazy">' : '<div style="width:28px;height:36px;background:var(--bg3);border-radius:4px;flex-shrink:0"></div>') +
         '<div class="ac-item-info">' +
         '<div class="ac-item-nome">' + (a.fields['Nome']||'') + '</div>' +
@@ -3892,9 +3894,10 @@ function acOnInput(id, input) {
   acBuscar(id, nomeAtual);
 }
 
-function acSelecionar(id, atorId, nome, nomeAlt, foto, hangul) {
+function acSelecionar(id, atorId, nome, nomeAlt, foto, hangul, atorSbId) {
   document.getElementById(`cast-nome-${id}`).value = nome;
   document.getElementById(`cast-row-${id}`).dataset.atorId = atorId;
+  document.getElementById(`cast-row-${id}`).dataset.atorSbId = atorSbId || '';
   document.getElementById(`cast-row-${id}`).dataset.nomeConfirmado = nome;
   if (nomeAlt !== undefined) {
     document.getElementById(`cast-nomealt-${id}`).value = nomeAlt || '';
