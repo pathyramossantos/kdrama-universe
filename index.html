@@ -5481,16 +5481,24 @@ async function faImportTMDB(personId){
       faPreviewFotoUrl(url);
     }
 
-    // Instagram via external_ids — adiciona nos links dinâmicos se não existir
-    if (extIds.instagram_id) {
-      var instaUrl = 'https://www.instagram.com/' + extIds.instagram_id + '/';
-      var linksList = document.getElementById('fa-links-list');
-      if (linksList) {
-        var jaTemInsta = Array.from(linksList.querySelectorAll('input')).some(function(i){
-          return i.value.includes('instagram.com');
-        });
-        if (!jaTemInsta) faAddLink(instaUrl);
-      }
+    // Links externos via external_ids
+    var _extLinks = [
+      { id: extIds.instagram_id, base: 'https://www.instagram.com/', domain: 'instagram.com' },
+      { id: extIds.facebook_id,  base: 'https://www.facebook.com/', domain: 'facebook.com' },
+      { id: extIds.twitter_id,   base: 'https://twitter.com/',      domain: 'twitter.com' },
+      { id: extIds.tiktok_id,    base: 'https://www.tiktok.com/@', domain: 'tiktok.com' },
+      { id: extIds.youtube_id,   base: 'https://www.youtube.com/@', domain: 'youtube.com' },
+      { id: extIds.wikidata_id,  base: 'https://www.wikidata.org/wiki/', domain: 'wikidata.org' },
+    ];
+    var linksList = document.getElementById('fa-links-list');
+    if (linksList) {
+      var existentes = Array.from(linksList.querySelectorAll('input')).map(function(i){ return i.value; });
+      _extLinks.forEach(function(l){
+        if (!l.id) return;
+        var url = l.base + l.id + (l.domain === 'wikidata.org' ? '' : '/');
+        var jaTem = existentes.some(function(e){ return e.includes(l.domain); });
+        if (!jaTem) { faAddLink(url); existentes.push(url); }
+      });
     }
 
     if(_res) _res.innerHTML=`<p style="color:var(--teal);font-size:.82rem;padding:6px">✓ Importado!</p>`;
