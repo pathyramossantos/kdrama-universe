@@ -6184,7 +6184,6 @@ function getBlogTableId() { return TABLES.blog || null; }
 async function renderBlog() {
   const list = document.getElementById('blog-list');
   if (!list) return;
-  if (!isOwner()) { list.innerHTML = '<div class="empty-state"><div class="icon">🔒</div><p>Acesso restrito.</p></div>'; return; }
   const tbl = getBlogTableId();
   if (!tbl) return;
   list.innerHTML = skeletons(4, '16/7');
@@ -6231,6 +6230,27 @@ async function renderPost(id) {
     if (!post) {
       const recs = await fetchTable(TABLES.blog, {formula:`RECORD_ID()='${id}'`});
       post = recs[0] || null;
+    }
+    if (!post) {
+      // Busca direta por id no Supabase
+      const res = await fetch(SB_URL + '/rest/v1/blog?id=eq.' + id + '&select=*,series:serie_id(airtable_id,nome)', {headers: SB_HEADERS});
+      const rows = await res.json();
+      if (rows && rows.length) {
+        const row = rows[0];
+        post = {
+          id: row.id,
+          createdTime: row.created_at,
+          fields: {
+            'Título': row.titulo, 'Tipo': row.tipo, 'Status': row.status,
+            'Kicker': row.kicker, 'Conteúdo': row.conteudo, 'Capa': row.capa,
+            'Tags': row.tags, 'Nota': row.nota, 'Experiência': row.experiencia,
+            'Autor': row.autor, 'Data': row.data, 'Galeria': row.galeria,
+            'Videos': row.videos,
+            'Dorama ID': row.series ? row.series.airtable_id : null,
+            '_serieNome': row.series ? row.series.nome : null,
+          }
+        };
+      }
     }
     if (!post) throw new Error('Post não encontrado');
     currentPost = post;
