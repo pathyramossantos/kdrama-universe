@@ -4967,7 +4967,7 @@ function fdGaleriaRender(urls) {
   ).join('');
 }
 
-function fdGaleriaRemove(i) { const url = _fdGaleriaUrls[i]; _fdGaleriaUrls.splice(i, 1); fdGaleriaRender(_fdGaleriaUrls); deleteFromSupabase(url); }
+function fdGaleriaRemove(i) { const url = _fdGaleriaUrls[i]; _fdGaleriaUrls.splice(i, 1); fdGaleriaRender(_fdGaleriaUrls); deleteMedia(url); }
 
 async function fdGaleriaUploadFileToR2(file) {
   const ext = (file.name || 'img').split('.').pop() || 'jpg';
@@ -5320,7 +5320,7 @@ function faClearFoto(){
   if (bannerImg) bannerImg.src = '';
   if (bannerInput) bannerInput.value = '';
 }
-function faRemoveFoto(e){ e.stopPropagation(); const oldUrl = document.getElementById('fa-foto-url').value; faClearFoto(); document.getElementById('fa-foto-url').value=''; deleteFromSupabase(oldUrl); }
+function faRemoveFoto(e){ e.stopPropagation(); const oldUrl = document.getElementById('fa-foto-url').value; faClearFoto(); document.getElementById('fa-foto-url').value=''; deleteMedia(oldUrl); }
 // ── UPLOAD SUPABASE STORAGE ─────────────────────────────────────────
 async function deleteFromSupabase(url) {
   if (!url || !url.includes('supabase.co/storage')) return;
@@ -5332,6 +5332,24 @@ async function deleteFromSupabase(url) {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
   } catch(_) {}
+}
+
+async function deleteFromR2(url) {
+  if (!url || !url.includes('r2.dev')) return;
+  try {
+    const nome = url.split('r2.dev/')[1];
+    if (!nome) return;
+    await fetch('https://kdrama-r2-upload.pathyzinharamos.workers.dev/', {
+      method: 'DELETE',
+      headers: { 'X-File-Name': nome }
+    });
+  } catch(_) {}
+}
+
+async function deleteMedia(url) {
+  if (!url) return;
+  if (url.includes('supabase.co/storage')) { await deleteFromSupabase(url); return; }
+  if (url.includes('r2.dev')) { await deleteFromR2(url); return; }
 }
 
 async function uploadToSupabase(file, pasta = 'fotos') {
@@ -5448,7 +5466,7 @@ function fdirRemoveFoto(e) {
   const oldUrl = document.getElementById('fdir-foto-url').value;
   fdirClearFoto();
   document.getElementById('fdir-foto-url').value = '';
-  deleteFromSupabase(oldUrl);
+  deleteMedia(oldUrl);
 }
 
 function faPreviewFoto(input){
