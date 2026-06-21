@@ -2660,7 +2660,7 @@ async function renderDorama(id){
       if(sbSerieId){
         const [elencoRows, dirRows] = await Promise.all([
           fetch(SB_URL+'/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,nome_alt,foto,data_nascimento)&serie_id=eq.'+sbSerieId,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).then(r=>r.json()),
-          fetch(SB_URL+'/rest/v1/serie_direcao?select=papel,direcao:direcao_id(airtable_id,nome,nome_estrangeiro,foto,tipo)&serie_id=eq.'+sbSerieId,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).then(r=>r.json())
+          fetch(SB_URL+'/rest/v1/serie_direcao?select=papel,direcao:direcao_id(id,airtable_id,nome,nome_estrangeiro,foto,tipo)&serie_id=eq.'+sbSerieId,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).then(r=>r.json())
         ]);
         castRecords = elencoRows.map(row => {
           const atorRaw = row.atores ? {...row.atores, airtable_id: row.atores.airtable_id || row.atores.id} : null;
@@ -2668,10 +2668,13 @@ async function renderDorama(id){
           const elenco = sbToAt(row, 'elenco');
           return {elenco, ator};
         });
-        dirDorama = dirRows.map(row => ({
-          ...sbToAt(row.direcao, 'direcao'),
-          _tipoDisplay: row.papel === 'Roteirista' ? 'ROTEIRISTA' : 'DIRETOR'
-        }));
+        dirDorama = dirRows.map(row => {
+          const dirRaw = row.direcao ? {...row.direcao, airtable_id: row.direcao.airtable_id || row.direcao.id} : null;
+          return {
+            ...sbToAt(dirRaw, 'direcao'),
+            _tipoDisplay: row.papel === 'Roteirista' ? 'ROTEIRISTA' : 'DIRETOR'
+          };
+        });
       }
     }catch(e){ console.warn('elenco/direcao error:', e); }
     const resenhaPost = allPosts.find(p => {
