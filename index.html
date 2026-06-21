@@ -8406,17 +8406,12 @@ async function renderDiretor(id) {
   // Buscar séries vinculadas via tabela serie_direcao no Supabase
   let vinculados = [];
   try {
-    const dirRes = await fetch(`${SB_URL}/rest/v1/direcao?airtable_id=eq.${dir.id}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
-    const dirRows = await dirRes.json();
-    const dirUUID = dirRows[0]?.id;
-    if(dirUUID){
-      const sdRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?direcao_id=eq.${dirUUID}&select=papel,series:serie_id(airtable_id,nome,capa,ano_lancamento)`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
-      const sdRows = await sdRes.json();
-      vinculados = sdRows.map(row => ({
-        ...sbToAt(row.series, 'series'),
-        _papel: row.papel
-      }));
-    }
+    const sdRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?direcao_id=eq.${dir.id}&select=papel,series:serie_id(airtable_id,nome,capa,ano_lancamento)`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const sdRows = await sdRes.json();
+    vinculados = sdRows.map(row => ({
+      ...sbToAt(row.series, 'series'),
+      _papel: row.papel
+    }));
   } catch(_) {}
 
   const filmografiaHTML = vinculados.length ? `
