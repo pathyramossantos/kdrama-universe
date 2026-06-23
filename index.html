@@ -2026,6 +2026,7 @@ function refreshCurrentView() {
   if (currentId === 'home') { renderHome(false); }
   else if (currentId === 'dorama' && currentSerie) { renderDorama(currentSerie.id); }
   else if (currentId === 'atores') { renderAtores(); }
+  else if (currentId === 'ator' && currentAtor) { renderAtor(currentAtor.id); }
   else if (currentId === 'direcao' && typeof renderDirecao === 'function') { renderDirecao(); }
 }
 
