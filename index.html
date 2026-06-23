@@ -8420,7 +8420,14 @@ async function renderDiretor(id) {
   // Buscar séries vinculadas via tabela serie_direcao no Supabase
   let vinculados = [];
   try {
-    const sdRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?direcao_id=eq.${dir.id}&select=papel,series:serie_id(airtable_id,nome,capa,ano_lancamento)`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    // dir.id pode ser airtable_id ou UUID — busca o UUID real do diretor antes de consultar serie_direcao
+    let dirUUID = dir.id;
+    if (dir.id && !dir.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      const dirLookup = await fetch(`${SB_URL}/rest/v1/direcao?airtable_id=eq.${dir.id}&select=id`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+      const dirLookupRows = await dirLookup.json();
+      if (dirLookupRows[0]) dirUUID = dirLookupRows[0].id;
+    }
+    const sdRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?direcao_id=eq.${dirUUID}&select=papel,series:serie_id(airtable_id,nome,capa,ano_lancamento)`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
     const sdRows = await sdRes.json();
     vinculados = sdRows.map(row => ({
       ...sbToAt(row.series, 'series'),
