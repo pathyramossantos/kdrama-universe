@@ -2019,6 +2019,16 @@ function showToast(msg,dur=3000){
 var _scrollPos = {};
 var _listPages = ['home','atores','blog','direcao','agencias'];
 
+function refreshCurrentView() {
+  var currentActive = document.querySelector('.page.active');
+  if (!currentActive) return;
+  var currentId = currentActive.id.replace('page-', '');
+  if (currentId === 'home') { renderHome(false); }
+  else if (currentId === 'dorama' && currentSerie) { renderDorama(currentSerie.id); }
+  else if (currentId === 'atores') { renderAtores(); }
+  else if (currentId === 'direcao' && typeof renderDirecao === 'function') { renderDirecao(); }
+}
+
 function navigate(page, id) {
   // Alias: 'doramas' aponta pra page-home, 'inicio' pra page-inicio
   const pageAlias = page === 'doramas' ? 'home' : page;
@@ -5156,7 +5166,7 @@ async function fdSalvar(){
 
     showToast(fdEditId?`✓ "${nome}" atualizado!`:`✓ "${nome}" cadastrado!`);
     closeFormDorama();
-    setTimeout(() => { location.reload(); }, 1000);
+    if (typeof refreshCurrentView === 'function') refreshCurrentView();
 
   }catch(e){
     status.textContent='❌ Erro: '+e.message;
@@ -5934,7 +5944,7 @@ async function faSalvar(){
 
     showToast(faEditId?`✓ "${nome}" atualizado!`:`✓ "${nome}" cadastrado!`);
     closeFormAtor();
-    setTimeout(() => { location.reload(); }, 1000);
+    if (typeof refreshCurrentView === 'function') refreshCurrentView();
 
   }catch(e){
     status.textContent='❌ Erro: '+e.message;
