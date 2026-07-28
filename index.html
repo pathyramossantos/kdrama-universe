@@ -8037,7 +8037,7 @@ function radioPlay() {
 
 // Busca metadados ICY do stream a cada 15 segundos
 let _radioMetaInterval = null;
-const RADIO_STATUS_URL = 'http://uk25freenew.listen2myradio.com:31230/status.xsl';
+const RADIO_STATUS_URL = 'http://uk14freenew.listen2myradio.com:11865/status.xsl';
 const RADIO_STATUS_PROXY = 'https://api.allorigins.win/get?url=' + encodeURIComponent(RADIO_STATUS_URL);
 
 // ── AGÊNCIAS ──────────────────────────────────────────────────────────
@@ -8237,7 +8237,7 @@ function radioRenderTrack(title) {
 
 async function radioFetchNowPlaying() {
   try {
-    var bust = 'http://uk25freenew.listen2myradio.com:31230/status.xsl?_=' + Date.now();
+    var bust = 'http://uk14freenew.listen2myradio.com:11865/status.xsl?_=' + Date.now();
     var res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(bust), {
       signal: AbortSignal.timeout(5000)
     });
