@@ -1480,13 +1480,27 @@ select.filter-select:focus{border-color:var(--gold-dim)}
         <div id="tmdb-status" class="config-status"></div>
       </div>
 
+      <!-- OpenRouter AI -->
+      <div class="config-card">
+        <h3>🔀 OpenRouter AI (Biografias e Sinopses)</h3>
+        <div class="config-field">
+          <label class="config-label">OpenRouter API Key</label>
+          <input type="password" id="openrouter-key-input" class="config-input" placeholder="sk-or-…">
+          <p class="config-hint">Chave do OpenRouter. Crie em <a href="https://openrouter.ai" target="_blank" style="color:var(--gold)">openrouter.ai</a>. Usado como primeira opção — se falhar, cai automaticamente pro Gemini.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-gold" onclick="saveOpenrouterConfig()">Salvar OpenRouter Key</button>
+        </div>
+        <div id="openrouter-status" class="config-status"></div>
+      </div>
+
       <!-- Gemini AI -->
       <div class="config-card">
         <h3>✨ Gemini AI (Biografias)</h3>
         <div class="config-field">
           <label class="config-label">Gemini API Key</label>
           <input type="password" id="gemini-key-input" class="config-input" placeholder="AIza…">
-          <p class="config-hint">Chave do Google Gemini. Gratuita em <a href="https://aistudio.google.com" target="_blank" style="color:var(--gold)">aistudio.google.com</a>.</p>
+          <p class="config-hint">Chave do Google Gemini. Gratuita em <a href="https://aistudio.google.com" target="_blank" style="color:var(--gold)">aistudio.google.com</a>. Usado como reserva, caso o OpenRouter falhe.</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn-gold" onclick="saveGeminiConfig()">Salvar Gemini Key</button>
@@ -2015,6 +2029,7 @@ let githubToken = localStorage.getItem('kdrama_github_token') || '';
 let githubRepo  = localStorage.getItem('kdrama_github_repo') || 'kdrama-media';
 let tmdbKey   = localStorage.getItem('kdrama_tmdbkey') || 'd955f842429f465efe39144d129a01f1';
 let geminiKey = localStorage.getItem('kdrama_geminikey') || '';
+let openrouterKey = localStorage.getItem('kdrama_openrouterkey') || '';
 let allSeries = [], allAtores = [], allElenco = [], allPlataformas = [], allDirecao = [], allAgencias = [];
 let activeGenre='', activeStatus='', activePlatform='', searchQuery='';
 let editMode = false;
@@ -2124,6 +2139,7 @@ function navigate(page, id) {
     const ki = document.getElementById('api-key-input');
     const ti = document.getElementById('tmdb-key-input');
     const gi = document.getElementById('gemini-key-input');
+    const ori = document.getElementById('openrouter-key-input');
     const ghu = document.getElementById('github-user-input');
     const ght = document.getElementById('github-token-input');
     const ghr = document.getElementById('github-repo-input');
@@ -2133,6 +2149,7 @@ function navigate(page, id) {
 
     if (ti && tmdbKey)   ti.value = tmdbKey;
     if (gi && geminiKey) gi.value = geminiKey;
+    if (ori && openrouterKey) ori.value = openrouterKey;
   }
 }
 
@@ -3816,6 +3833,17 @@ async function saveTmdbConfig(){
   }catch(e){status.className='config-status err';status.textContent='Erro: '+e.message;}
 }
 
+function saveOpenrouterConfig(){
+  const key = document.getElementById('openrouter-key-input').value.trim();
+  const status = document.getElementById('openrouter-status');
+  if(!key){ status.className='config-status err'; status.textContent='Cole a OpenRouter API Key.'; status.style.display='block'; return; }
+  openrouterKey = key;
+  localStorage.setItem('kdrama_openrouterkey', key);
+  status.className='config-status ok';
+  status.textContent='✓ OpenRouter Key salva!';
+  status.style.display='block';
+}
+
 function saveGeminiConfig(){
   const key = document.getElementById('gemini-key-input').value.trim();
   const status = document.getElementById('gemini-status');
@@ -4601,7 +4629,33 @@ function faAbrirClaudeBio() {
 // IA — GERAÇÃO DE CONTEÚDO
 // ════════════════════════════════════════════════════════
 
-async function callClaude(prompt, systemPrompt) {
+async function callOpenRouter(prompt, systemPrompt) {
+  const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+  const res = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + openrouterKey
+    },
+    body: JSON.stringify({
+      model: 'openrouter/auto',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 4000,
+      temperature: 0.7
+    })
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e?.error?.message || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return data.choices[0].message.content;
+}
+
+async function callGemini(prompt, systemPrompt) {
   if(!geminiKey){ throw new Error('Configure a Gemini API Key nas configurações'); }
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
   const res = await fetch(apiUrl, {
@@ -4620,8 +4674,22 @@ async function callClaude(prompt, systemPrompt) {
   return data.candidates[0].content.parts[0].text;
 }
 
+async function callClaude(prompt, systemPrompt) {
+  if (!openrouterKey && !geminiKey) {
+    throw new Error('Configure a OpenRouter API Key ou a Gemini API Key nas configurações');
+  }
+  if (openrouterKey) {
+    try {
+      return await callOpenRouter(prompt, systemPrompt);
+    } catch (e) {
+      console.warn('OpenRouter falhou, tentando Gemini:', e.message);
+    }
+  }
+  return await callGemini(prompt, systemPrompt);
+}
+
 async function fdGerarSinopse() {
-  if(!geminiKey){ showToast('Configure a Gemini API Key nas configurações'); return; }
+  if(!openrouterKey && !geminiKey){ showToast('Configure a OpenRouter ou a Gemini API Key nas configurações'); return; }
   const nome       = document.getElementById('fd-nome')?.value?.trim() || '';
   const tituloOrig = document.getElementById('fd-titulo-orig')?.value?.trim() || '';
   const sinopseAtual = document.getElementById('fd-sinopse')?.value?.trim() || '';
@@ -4647,7 +4715,7 @@ async function fdGerarSinopse() {
 
 
 async function faGerarBio() {
-  if(!geminiKey){ showToast('Configure a Gemini API Key nas configurações'); return; }
+  if(!openrouterKey && !geminiKey){ showToast('Configure a OpenRouter ou a Gemini API Key nas configurações'); return; }
   var nome    = (document.getElementById('fa-nome')?.value||  '').trim();
   var nomeKor = (document.getElementById('fa-nome-kor')?.value||'').trim();
   var nomeAlt = (document.getElementById('fa-nome-alt')?.value||'').trim();
