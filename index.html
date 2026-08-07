@@ -7994,6 +7994,7 @@ function renderAniversarios() {
 const RADIO_STREAM_URL = 'https://uk14freenew.listen2myradio.com/live.mp3?typeportmount=ice_11865_stream_64562940';
 let radioPlaying = false;
 let radioPending = false;
+let radioRetries = 0;
 
 // ── RÁDIO — stream ao vivo ────────────────────────────────
 function radioUpdateUI(playing) {
@@ -8020,6 +8021,7 @@ function radioPlay() {
     p.then(() => {
       radioPlaying = true;
       radioPending = false;
+      radioRetries = 0;
       radioUpdateUI(true);
       radioFetchMetadata();
     }).catch(e => {
@@ -8030,9 +8032,25 @@ function radioPlay() {
   } else {
     radioPlaying = true;
     radioPending = false;
+    radioRetries = 0;
     radioUpdateUI(true);
     radioFetchMetadata();
   }
+}
+
+// Reconecta sozinho se o stream cair enquanto devia estar tocando
+function radioHandleDrop() {
+  if (!radioPlaying) return; // parou porque o usuário quis, não mexe
+  if (radioRetries >= 5) {
+    radioPlaying = false;
+    radioPending = false;
+    radioUpdateUI(false);
+    return;
+  }
+  radioRetries++;
+  radioPlaying = false;
+  radioPending = false;
+  setTimeout(radioPlay, 3000);
 }
 
 // Busca metadados ICY do stream a cada 15 segundos
@@ -9312,7 +9330,6 @@ function cardContextMenu(e, page, id) {
         <span id="radio-next-track" style="display:none;margin-left:10px;font-size:.7rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px"></span>
       </div>
     </div>
-    <button class="radio-next-btn" onclick="radioNext()" title="Próxima">⏭</button>
     <div class="radio-vol-wrap">
       <span style="font-size:.75rem;color:var(--text3)">🔊</span>
       <input type="range" class="radio-vol" id="radio-vol" min="0" max="1" step="0.05" value="0.7" oninput="radioSetVol(this.value)">
@@ -9326,10 +9343,24 @@ function cardContextMenu(e, page, id) {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initImgZoneDrops);
   document.addEventListener('DOMContentLoaded', function(){ setTimeout(radioFetchNextTrack, 3000); });
+  document.addEventListener('DOMContentLoaded', radioBindDropListeners);
 } else {
   initImgZoneDrops();
   setTimeout(radioFetchNextTrack, 3000);
+  radioBindDropListeners();
 }
+
+function radioBindDropListeners() {
+  const audio = document.getElementById('radio-audio');
+  if (!audio) return;
+  audio.addEventListener('error', radioHandleDrop);
+  audio.addEventListener('stalled', radioHandleDrop);
+}
+
+// Primeiro clique em qualquer lugar da página liga o rádio (só uma vez)
+document.addEventListener('click', function(){
+  if (!radioPlaying && !radioPending) radioPlay();
+}, { once: true });
 </script>
 
 <!-- LIGHTBOX GALERIA -->
