@@ -8060,7 +8060,8 @@ function renderAniversarios() {
 
 
 // ── RÁDIO K-DRAMA ─────────────────────────────────────────
-const RADIO_STREAM_URL = 'https://uk14freenew.listen2myradio.com/live.mp3?typeportmount=ice_11865_stream_64562940';
+const RADIO_STREAM_URL =
+  'https://s67.radiolize.com/radio/8130/radio.mp3';
 let radioPlaying = false;
 let radioPending = false;
 let radioRetries = 0;
@@ -8081,27 +8082,50 @@ function radioUpdateUI(playing) {
 
 function radioPlay() {
   if (radioPending) return;
-  radioPending = true;
+
   const audio = document.getElementById('radio-audio');
-  audio.src = RADIO_STREAM_URL + '&t=' + Date.now();
-  audio.volume = parseFloat(document.getElementById('radio-vol')?.value || 0.7);
-  const p = audio.play();
-  if (p !== undefined) {
-    p.then(() => {
-      radioPlaying = true;
-      radioPending = false;
-      radioRetries = 0;
-      radioUpdateUI(true);
-      radioFetchMetadata();
-    }).catch(e => {
-      radioPending = false;
-      radioPlaying = false;
-      console.warn('Radio play error:', e);
-    });
+
+  if (!audio) {
+    console.error('Elemento radio-audio não encontrado.');
+    return;
+  }
+
+  radioPending = true;
+
+  audio.pause();
+  audio.src = RADIO_STREAM_URL;
+  audio.load();
+
+  const volume = document.getElementById('radio-vol');
+
+  audio.volume = volume
+    ? parseFloat(volume.value)
+    : 0.7;
+
+  const tentativa = audio.play();
+
+  if (tentativa && typeof tentativa.then === 'function') {
+    tentativa
+      .then(function () {
+        radioPlaying = true;
+        radioPending = false;
+        radioRetries = 0;
+
+        radioUpdateUI(true);
+        radioFetchMetadata();
+      })
+      .catch(function (erro) {
+        radioPlaying = false;
+        radioPending = false;
+
+        console.error('Erro ao iniciar a rádio:', erro);
+        radioUpdateUI(false);
+      });
   } else {
     radioPlaying = true;
     radioPending = false;
     radioRetries = 0;
+
     radioUpdateUI(true);
     radioFetchMetadata();
   }
@@ -8124,8 +8148,7 @@ function radioHandleDrop() {
 
 // Busca metadados ICY do stream a cada 15 segundos
 let _radioMetaInterval = null;
-const RADIO_STATUS_URL = 'http://uk14freenew.listen2myradio.com:11865/status.xsl';
-const RADIO_STATUS_PROXY = 'https://api.allorigins.win/get?url=' + encodeURIComponent(RADIO_STATUS_URL);
+
 
 // ── AGÊNCIAS ──────────────────────────────────────────────────────────
 let _agenciaEditId = null;
@@ -8293,87 +8316,42 @@ async function salvarAgencia() {
 }
 
 function radioRenderTrack(title) {
-  var el = document.getElementById('radio-track');
-  if (!el || !title) return;
-  var artistPart = '';
-  var restPart = title;
-  var dashIdx = title.indexOf(' - ');
-  if (dashIdx > -1) {
-    artistPart = title.substring(0, dashIdx).trim();
-    restPart = title.substring(dashIdx + 3).trim();
-  }
-  var trackTitle = restPart;
-  var dramaPart = '';
-  var dotIdx = restPart.indexOf(' \xb7 ');
-  if (dotIdx > -1) {
-    trackTitle = restPart.substring(0, dotIdx).trim();
-    dramaPart = restPart.substring(dotIdx + 3).trim();
-  }
-  var html = '\ud83c\udfb5 ';
-  if (artistPart) {
-    html += '<span class="radio-tn-artist">' + artistPart + '</span>';
-    html += '<span class="radio-tn-sep">\u2014</span>';
-  }
-  html += '<span class="radio-tn-title">' + trackTitle + '</span>';
-  if (dramaPart) {
-    html += '<span class="radio-tn-dot">\xb7</span>';
-    html += '<span class="radio-tn-drama">' + dramaPart + '</span>';
-  }
-  el.innerHTML = html;
+  const el = document.getElementById('radio-track');
+
+  if (!el) return;
+
+  el.textContent = title || 'K-Drama OST Radio';
 }
+
 
 async function radioFetchNowPlaying() {
-  try {
-    var bust = 'http://uk14freenew.listen2myradio.com:11865/status.xsl?_=' + Date.now();
-    var res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(bust), {
-      signal: AbortSignal.timeout(5000)
-    });
-    if (!res.ok) return;
-    var data = await res.json();
-    var html = data.contents || '';
-    var match = html.match(/Current Song:<\/td>\s*<td[^>]*>([^<]+)<\/td>/);
-    if (match && match[1]) {
-      var song = match[1].replace(/\s+/g, ' ').trim();
-      radioRenderTrack(song);
-    }
-  } catch(e) {}
+  radioRenderTrack('K-Drama OST Radio');
 }
 
-const RADIO_NEXT_URL = 'https://hidden-bird-e762kdrama-radio-next.pathyzinharamos.workers.dev/next';
-var _lastNextTrack = '';
 
 async function radioFetchNextTrack() {
-  try {
-    var res = await fetch(RADIO_NEXT_URL, { signal: AbortSignal.timeout(5000) });
-    if (!res.ok) return;
-    var data = await res.json();
+  const el = document.getElementById('radio-next-track');
 
-    // Processar current track — vem do RadioBOSS direto, sem cache
-    var current = data.current || '';
-    current = current.replace(/\+/g, ' ');
-    try { current = decodeURIComponent(current); } catch(e) {}
-    current = current.replace(/\s+/g, ' ').trim();
-    if (current) radioRenderTrack(current);
-
-    // Processar next track
-    var raw = data.next || '';
-    raw = raw.replace(/^next=/, '').replace(/\+/g, ' ');
-    try { raw = decodeURIComponent(raw); } catch(e) {}
-    raw = raw.replace(/\s+/g, ' ').trim();
-    if (raw) _lastNextTrack = raw;
-
-    var el = document.getElementById('radio-next-track');
-    if (el) {
-      if (raw) {
-        el.textContent = '· a seguir: ' + raw;
-        el.style.display = 'inline';
-      } else {
-        el.style.display = 'none';
-      }
-    }
-  } catch(e) {}
+  if (el) {
+    el.textContent = '';
+    el.style.display = 'none';
+  }
 }
 
+
+async function radioFetchMetadata() {
+  radioRenderTrack('K-Drama OST Radio');
+
+  if (_radioMetaInterval) {
+    clearInterval(_radioMetaInterval);
+  }
+
+  _radioMetaInterval = setInterval(function () {
+    if (radioPlaying) {
+      radioRenderTrack('K-Drama OST Radio');
+    }
+  }, 15000);
+}
 async function radioFetchMetadata() {
   if (_radioMetaInterval) clearInterval(_radioMetaInterval);
   radioFetchNextTrack();
