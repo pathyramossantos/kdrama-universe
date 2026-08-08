@@ -8352,39 +8352,59 @@ async function radioFetchMetadata() {
     }
   }, 15000);
 }
-async function radioFetchMetadata() {
-  if (_radioMetaInterval) clearInterval(_radioMetaInterval);
-  radioFetchNextTrack();
-  _radioMetaInterval = setInterval(radioFetchNextTrack, 8000);
-}
+
 
 function radioStop() {
   const audio = document.getElementById('radio-audio');
-  audio.pause();
-  audio.src = '';
+
+  if (audio) {
+    audio.pause();
+    audio.src = '';
+    audio.load();
+  }
+
   radioPlaying = false;
   radioPending = false;
-  if (_radioMetaInterval) { clearInterval(_radioMetaInterval); _radioMetaInterval = null; }
+
+  if (_radioMetaInterval) {
+    clearInterval(_radioMetaInterval);
+    _radioMetaInterval = null;
+  }
+
   radioUpdateUI(false);
 }
 
+
 function radioToggle() {
   if (radioPending) return;
-  if (radioPlaying) radioStop();
-  else radioPlay();
-  // Safety: liberar pending após 5s em qualquer caso
-  setTimeout(function(){ radioPending = false; }, 5000);
+
+  if (radioPlaying) {
+    radioStop();
+  } else {
+    radioPlay();
+  }
+
+  setTimeout(function () {
+    radioPending = false;
+  }, 5000);
 }
 
+
 function radioNext() {
-  // Stream ao vivo não tem próxima — reconecta
   radioStop();
-  setTimeout(() => radioPlay(), 300);
+
+  setTimeout(function () {
+    radioPlay();
+  }, 300);
 }
+
 
 function radioSetVol(val) {
   const audio = document.getElementById('radio-audio');
-  if (audio) audio.volume = parseFloat(val);
+
+  if (audio) {
+    audio.volume = parseFloat(val);
+  }
 }
 
 
