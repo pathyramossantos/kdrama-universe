@@ -8060,7 +8060,7 @@ function renderAniversarios() {
 
 
 // ── RÁDIO K-DRAMA ─────────────────────────────────────────
-const RADIO_STREAM_URL = 'https://s67.radiolize.com/radio/8130/radio.mp3';
+const RADIO_STREAM_URL = 'https://uk14freenew.listen2myradio.com/live.mp3?typeportmount=ice_11865_stream_64562940';
 let radioPlaying = false;
 let radioPending = false;
 let radioRetries = 0;
@@ -8122,10 +8122,10 @@ function radioHandleDrop() {
   setTimeout(radioPlay, 3000);
 }
 
-// ── METADADOS DA K-DRAMA RADIO ─────────────────────────────
+// Busca metadados ICY do stream a cada 15 segundos
 let _radioMetaInterval = null;
-
-const RADIO_NOWPLAYING_URL = 'https://s67.radiolize.com/api/nowplaying/42';
+const RADIO_STATUS_URL = 'http://uk14freenew.listen2myradio.com:11865/status.xsl';
+const RADIO_STATUS_PROXY = 'https://api.allorigins.win/get?url=' + encodeURIComponent(RADIO_STATUS_URL);
 
 // ── AGÊNCIAS ──────────────────────────────────────────────────────────
 let _agenciaEditId = null;
@@ -8339,56 +8339,57 @@ async function radioFetchNowPlaying() {
   } catch(e) {}
 }
 
-// ── K-DRAMA RADIO — MÚSICA ATUAL ───────────────────────────
+const RADIO_NEXT_URL = 'https://hidden-bird-e762kdrama-radio-next.pathyzinharamos.workers.dev/next';
+var _lastNextTrack = '';
 
 async function radioFetchNextTrack() {
   try {
-    const res = await fetch(RADIO_NOWPLAYING_URL + '?_=' + Date.now(), {
-      signal: AbortSignal.timeout(5000)
-    });
-
+    var res = await fetch(RADIO_NEXT_URL, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return;
+    var data = await res.json();
 
-    const data = await res.json();
+    // Processar current track — vem do RadioBOSS direto, sem cache
+    var current = data.current || '';
+    current = current.replace(/\+/g, ' ');
+    try { current = decodeURIComponent(current); } catch(e) {}
+    current = current.replace(/\s+/g, ' ').trim();
+    if (current) radioRenderTrack(current);
 
-    const song = data?.now_playing?.song;
+    // Processar next track
+    var raw = data.next || '';
+    raw = raw.replace(/^next=/, '').replace(/\+/g, ' ');
+    try { raw = decodeURIComponent(raw); } catch(e) {}
+    raw = raw.replace(/\s+/g, ' ').trim();
+    if (raw) _lastNextTrack = raw;
 
-    if (!song) return;
-
-    const artist = song.artist || '';
-    const title = song.title || '';
-
-    if (!title && !artist) return;
-
-    const current = artist
-      ? artist + ' - ' + title
-      : title;
-
-    radioRenderTrack(current);
-
-    // Mostrar a próxima faixa, se a API disponibilizar
-    const nextEl = document.getElementById('radio-next-track');
-
-    if (nextEl) {
-      nextEl.style.display = 'none';
-      nextEl.textContent = '';
+    var el = document.getElementById('radio-next-track');
+    if (el) {
+      if (raw) {
+        el.textContent = '· a seguir: ' + raw;
+        el.style.display = 'inline';
+      } else {
+        el.style.display = 'none';
+      }
     }
-
-  } catch(e) {
-    console.warn('Erro ao buscar música atual da K-Drama Radio:', e);
-  }
+  } catch(e) {}
 }
 
 async function radioFetchMetadata() {
-  if (_radioMetaInterval) {
-    clearInterval(_radioMetaInterval);
-  }
-
+  if (_radioMetaInterval) clearInterval(_radioMetaInterval);
   radioFetchNextTrack();
-
-  // Atualiza a música atual a cada 8 segundos
   _radioMetaInterval = setInterval(radioFetchNextTrack, 8000);
 }
+
+function radioStop() {
+  const audio = document.getElementById('radio-audio');
+  audio.pause();
+  audio.src = '';
+  radioPlaying = false;
+  radioPending = false;
+  if (_radioMetaInterval) { clearInterval(_radioMetaInterval); _radioMetaInterval = null; }
+  radioUpdateUI(false);
+}
+
 function radioToggle() {
   if (radioPending) return;
   if (radioPlaying) radioStop();
