@@ -8062,6 +8062,7 @@ function renderAniversarios() {
 // ── RÁDIO K-DRAMA ─────────────────────────────────────────
 const RADIO_STREAM_URL =
   'https://s67.radiolize.com/radio/8130/radio.mp3';
+const RADIO_NOWPLAYING_API = 'https://api.twj.es/?url=';
 let radioPlaying = false;
 let radioPending = false;
 let radioRetries = 0;
@@ -8325,7 +8326,29 @@ function radioRenderTrack(title) {
 
 
 async function radioFetchNowPlaying() {
-  radioRenderTrack('K-Drama OST Radio');
+  try {
+    const res = await fetch(RADIO_NOWPLAYING_API + encodeURIComponent(RADIO_STREAM_URL));
+    const data = await res.json();
+
+    if (!data || data.loading) {
+      radioRenderTrack('K-Drama OST Radio');
+      return;
+    }
+
+    const artista = (data.artist || '').trim();
+    const musica = (data.song || data.songtitle || '').trim();
+    let titulo = 'K-Drama OST Radio';
+
+    if (artista && musica) {
+      titulo = artista + ' — ' + musica;
+    } else if (musica || artista) {
+      titulo = musica || artista;
+    }
+
+    radioRenderTrack(titulo);
+  } catch (e) {
+    radioRenderTrack('K-Drama OST Radio');
+  }
 }
 
 
@@ -8340,7 +8363,7 @@ async function radioFetchNextTrack() {
 
 
 async function radioFetchMetadata() {
-  radioRenderTrack('K-Drama OST Radio');
+  radioFetchNowPlaying();
 
   if (_radioMetaInterval) {
     clearInterval(_radioMetaInterval);
@@ -8348,7 +8371,7 @@ async function radioFetchMetadata() {
 
   _radioMetaInterval = setInterval(function () {
     if (radioPlaying) {
-      radioRenderTrack('K-Drama OST Radio');
+      radioFetchNowPlaying();
     }
   }, 15000);
 }
