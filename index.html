@@ -2074,20 +2074,6 @@ function refreshCurrentView() {
   else if (currentId === 'direcao' && typeof renderDirecao === 'function') { renderDirecao(); }
 }
 
-function slugifyAtor(texto) {
-  return String(texto || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function abrirAtorLink(id, nome) {
-  const slug = slugifyAtor(nome);
-  location.hash = `ator/${id}/${slug}`;
-  parseHash();
-}
 function navigate(page, id) {
   // Alias: 'doramas' aponta pra page-home, 'inicio' pra page-inicio
   const pageAlias = page === 'doramas' ? 'home' : page;
@@ -2167,14 +2153,10 @@ function navigate(page, id) {
   }
 }
 
-function parseHash() {
-  const h = window.location.hash.slice(1) || 'inicio';
-  const p = h.split('/');
-
-  const pagina = p[0] || 'inicio';
-  const id = p[1] || null;
-
-  navigate(pagina, id);
+function parseHash(){
+  const h=window.location.hash.slice(1)||'inicio';
+  const p=h.split('/');
+  navigate(p[0],p[1]);
 }
 window.addEventListener('popstate',parseHash);
 
@@ -2236,7 +2218,6 @@ function sbToAt(row, tabela) {
     fields = {
       'Nome': row.nome, 'Nome Estrangeiro': row.nome_estrangeiro,
       'Nome Alt': row.nome_alt,
-      'Slug': row.slug,
       'Foto': _parseFoto(row.foto), 'Data de Nascimento': row.data_nascimento,
       'Biografia': row.biografia, 'Instagram': row.instagram,
       'Site': row.site, 'Url Hancinema': row.url_hancinema,
@@ -2353,7 +2334,7 @@ async function fetchTable(tableId, options={}) {
   if (!tabela) { console.warn('Tabela não mapeada:', tableId); return []; }
 
   let url = `${SB_URL}/rest/v1/${tabela}?select=*`;
-  if (tabela === 'atores') url = `${SB_URL}/rest/v1/atores?select=id,airtable_id,created_at,nome,nome_estrangeiro,nome_alt,foto,data_nascimento,biografia,instagram,site,url_hancinema,links,agencia_id,banner_position,banner_url,data_cadastro,slug`;
+  if (tabela === 'atores') url = `${SB_URL}/rest/v1/atores?select=id,airtable_id,created_at,nome,nome_estrangeiro,nome_alt,foto,data_nascimento,biografia,instagram,site,url_hancinema,links,agencia_id,banner_position,banner_url,data_cadastro`;
   if (tabela === 'elenco') url = `${SB_URL}/rest/v1/elenco?select=*,series:serie_id(id,airtable_id),atores:ator_id(id,airtable_id)`;
   if (tabela === 'blog')   url = `${SB_URL}/rest/v1/blog?select=*,series:serie_id(airtable_id,nome)`;
   if (tabela === 'ost')    url = `${SB_URL}/rest/v1/ost?select=id,airtable_id,created_at,nome_faixa,artista,youtube_url,ordem,serie_id,series:serie_id(airtable_id)`;
@@ -2457,7 +2438,7 @@ async function bannerSalvar(id, tipo, { pos, url }) {
 }
 
 const CACHE_TTL = 48 * 60 * 60 * 1000; // 48 horas
-const CACHE_VERSION = 'v11-slug'; // Supabase
+const CACHE_VERSION = 'v10'; // Supabase
 
 async function loadAllData(){
   // Tenta carregar do cache primeiro
@@ -6679,14 +6660,14 @@ if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
             return n === normNome || n.startsWith(normNome) || normNome.startsWith(n.split(' ')[0]) && normNome.length >= 3;
           });
           if (ator) {
-            return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="abrirAtorLink('${ator.id}', '${ator.fields?.Nome || ''}')">${nome}</a></em></strong>${sufixo}`;
+            return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${ator.id}')">${nome}</a></em></strong>${sufixo}`;
           }
           // 2. Fallback: busca por nome do personagem no elenco (match normalizado)
           const elencoRec = (allElenco||[]).find(e => normStr(e.fields['Personagem']||'') === normNome);
           if (elencoRec) {
             const atorId = (elencoRec.fields['Atores']||[])[0];
             if (atorId) {
-              return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="abrirAtorLink('${atorId}', '${nome.replace(/'/g, "\\'")}')">${nome}</a></em></strong>${sufixo}`;
+              return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${atorId}')">${nome}</a></em></strong>${sufixo}`;
             }
           }
         }
