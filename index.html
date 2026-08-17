@@ -2204,6 +2204,7 @@ function sbToAt(row, tabela) {
       'Banner_Url': row.banner_url, 'Data': row.data,
       'Elenco': row.elenco_ids || [], 'Plataformas': row.plataformas || row.plataformas_ids || [],
       'Diretores': row.diretores_ids || [], 'Roteiristas': row.roteiristas_ids || [],
+      'Slug': row.slug || null,
       '_uuid': row.id
     };
   } else if (tabela === 'atores') {
@@ -2225,6 +2226,7 @@ function sbToAt(row, tabela) {
       'Agencia ID': row.agencia_id || null,
       'Banner_Position': row.banner_position, 'Banner_Url': row.banner_url,
       'Data do cadastro': row.data_cadastro, 'Elenco': row.elenco_ids || [],
+      'Slug': row.slug || null,
       '_sbId': row.id || ''
     };
   } else if (tabela === 'elenco') {
@@ -2289,7 +2291,8 @@ function atToSb(fields, tabela) {
     fantasia: fields['Fantasia'], quimica_casal: fields['Química do Casal'],
     ost_nota: fields['OST'], acao: fields['Ação'], drama: fields['Drama'],
     roteiro: fields['Roteiro'], banner_position: fields['Banner_Position'],
-    banner_url: fields['Banner_Url'], data: fields['Data'] || null
+    banner_url: fields['Banner_Url'], data: fields['Data'] || null,
+    slug: fields['Slug'] || undefined
   };
   if (tabela === 'atores') return {
     nome: fields['Nome'], nome_estrangeiro: fields['Nome Estrangeiro'], nome_alt: fields['Nome Alt'],
@@ -2299,7 +2302,8 @@ function atToSb(fields, tabela) {
     links: fields['Links'] || [],
     agencia_id: fields['Agencia ID'] || null,
     banner_position: fields['Banner_Position'], banner_url: fields['Banner_Url'],
-    data_cadastro: fields['Data do cadastro'] || null
+    data_cadastro: fields['Data do cadastro'] || null,
+    slug: fields['Slug'] || undefined
   };
   if (tabela === 'direcao') return {
     nome: fields['Nome'], nome_estrangeiro: fields['Nome Estrangeiro'],
@@ -2328,6 +2332,66 @@ function atToSb(fields, tabela) {
   };
   return fields;
 }
+
+// ── SLUGS (URLs amigáveis pra dorama e ator) ───────────────
+function slugify(str) {
+  return (str || '')
+    .toString()
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-') || 'sem-nome';
+}
+
+// Gera um slug único pra 'tabela' (atores|series) a partir do nome.
+// Só usar em registro NOVO ou pra fazer backfill de um que nunca teve slug —
+// registro que já tem slug salvo mantém o mesmo (edição não deve trocar a URL).
+async function gerarSlugUnico(nome, tabela) {
+  const base = slugify(nome);
+  let slug = base;
+  let tentativa = 2;
+  while (true) {
+    const res = await fetch(`${SB_URL}/rest/v1/${tabela}?slug=eq.${encodeURIComponent(slug)}&select=id`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    const rows = await res.json();
+    if (!rows.length) break;
+    slug = `${base}-${tentativa}`;
+    tentativa++;
+  }
+  return slug;
+}
+
+// Backfill pra registros antigos sem slug — roda uma vez no console (F12) e pronto.
+// window.backfillSlugsAtores() / window.backfillSlugsSeries()
+async function backfillSlugsAtores() {
+  if (!allAtores.length) await loadAllData();
+  const semSlug = allAtores.filter(a => !a.fields['Slug']);
+  console.log(`Atores sem slug: ${semSlug.length}`);
+  for (const a of semSlug) {
+    const slug = await gerarSlugUnico(a.fields['Nome'] || '', 'atores');
+    const filtro = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(a.id) ? `id=eq.${a.id}` : `airtable_id=eq.${a.id}`;
+    await fetch(`${SB_URL}/rest/v1/atores?${filtro}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ slug }) });
+    console.log(`✓ ${a.fields['Nome']} → ${slug}`);
+  }
+  console.log('Backfill de atores concluído. Recarregue a página.');
+}
+async function backfillSlugsSeries() {
+  if (!allSeries.length) await loadAllData();
+  const semSlug = allSeries.filter(s => !s.fields['Slug']);
+  console.log(`Doramas sem slug: ${semSlug.length}`);
+  for (const s of semSlug) {
+    const slug = await gerarSlugUnico(s.fields['Nome'] || '', 'series');
+    const filtro = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(s.id) ? `id=eq.${s.id}` : `airtable_id=eq.${s.id}`;
+    await fetch(`${SB_URL}/rest/v1/series?${filtro}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ slug }) });
+    console.log(`✓ ${s.fields['Nome']} → ${slug}`);
+  }
+  console.log('Backfill de doramas concluído. Recarregue a página.');
+}
+window.backfillSlugsAtores = backfillSlugsAtores;
+window.backfillSlugsSeries = backfillSlugsSeries;
 
 async function fetchTable(tableId, options={}) {
   const tabela = SB_TABLE_MAP[tableId];
@@ -2591,8 +2655,9 @@ function platformLogosHTML(platIds){
 function cardHTML(s,i){
   const f=s.fields;
   const photo=getPhoto(s);
+  const urlId=f['Slug']||s.id;
   const primeiroGenero = Array.isArray(f['Gêneros']) ? (f['Gêneros'][0]||'') : (f['Gêneros']||'').split(',')[0].trim();
-  return`<div class="drama-card" data-genre="${primeiroGenero}" onclick="navigate('dorama','${s.id}')" oncontextmenu="cardContextMenu(event,'dorama','${s.id}')" style="animation-delay:${i*0.04}s">
+  return`<div class="drama-card" data-genre="${primeiroGenero}" onclick="navigate('dorama','${urlId}')" oncontextmenu="cardContextMenu(event,'dorama','${s.id}')" style="animation-delay:${i*0.04}s">
     ${photo?`<img class="card-poster" src="${photo}" alt="${f['Nome']||''}" loading="lazy">`:`<div class="card-poster-placeholder"><span class="kr">드라마</span></div>`}
     <div class="card-overlay"><p class="card-synopsis">${f['Sinopse']||''}</p></div>
     <div class="card-info">
@@ -2680,17 +2745,37 @@ async function renderDorama(id){
   const content=document.getElementById('dorama-content');
   content.innerHTML=`<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>`;
   try{
-    let serie=allSeries.find(s=>s.id===id);
+    // Aceita tanto o ID cru (airtable_id/UUID) quanto o slug amigável na URL
+    let serie=allSeries.find(s=>s.id===id || s.fields['Slug']===id);
     if(!serie || !serie.fields){
       const recs = await fetchTable(TABLES.series, {formula:`RECORD_ID()='${id}'`});
       serie = recs[0] || null;
+    }
+    // Fallback: buscar por UUID do Supabase (doramas criados sem airtable_id)
+    if(!serie || !serie.fields){
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(id);
+      if(isUUID){
+        try{
+          const res = await fetch(`${SB_URL}/rest/v1/series?id=eq.${id}&select=*`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+          const rows = await res.json();
+          if(rows[0]) serie = sbToAt({...rows[0], airtable_id: rows[0].airtable_id || rows[0].id}, 'series');
+        }catch(_){}
+      }
+    }
+    // Fallback: buscar por slug direto no Supabase (cache local pode não ter carregado ainda)
+    if(!serie || !serie.fields){
+      try{
+        const res = await fetch(`${SB_URL}/rest/v1/series?slug=eq.${encodeURIComponent(id)}&select=*`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const rows = await res.json();
+        if(rows[0]) serie = sbToAt({...rows[0], airtable_id: rows[0].airtable_id || rows[0].id}, 'series');
+      }catch(_){}
     }
     if(!serie || !serie.fields){
       content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Dorama não encontrado.</p></div>`;
       return;
     }
     currentSerie=serie;
-    currentRecordId=id;
+    currentRecordId=serie.id;
     currentRecordTable=TABLES.series;
     const f=serie.fields;
     const photo=getPhoto(serie);
@@ -2852,8 +2937,8 @@ async function renderDorama(id){
               const ef=e.fields;
               const name=a?(a.fields['Nome']||''):'';
               const ph=a?getPhoto(a,'Foto'):null;
-              const aid=a?a.id:'';
-              const click=a?[' onclick="navigate(\'ator\',\'',aid,'\');return false;" oncontextmenu="cardContextMenu(event,\'ator\',\'',aid,'\');return false;"'].join(''):'';
+              const aid=a?(a.fields['Slug']||a.id):'';
+              const click=a?[' onclick="navigate(\'ator\',\'',aid,'\');return false;" oncontextmenu="cardContextMenu(event,\'ator\',\'',a.id,'\');return false;"'].join(''):'';
               const initials=(n=>{ const p=n.trim().split(/\s+/); return p.length>1?p[0][0]+p[p.length-1][0]:p[0].slice(0,2); })(name||'?').toUpperCase();
               const photoEl=ph?'<img class="cast-photo" src="'+ph+'" alt="'+name+'" loading="lazy">':'<div class="cast-photo-placeholder">'+initials+'</div>';
               const info='<div class="cast-info"><div class="cast-name">'+name+'</div><div class="cast-char">'+(ef['Personagem']||'')+'</div><div class="cast-type">'+(ef['Tipo']||'')+'</div></div>';
@@ -3489,8 +3574,9 @@ function filterAtores(resetPage=true){
         + '<div class="actor-doramas-pop-nome">' + (s.fields['Nome']||'—') + '</div>'
         + '</div>';
     }).join('');
+    const urlId = f['Slug']||a.id;
     return '<div class="actor-card-wrap" style="animation-delay:' + (i*0.03) + 's">'
-      + '<div class="actor-card" onclick="navigate(\'ator\',\'' + a.id + '\')" oncontextmenu="cardContextMenu(event,\'ator\',\'' + a.id + '\')" style="position:relative">'
+      + '<div class="actor-card" onclick="navigate(\'ator\',\'' + urlId + '\')" oncontextmenu="cardContextMenu(event,\'ator\',\'' + a.id + '\')" style="position:relative">'
       + (photo ? '<img class="actor-photo" src="' + photo + '" alt="' + (f['Nome']||'') + '" loading="lazy">' : '<div class="actor-photo-placeholder">' + ((n=>{const p=(n||'?').trim().split(/\s+/);return(p.length>1?p[0][0]+p[p.length-1][0]:(n||'?').slice(0,2)).toUpperCase()})(f['Nome'])) + '</div>')
       + (f['Data do cadastro'] ? '<div style="position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:#4caf50;box-shadow:0 0 6px rgba(76,175,80,.7)" title="Revisado"></div>' : '')
       + '<div class="actor-info"><div class="actor-name">' + (f['Nome']||'—') + '</div>'
@@ -3521,7 +3607,8 @@ async function renderAtor(id){
   const content=document.getElementById('ator-content');
   content.innerHTML=`<div style="text-align:center;padding:80px;color:var(--text3)"><div class="spinner" style="width:32px;height:32px;display:inline-block;margin:0 auto 16px;border-width:3px"></div><br>Carregando…</div>`;
   try{
-    let ator=allAtores.find(a=>a.id===id);
+    // Aceita tanto o ID cru (airtable_id/UUID) quanto o slug amigável na URL
+    let ator=allAtores.find(a=>a.id===id || a.fields['Slug']===id);
     if(!ator || !ator.fields){
       const recs = await fetchTable(TABLES.atores, {formula:`RECORD_ID()='${id}'`});
       ator = recs[0] || null;
@@ -3537,12 +3624,20 @@ async function renderAtor(id){
         }catch(_){}
       }
     }
+    // Fallback: buscar por slug direto no Supabase (cache local pode não ter carregado ainda)
+    if(!ator || !ator.fields){
+      try{
+        const res = await fetch(`${SB_URL}/rest/v1/atores?slug=eq.${encodeURIComponent(id)}&select=*`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const rows = await res.json();
+        if(rows[0]) ator = sbToAt({...rows[0], airtable_id: rows[0].airtable_id || rows[0].id}, 'atores');
+      }catch(_){}
+    }
     if(!ator || !ator.fields){
       content.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><p>Ator não encontrado.</p></div>`;
       return;
     }
     currentAtor=ator;
-    currentRecordId=id;
+    currentRecordId=ator.id;
     currentSerie=null; // garante que o tipo do banner será 'ator'
     currentRecordTable=TABLES.atores;
     const btnExcluir = document.getElementById('btn-excluir-ator');
@@ -3552,7 +3647,7 @@ async function renderAtor(id){
 
 
     // Restaura último TMDB person id se existir
-    const savedTmdbId = localStorage.getItem(`kdrama_tmdbperson_${id}`);
+    const savedTmdbId = localStorage.getItem(`kdrama_tmdbperson_${ator.id}`);
     if(savedTmdbId){
       lastTmdbPersonId = parseInt(savedTmdbId);
       // mostra botão reimportar assim que o box aparecer no edit mode
@@ -3582,7 +3677,7 @@ async function renderAtor(id){
           const uuidRows = await uuidRes.json();
           atorUUID = uuidRows[0]?.id || ator.id;
         }
-        const res = await fetch(`${SB_URL}/rest/v1/elenco?select=*,series:serie_id(airtable_id,nome,capa,ano_lancamento)&ator_id=eq.${atorUUID}`, {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+        const res = await fetch(`${SB_URL}/rest/v1/elenco?select=*,series:serie_id(id,airtable_id,nome,capa,ano_lancamento,slug)&ator_id=eq.${atorUUID}`, {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
         const rows = await res.json();
         elencoRecs = rows.map(row => {
           row.serie_airtable_id = row.series?.airtable_id;
@@ -3596,7 +3691,8 @@ async function renderAtor(id){
           }
           return {
             elencoId: row.id || null,
-            serieId: row.series?.airtable_id || null,
+            serieId: row.series?.airtable_id || row.series?.id || null,
+            serieUrlId: row.series?.slug || row.series?.airtable_id || row.series?.id || null,
             serieName: row.series?.nome || '—',
             serieAno: row.series?.ano_lancamento || '',
             seriePoster: capa,
@@ -3639,14 +3735,14 @@ async function renderAtor(id){
         </div>
         <div class="filmografia-grid">
           ${filmografia.map(item=>`
-            <div class="filmografia-card" ${item.serieId&&!isOwner()?`onclick="navigate('dorama','${item.serieId}')"`:''}\n                 style="${item.serieId&&!isOwner()?'cursor:pointer':'position:relative'}">
+            <div class="filmografia-card" ${item.serieId&&!isOwner()?`onclick="navigate('dorama','${item.serieUrlId}')"`:''}\n                 style="${item.serieId&&!isOwner()?'cursor:pointer':'position:relative'}">
               ${isOwner()&&item.elencoId?`<button onclick="excluirFilmografiaItem('${item.elencoId}',event)" title="Remover do elenco" style="position:absolute;top:6px;right:6px;background:rgba(220,50,50,.15);border:1px solid rgba(220,50,50,.3);color:#e57373;border-radius:50%;width:20px;height:20px;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;line-height:1">✕</button>`:''}
-              <div class="filmografia-poster" ${item.serieId&&isOwner()?`onclick="navigate('dorama','${item.serieId}')" style="cursor:pointer"`:''}>
+              <div class="filmografia-poster" ${item.serieId&&isOwner()?`onclick="navigate('dorama','${item.serieUrlId}')" style="cursor:pointer"`:''}>
                 ${item.seriePoster
                   ?`<img src="${item.seriePoster}" alt="${item.serieName}" loading="lazy">`
                   :`<div class="cast-photo-placeholder" style="font-size:1.2rem;aspect-ratio:2/3">드</div>`}
               </div>
-              <div class="filmografia-info" ${item.serieId&&isOwner()?`onclick="navigate('dorama','${item.serieId}')" style="cursor:pointer"`:''}>
+              <div class="filmografia-info" ${item.serieId&&isOwner()?`onclick="navigate('dorama','${item.serieUrlId}')" style="cursor:pointer"`:''}>
                 <div class="filmografia-serie">${item.serieName}</div>
                 ${item.serieAno?`<div class="filmografia-ano">${item.serieAno}</div>`:''}
                 ${item.personagem?`<div class="filmografia-personagem">✦ ${item.personagem}</div>`:''}
@@ -4500,6 +4596,7 @@ async function fdSalvarElenco(serieId, castData) {
           const novoPayload = {nome:membro.nome};
           if(membro.nomeAlt) novoPayload.nome_alt = membro.nomeAlt;
           if(membro.hangul) novoPayload.nome_estrangeiro = membro.hangul;
+          novoPayload.slug = await gerarSlugUnico(membro.nome, 'atores');
           const novoRes = await fetch(`${SB_URL}/rest/v1/atores`,{method:'POST',headers:SB_HEADERS,body:JSON.stringify(novoPayload)});
           const novo = await novoRes.json();
           atorUUID = novo[0]?.id;
@@ -4845,6 +4942,7 @@ async function faGerarBio() {
 // FORMULÁRIO DORAMA
 // ════════════════════════════════════════════════════════
 let fdEditId = null;
+let fdEditSlugAtual = '';
 let fdRatings = {};
 let fdGenerosSel = [];
 let fdCapaFile = null;
@@ -4853,6 +4951,7 @@ let fdGaleriaFiles = [];
 
 function openFormDorama(data={}, editId=null){
   fdEditId = editId;
+  fdEditSlugAtual = data.slug || '';
   fdRatings = {};
   fdGenerosSel = [];
   fdCapaFile = null;
@@ -4938,7 +5037,8 @@ async function openFormDoramaEdit(serie){
     'Fantasia':f['Fantasia'],'Química do Casal':f['Química do Casal'],
     'Ação':f['Ação'],'Roteiro':f['Roteiro'],'OST':f['OST'],
     videos: (function(v){ if(Array.isArray(v)) return v; if(typeof v==='string'){ try{return JSON.parse(v);}catch(_){return v.split(',').map(s=>s.trim()).filter(Boolean);} } return []; })(f['Videos']),
-    galeria: Array.isArray(f['Galeria']) ? f['Galeria'] : []
+    galeria: Array.isArray(f['Galeria']) ? f['Galeria'] : [],
+    slug: f['Slug'] || ''
   }, serie.id);
 
   // Carregar direção e elenco existentes
@@ -5226,6 +5326,9 @@ async function fdSalvar(){
     const _galeriaArr = fdGaleriaGetUrls();
     fields['Galeria'] = _galeriaArr;
 
+    // Slug: mantém o mesmo se já existe (edição não deve trocar a URL); gera um novo se for registro novo ou sem slug ainda
+    fields['Slug'] = fdEditSlugAtual || await gerarSlugUnico(nome, 'series');
+
     bar.style.width='60%';
 
     // Salva no Airtable
@@ -5277,12 +5380,13 @@ async function fdSalvar(){
 // FORMULÁRIO ATOR
 // ════════════════════════════════════════════════════════
 let faEditId = null;
+let faEditSlugAtual = '';
 let lastTmdbPersonId = null;
 let faFotoFile = null;
 let faFotoUrlFinal = null;
 
 function openFormAtor(ator=null){
-  faEditId = null; faFotoFile = null; faFotoUrlFinal = null;
+  faEditId = null; faEditSlugAtual = ''; faFotoFile = null; faFotoUrlFinal = null;
   ['fa-nome','fa-nome-kor','fa-nome-alt','fa-bio','fa-foto-url','fa-banner-url-preview','fa-data-cadastro'].forEach(id=>setVal(id,''));
   document.getElementById('fa-links-list').innerHTML = '';
   setVal('fa-nasc','');
@@ -5297,6 +5401,7 @@ function openFormAtor(ator=null){
 
   if(ator){
     faEditId=ator.id;
+    faEditSlugAtual = ator.fields['Slug'] || '';
   setTimeout(faAtualizarBotaoFotosTMDB, 100);
     const f=ator.fields;
     document.getElementById('form-ator-titulo').textContent='✦ Editar Ator/Atriz';
@@ -6025,6 +6130,9 @@ async function faSalvar(){
       fields['Banner_Position'] = slX.value + '% ' + slY.value + '% ' + zVal;
     }
 
+    // Slug: mantém o mesmo se já existe (edição não deve trocar a URL); gera um novo se for registro novo ou sem slug ainda
+    fields['Slug'] = faEditSlugAtual || await gerarSlugUnico(nome, 'atores');
+
     bar.style.width='70%';
     let record;
     if(faEditId){ record=await patchRecord(TABLES.atores,faEditId,fields); }
@@ -6660,7 +6768,7 @@ if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
             return n === normNome || n.startsWith(normNome) || normNome.startsWith(n.split(' ')[0]) && normNome.length >= 3;
           });
           if (ator) {
-            return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${ator.id}')">${nome}</a></em></strong>${sufixo}`;
+            return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${ator.fields['Slug']||ator.id}')">${nome}</a></em></strong>${sufixo}`;
           }
           // 2. Fallback: busca por nome do personagem no elenco (match normalizado)
           const elencoRec = (allElenco||[]).find(e => normStr(e.fields['Personagem']||'') === normNome);
@@ -7211,7 +7319,7 @@ function renderCarouselDoramas() {
   el.innerHTML = doramas.map(s => {
     const f = s.fields;
     const capa = Array.isArray(f['Capa']) ? (f['Capa'][0]?.url || '') : (f['Capa'] || (Array.isArray(f['Poster']) ? (f['Poster']?.[0]?.url || '') : (f['Poster'] || '')));
-    return `<div class="hc-dorama-card" onclick="navigate('dorama','${s.id}')">
+    return `<div class="hc-dorama-card" onclick="navigate('dorama','${f['Slug']||s.id}')">
       ${capa
         ? `<img class="hc-dorama-card-img" src="${capa}" loading="lazy" onerror="this.style.display='none'">`
         : `<div class="hc-dorama-card-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem">🎬</div>`}
@@ -7242,7 +7350,7 @@ function renderCarouselAtores() {
   el.innerHTML = atores.map(a => {
     const f = a.fields;
     const foto = Array.isArray(f['Foto']) ? (f['Foto'][0]?.url || '') : (f['Foto'] || '');
-    return `<div class="hc-dorama-card" onclick="navigate('ator','${a.id}')">
+    return `<div class="hc-dorama-card" onclick="navigate('ator','${f['Slug']||a.id}')">
       ${foto
         ? `<img class="hc-dorama-card-img" src="${foto}" loading="lazy" onerror="this.style.display='none'">`
         : `<div class="hc-dorama-card-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem">🌟</div>`}
@@ -7704,7 +7812,7 @@ async function navegarParaDorama(nome, id) {
     const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
     serie = allSeries.find(s => norm(s.fields['Nome']||'') === norm(nome));
   }
-  if (serie) navigate('dorama', serie.id);
+  if (serie) navigate('dorama', serie.fields['Slug']||serie.id);
   else showToast(`Dorama "${nome}" não encontrado na sua lista`);
 }
 
@@ -8048,7 +8156,7 @@ function renderAniversarios() {
     const nome = f['Nome'] || '';
     const nasc = f['Data de Nascimento'] || '';
     const idade = nasc ? (anoHoje - parseInt(nasc.split('-')[0])) + ' anos' : '';
-    const aid = a.id;
+    const aid = f['Slug']||a.id;
     return ['<div class="aniv-item" onclick="navigate(\'ator\',\'',aid,'\')">',
       foto ? '<img class="aniv-foto" src="'+foto+'" loading="lazy">' : '<div class="aniv-foto" style="background:var(--surface2)"></div>',
       '<span class="aniv-nome">'+nome+'</span>',
@@ -8231,7 +8339,7 @@ async function renderAgenciaDetalhe(id) {
   // Buscar atores vinculados
   var atores = [];
   try {
-    var res = await fetch(SB_URL + '/rest/v1/atores?agencia_id=eq.' + id + '&select=id,airtable_id,nome,foto&order=nome.asc', {
+    var res = await fetch(SB_URL + '/rest/v1/atores?agencia_id=eq.' + id + '&select=id,airtable_id,nome,foto,slug&order=nome.asc', {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
     atores = await res.json();
@@ -8254,7 +8362,7 @@ async function renderAgenciaDetalhe(id) {
     + atores.map(function(a) {
         var foto = a.foto || '';
         var nome = a.nome || '—';
-        var aid = a.airtable_id || a.id;
+        var aid = a.slug || a.airtable_id || a.id;
         return '<div class="actor-card" onclick="closeAgenciaModal();navigate(\'ator\',\'' + aid + '\')" style="cursor:pointer">'
           + (foto ? '<img class="actor-photo" src="' + foto + '" loading="lazy">' : '<div class="actor-photo-placeholder">' + nome.slice(0,2).toUpperCase() + '</div>')
           + '<div class="actor-info"><div class="actor-name" style="font-size:.78rem">' + nome + '</div></div>'
@@ -8563,7 +8671,7 @@ async function renderDiretor(id) {
       const dirLookupRows = await dirLookup.json();
       if (dirLookupRows[0]) dirUUID = dirLookupRows[0].id;
     }
-    const sdRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?direcao_id=eq.${dirUUID}&select=papel,series:serie_id(airtable_id,nome,capa,ano_lancamento)`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const sdRes = await fetch(`${SB_URL}/rest/v1/serie_direcao?direcao_id=eq.${dirUUID}&select=papel,series:serie_id(id,airtable_id,nome,capa,ano_lancamento,slug)`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
     const sdRows = await sdRes.json();
     vinculados = sdRows.map(row => ({
       ...sbToAt(row.series, 'series'),
@@ -8579,7 +8687,7 @@ async function renderDiretor(id) {
           const sf = s.fields;
           const capa = getPhoto(s);
           const papel = s._papel || 'Diretor';
-          return `<div class="filmografia-card" onclick="navigate('dorama','${s.id}')" style="cursor:pointer">
+          return `<div class="filmografia-card" onclick="navigate('dorama','${sf['Slug']||s.id}')" style="cursor:pointer">
             <div class="filmografia-poster">
               ${capa ? `<img src="${capa}" alt="${sf['Nome']||''}" loading="lazy">` : `<div class="cast-photo-placeholder" style="font-size:1.2rem;aspect-ratio:2/3">드</div>`}
             </div>
@@ -9094,7 +9202,7 @@ function renderBdayCal() {
     const dia = d.getDate();
     if (!mapa[dia]) mapa[dia] = [];
     const idade = ano - d.getFullYear();
-    mapa[dia].push({ id: a.id, nome: a.fields['Nome']||'', foto: getAtorFoto(a), idade });
+    mapa[dia].push({ id: a.fields['Slug']||a.id, nome: a.fields['Nome']||'', foto: getAtorFoto(a), idade });
   });
 
   // Calcular dias do mês
