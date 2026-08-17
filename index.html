@@ -2083,13 +2083,11 @@ function slugifyAtor(texto) {
     .replace(/^-+|-+$/g, '');
 }
 
-function abrirAtor(ator) {
-  const id = ator.id;
-  const slug = ator.fields?.Slug || slugifyAtor(ator.fields?.Nome);
+function abrirAtorLink(id, nome) {
+  const slug = slugifyAtor(nome);
   location.hash = `ator/${id}/${slug}`;
   parseHash();
 }
-
 function navigate(page, id) {
   // Alias: 'doramas' aponta pra page-home, 'inicio' pra page-inicio
   const pageAlias = page === 'doramas' ? 'home' : page;
@@ -2238,7 +2236,7 @@ function sbToAt(row, tabela) {
     fields = {
       'Nome': row.nome, 'Nome Estrangeiro': row.nome_estrangeiro,
       'Nome Alt': row.nome_alt,
-      'Slug: row.slug,
+      'Slug': row.slug,
       'Foto': _parseFoto(row.foto), 'Data de Nascimento': row.data_nascimento,
       'Biografia': row.biografia, 'Instagram': row.instagram,
       'Site': row.site, 'Url Hancinema': row.url_hancinema,
@@ -6688,7 +6686,7 @@ if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
           if (elencoRec) {
             const atorId = (elencoRec.fields['Atores']||[])[0];
             if (atorId) {
-              return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${atorId}')">${nome}</a></em></strong>${sufixo}`;
+              return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="abrirAtorLink('${atorId}', '${nome.replace(/'/g, "\\'")}')">${nome}</a></em></strong>${sufixo}`;
             }
           }
         }
