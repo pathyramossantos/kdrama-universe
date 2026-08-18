@@ -2700,7 +2700,7 @@ function cardHTML(s,i){
   const photo=getPhoto(s);
   const urlId=f['Slug']||s.id;
   const primeiroGenero = Array.isArray(f['Gêneros']) ? (f['Gêneros'][0]||'') : (f['Gêneros']||'').split(',')[0].trim();
-  return`<div class="drama-card" data-genre="${primeiroGenero}" onclick="navigate('dorama','${urlId}')" oncontextmenu="cardContextMenu(event,'dorama','${s.id}')" style="animation-delay:${i*0.04}s">
+  return`<div class="drama-card" data-genre="${primeiroGenero}" onclick="navigate('dorama','${urlId}')" oncontextmenu="cardContextMenu(event,'dorama','${urlId}')" style="animation-delay:${i*0.04}s">
     ${photo?`<img class="card-poster" src="${photo}" alt="${f['Nome']||''}" loading="lazy">`:`<div class="card-poster-placeholder"><span class="kr">드라마</span></div>`}
     <div class="card-overlay"><p class="card-synopsis">${f['Sinopse']||''}</p></div>
     <div class="card-info">
@@ -2981,7 +2981,7 @@ async function renderDorama(id){
               const name=a?(a.fields['Nome']||''):'';
               const ph=a?getPhoto(a,'Foto'):null;
               const aid=a?(a.fields['Slug']||a.id):'';
-              const click=a?[' onclick="navigate(\'ator\',\'',aid,'\');return false;" oncontextmenu="cardContextMenu(event,\'ator\',\'',a.id,'\');return false;"'].join(''):'';
+              const click=a?[' onclick="navigate(\'ator\',\'',aid,'\');return false;" oncontextmenu="cardContextMenu(event,\'ator\',\'',aid,'\');return false;"'].join(''):'';
               const initials=(n=>{ const p=n.trim().split(/\s+/); return p.length>1?p[0][0]+p[p.length-1][0]:p[0].slice(0,2); })(name||'?').toUpperCase();
               const photoEl=ph?'<img class="cast-photo" src="'+ph+'" alt="'+name+'" loading="lazy">':'<div class="cast-photo-placeholder">'+initials+'</div>';
               const info='<div class="cast-info"><div class="cast-name">'+name+'</div><div class="cast-char">'+(ef['Personagem']||'')+'</div><div class="cast-type">'+(ef['Tipo']||'')+'</div></div>';
@@ -3619,7 +3619,7 @@ function filterAtores(resetPage=true){
     }).join('');
     const urlId = f['Slug']||a.id;
     return '<div class="actor-card-wrap" style="animation-delay:' + (i*0.03) + 's">'
-      + '<div class="actor-card" onclick="navigate(\'ator\',\'' + urlId + '\')" oncontextmenu="cardContextMenu(event,\'ator\',\'' + a.id + '\')" style="position:relative">'
+      + '<div class="actor-card" onclick="navigate(\'ator\',\'' + urlId + '\')" oncontextmenu="cardContextMenu(event,\'ator\',\'' + urlId + '\')" style="position:relative">'
       + (photo ? '<img class="actor-photo" src="' + photo + '" alt="' + (f['Nome']||'') + '" loading="lazy">' : '<div class="actor-photo-placeholder">' + ((n=>{const p=(n||'?').trim().split(/\s+/);return(p.length>1?p[0][0]+p[p.length-1][0]:(n||'?').slice(0,2)).toUpperCase()})(f['Nome'])) + '</div>')
       + (f['Data do cadastro'] ? '<div style="position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:#4caf50;box-shadow:0 0 6px rgba(76,175,80,.7)" title="Revisado"></div>' : '')
       + '<div class="actor-info"><div class="actor-name">' + (f['Nome']||'—') + '</div>'
