@@ -2844,7 +2844,7 @@ async function renderDorama(id){
       const sbSerieId = sbSeries[0]?.id;
       if(sbSerieId){
         const [elencoRows, dirRows] = await Promise.all([
-          fetch(SB_URL+'/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,nome_alt,foto,data_nascimento)&serie_id=eq.'+sbSerieId,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).then(r=>r.json()),
+          fetch(SB_URL+'/rest/v1/elenco?select=*,atores:ator_id(id,airtable_id,nome,nome_alt,foto,data_nascimento,slug)&serie_id=eq.'+sbSerieId,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).then(r=>r.json()),
           fetch(SB_URL+'/rest/v1/serie_direcao?select=papel,direcao:direcao_id(id,airtable_id,nome,nome_estrangeiro,foto,tipo)&serie_id=eq.'+sbSerieId,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}}).then(r=>r.json())
         ]);
         castRecords = elencoRows.map(row => {
