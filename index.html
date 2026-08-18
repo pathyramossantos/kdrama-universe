@@ -2393,6 +2393,49 @@ async function backfillSlugsSeries() {
 window.backfillSlugsAtores = backfillSlugsAtores;
 window.backfillSlugsSeries = backfillSlugsSeries;
 
+// Corrige slug com "-2" indevido: reagrupa por nome e renumera só quem realmente tem homônimo.
+// window.corrigirSlugsAtores() / window.corrigirSlugsSeries()
+async function corrigirSlugsAtores() {
+  const res = await fetch(`${SB_URL}/rest/v1/atores?select=id,nome,slug,created_at&order=created_at.asc`, { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } });
+  const rows = await res.json();
+  const grupos = {};
+  rows.forEach(r => { const base = slugify(r.nome || ''); (grupos[base] = grupos[base] || []).push(r); });
+  let corrigidos = 0;
+  for (const base in grupos) {
+    const grupo = grupos[base];
+    for (let i = 0; i < grupo.length; i++) {
+      const alvo = i === 0 ? base : `${base}-${i + 1}`;
+      if (grupo[i].slug !== alvo) {
+        await fetch(`${SB_URL}/rest/v1/atores?id=eq.${grupo[i].id}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ slug: alvo }) });
+        console.log(`✓ ${grupo[i].nome}: ${grupo[i].slug} → ${alvo}`);
+        corrigidos++;
+      }
+    }
+  }
+  console.log(`Correção concluída: ${corrigidos} ajustados de ${rows.length} atores. Recarregue a página.`);
+}
+async function corrigirSlugsSeries() {
+  const res = await fetch(`${SB_URL}/rest/v1/series?select=id,nome,slug,created_at&order=created_at.asc`, { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } });
+  const rows = await res.json();
+  const grupos = {};
+  rows.forEach(r => { const base = slugify(r.nome || ''); (grupos[base] = grupos[base] || []).push(r); });
+  let corrigidos = 0;
+  for (const base in grupos) {
+    const grupo = grupos[base];
+    for (let i = 0; i < grupo.length; i++) {
+      const alvo = i === 0 ? base : `${base}-${i + 1}`;
+      if (grupo[i].slug !== alvo) {
+        await fetch(`${SB_URL}/rest/v1/series?id=eq.${grupo[i].id}`, { method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify({ slug: alvo }) });
+        console.log(`✓ ${grupo[i].nome}: ${grupo[i].slug} → ${alvo}`);
+        corrigidos++;
+      }
+    }
+  }
+  console.log(`Correção concluída: ${corrigidos} ajustados de ${rows.length} doramas. Recarregue a página.`);
+}
+window.corrigirSlugsAtores = corrigirSlugsAtores;
+window.corrigirSlugsSeries = corrigirSlugsSeries;
+
 async function fetchTable(tableId, options={}) {
   const tabela = SB_TABLE_MAP[tableId];
   if (!tabela) { console.warn('Tabela não mapeada:', tableId); return []; }
