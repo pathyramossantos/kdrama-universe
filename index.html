@@ -6805,11 +6805,11 @@ if (/!\[(gif|pequena|m[ií]dia|media2)\]/.test(t)) {
           const resto = words.slice(len).join(' ');
           const sufixo = resto ? ' ' + resto : '';
           const normNome = normStr(nome);
-          // 1. Busca por nome do ator — match exato ou parcial (startsWith) sem acento
-          const ator = (allAtores||[]).find(a => {
-            const n = normStr(a.fields['Nome'] || '');
-            return n === normNome || n.startsWith(normNome) || normNome.startsWith(n.split(' ')[0]) && normNome.length >= 3;
-          });
+          // 1. Busca por nome do ator — prioriza match exato, depois prefixo, só por último o fuzzy
+          const candidatosAtor = (allAtores||[]);
+          let ator = candidatosAtor.find(a => normStr(a.fields['Nome'] || '') === normNome);
+          if (!ator) ator = candidatosAtor.find(a => { const n = normStr(a.fields['Nome'] || ''); return n && n.startsWith(normNome); });
+          if (!ator) ator = candidatosAtor.find(a => { const n = normStr(a.fields['Nome'] || ''); return n && n.length >= 3 && normNome.startsWith(n); });
           if (ator) {
             return `<strong><em><a style="color:var(--gold);text-decoration:none;cursor:pointer" onclick="navigate('ator','${ator.fields['Slug']||ator.id}')">${nome}</a></em></strong>${sufixo}`;
           }
